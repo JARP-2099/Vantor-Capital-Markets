@@ -62,6 +62,19 @@ export async function getCompanyIntents(companyIds: string[]): Promise<Map<strin
   return result;
 }
 
+/** Full metric history for one company, newest first within each type. */
+export async function getCompanyMetricHistory(companyId: string): Promise<CompanyMetricRow[]> {
+  return db
+    .select()
+    .from(companyMetrics)
+    .where(eq(companyMetrics.companyId, companyId))
+    .orderBy(
+      companyMetrics.metricType,
+      desc(companyMetrics.asOf),
+      desc(companyMetrics.createdAt),
+    );
+}
+
 export async function getCompanyMembers(companyId: string): Promise<CompanyMemberRow[]> {
   return db
     .select()
