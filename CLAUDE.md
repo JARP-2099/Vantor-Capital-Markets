@@ -6,10 +6,10 @@ These instructions apply to **every Claude Code session** working in this reposi
 
 - Product: **Vantor Capital Markets**
 - Planned legal name: **Vantor Capital Markets Incorporated**
-- Lead builder / integration owner GitHub username: **Jack-2099**
-- The repository is intentionally shared only with Jack-2099 and one co-founder.
+- Lead builder / integration owner GitHub username: **JARP-2099**
+- The repository is intentionally shared only with JARP-2099 and one co-founder.
 - Therefore, for workflow purposes:
-  - If the authenticated GitHub username is `Jack-2099`, treat the operator as **Lead Builder / Integrator**.
+  - If the authenticated GitHub username is `JARP-2099`, treat the operator as **Lead Builder / Integrator**.
   - If the authenticated GitHub username is anything else, treat the operator as **Co-Founder / Contributor**.
   - If identity cannot be determined, default to the **Co-Founder / Contributor restrictions** and report that identity could not be verified.
 
@@ -46,7 +46,7 @@ Before editing:
 
 ### Branch naming
 
-If the operator is `Jack-2099`:
+If the operator is `JARP-2099`:
 
 - `jack/feature/<short-name>`
 - `jack/fix/<short-name>`
@@ -75,7 +75,7 @@ Do not claim that something works unless it was actually tested.
 
 ## 4. Role boundaries
 
-### Jack-2099 — Lead Builder / Integrator
+### JARP-2099 — Lead Builder / Integrator
 
 Jack is the primary owner of high-context and cross-cutting engineering work.
 

@@ -4,7 +4,7 @@ This document defines how the two founders should divide work while sharing one 
 
 ## Core operating model
 
-### Jack-2099
+### JARP-2099
 **Role:** Lead Builder / Integration Owner  
 **Claude capacity:** Primary high-context build capacity
 

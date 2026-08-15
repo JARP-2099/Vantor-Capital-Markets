@@ -1,10 +1,10 @@
 # Vantor Capital Markets
 # Governance and architecture-control files are owned by the lead integrator.
 
-/CLAUDE.md                    @Jack-2099
-/.claude/                     @Jack-2099
-/.github/CODEOWNERS           @Jack-2099
-/.github/pull_request_template.md @Jack-2099
-/docs/ARCHITECTURE.md         @Jack-2099
-/docs/DEVELOPMENT_PLAYBOOK.md @Jack-2099
-/VANTOR_HANDOFF.md            @Jack-2099
+/CLAUDE.md                    @JARP-2099
+/.claude/                     @JARP-2099
+/.github/CODEOWNERS           @JARP-2099
+/.github/pull_request_template.md @JARP-2099
+/docs/ARCHITECTURE.md         @JARP-2099
+/docs/DEVELOPMENT_PLAYBOOK.md @JARP-2099
+/VANTOR_HANDOFF.md            @JARP-2099
