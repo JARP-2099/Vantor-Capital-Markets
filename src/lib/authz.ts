@@ -78,6 +78,39 @@ export async function requireAdmin(): Promise<AuthedUser> {
 }
 
 /**
+ * Core ownership check, independent of the request context so it can be
+ * tested directly: a user may manage a company iff they created it or hold
+ * a founder-role membership linked to their user id.
+ */
+export async function findManageableCompany(
+  userId: string,
+  companyId: string,
+): Promise<typeof companies.$inferSelect | null> {
+  const [company] = await db
+    .select()
+    .from(companies)
+    .where(eq(companies.id, companyId))
+    .limit(1);
+  if (!company) return null;
+
+  if (company.createdBy === userId) return company;
+
+  const [membership] = await db
+    .select({ id: companyMembers.id })
+    .from(companyMembers)
+    .where(
+      and(
+        eq(companyMembers.companyId, companyId),
+        eq(companyMembers.userId, userId),
+        eq(companyMembers.role, "founder"),
+      ),
+    )
+    .limit(1);
+
+  return membership ? company : null;
+}
+
+/**
  * Requires that the signed-in user may manage the given company: either its
  * creator or a member row with role=founder linked to their user id.
  * Admins do NOT implicitly pass — admin actions use requireAdmin explicitly
@@ -88,30 +121,9 @@ export async function requireCompanyManager(companyId: string): Promise<{
   company: typeof companies.$inferSelect;
 }> {
   const user = await requireUser();
-  const [company] = await db
-    .select()
-    .from(companies)
-    .where(eq(companies.id, companyId))
-    .limit(1);
-
+  const company = await findManageableCompany(user.id, companyId);
   // Same error for "missing" and "not yours": prevents company-id enumeration.
   if (!company) throw new ForbiddenError();
-
-  if (company.createdBy === user.id) return { user, company };
-
-  const [membership] = await db
-    .select({ id: companyMembers.id })
-    .from(companyMembers)
-    .where(
-      and(
-        eq(companyMembers.companyId, companyId),
-        eq(companyMembers.userId, user.id),
-        eq(companyMembers.role, "founder"),
-      ),
-    )
-    .limit(1);
-
-  if (!membership) throw new ForbiddenError();
   return { user, company };
 }
 

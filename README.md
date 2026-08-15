@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VANTOR
 
-## Getting Started
+**Vantor Capital Markets** — a private startup marketplace where founders
+build standardized company profiles and investors discover private
+companies.
 
-First, run the development server:
+> Vantor is not a registered broker-dealer, funding portal, securities
+> exchange, ATS, investment adviser, or custodian. This codebase deliberately
+> contains **no** securities transactions, money movement, or trading
+> functionality. All regulated capabilities are feature-flagged off in
+> `src/config/features.ts`.
+
+## Current scope (Phase 1)
+
+- Public landing page and startup discovery marketplace (`/companies`) with
+  search, filters, and standardized company cards
+- Standardized public company profiles (`/companies/[slug]`)
+- Email/password authentication with secure sessions
+- Founder onboarding wizard (7 steps, draft-saving) and founder dashboard
+- Admin review workflow (approve / send back / unpublish / archive)
+- Audit logging, role/capability system, historical metrics model
+
+Deferred by design: valuation engine (Phase 2), verification engine
+(Phase 3), watchlists UI, data rooms, acquisitions, anything regulated.
+See `docs/ARCHITECTURE.md` and `VANTOR_HANDOFF.md`.
+
+## Stack
+
+Next.js 16 (App Router) · TypeScript strict · PostgreSQL 16 · Drizzle ORM ·
+better-auth · Tailwind CSS v4 · Zod · Vitest
+
+## Getting started
+
+Prerequisites: Node 22+, pnpm, PostgreSQL 16.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+
+# 1. Create databases (adjust user/password to taste)
+sudo -u postgres psql \
+  -c "CREATE ROLE vantor LOGIN PASSWORD 'vantor_dev_password';" \
+  -c "CREATE DATABASE vantor_dev OWNER vantor;" \
+  -c "CREATE DATABASE vantor_test OWNER vantor;"
+
+# 2. Configure environment
+cp .env.example .env        # then edit values; every variable is documented there
+
+# 3. Apply migrations
+pnpm db:migrate
+
+# 4. (Optional) seed demo accounts + clearly fictional demo companies
+#    Requires ALLOW_SEED=true in .env. Demo rows are flagged isDemo=true.
+pnpm db:seed
+
+# 5. Run
+pnpm dev                    # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Seeded logins (development only): `admin@vantor.dev` / `vantor-admin-dev-1`
+and `founder@vantor.dev` / `vantor-founder-dev-1`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Commands
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command            | Purpose                                    |
+| ------------------ | ------------------------------------------ |
+| `pnpm dev`         | Development server                         |
+| `pnpm build`       | Production build                           |
+| `pnpm start`       | Serve production build                     |
+| `pnpm lint`        | ESLint                                     |
+| `pnpm typecheck`   | TypeScript, no emit                        |
+| `pnpm test`        | Vitest (needs `TEST_DATABASE_URL`)         |
+| `pnpm db:generate` | Generate migration from schema changes     |
+| `pnpm db:migrate`  | Apply migrations                           |
+| `pnpm db:seed`     | Seed demo data (gated by `ALLOW_SEED`)     |
 
-## Learn More
+## Architecture
 
-To learn more about Next.js, take a look at the following resources:
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the system shape,
+domain model, authorization design, company lifecycle, security posture, and
+the extension points reserved for later phases. Session-to-session
+continuity lives in [`VANTOR_HANDOFF.md`](VANTOR_HANDOFF.md).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Set `BETTER_AUTH_SECRET` (strong, unique), `BETTER_AUTH_URL` (canonical
+  https origin), and `DATABASE_URL` in the hosting environment; never commit
+  secrets.
+- Leave `ALLOW_SEED` unset in production; demo data must never reach it.
+- The app is a standard Next.js deployment (any Node host); PostgreSQL is
+  the only backing service.
