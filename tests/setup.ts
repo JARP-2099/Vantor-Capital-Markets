@@ -26,4 +26,9 @@ process.env.ADMIN_EMAILS = "bootstrap-admin@vantor.test";
 
 const client = postgres(testUrl, { max: 1, onnotice: () => {} });
 await migrate(drizzle(client), { migrationsFolder: "./src/db/migrations" });
+// Start every run from an empty database so fixtures never collide with
+// rows persisted by a previous run.
+await client`TRUNCATE TABLE "user", "session", "account", "verification",
+  companies, company_intents, company_members, company_metrics,
+  funding_rounds, user_roles, watchlist_items, audit_log CASCADE`;
 await client.end();
