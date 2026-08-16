@@ -1,12 +1,39 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import type { CompanyMetricRow, CompanyRow } from "@/db/queries/companies";
 import { cn } from "@/lib/cn";
 import { STAGE_LABELS, type CompanyIntent, type MetricType } from "@/lib/constants";
 import { pickGrowthMetric, pickPublicIntent, pickRevenueMetric } from "./metrics";
 
-type CompanyCardProps = {
+/**
+ * Marketplace result list: one company per row, terminal-style. Desktop rows
+ * align identity on the left with right-aligned tabular Revenue / Growth
+ * columns and a quiet dot-badge status column; mobile rows collapse into a
+ * compact stacked entry. Unknown values render as an em dash, never a
+ * fabricated zero.
+ */
+
+/** Shared desktop column template so the header and every row stay aligned. */
+const ROW_GRID = "md:grid md:grid-cols-[minmax(0,1fr)_7.5rem_7rem_12rem] md:items-center md:gap-x-6";
+
+const HEADER_CELL = "text-xs font-medium uppercase tracking-wider text-muted";
+
+/** Desktop-only column header for the result list (rows are self-labelled). */
+export function CompanyListHeader() {
+  return (
+    <div
+      aria-hidden="true"
+      className={cn("hidden border-b border-line-strong bg-mist/60 px-5 py-2.5", ROW_GRID)}
+    >
+      <span className={HEADER_CELL}>Company</span>
+      <span className={cn(HEADER_CELL, "text-right")}>Revenue</span>
+      <span className={cn(HEADER_CELL, "text-right")}>Growth (YoY)</span>
+      <span className={HEADER_CELL}>Status</span>
+    </div>
+  );
+}
+
+type CompanyListRowProps = {
   company: CompanyRow;
   /** Latest metrics for this company (from batched getLatestMetrics). */
   metrics: Map<MetricType, CompanyMetricRow> | undefined;
@@ -14,90 +41,106 @@ type CompanyCardProps = {
   intents: readonly CompanyIntent[];
 };
 
-function MiniStat({
-  label,
-  value,
-  tone = "default",
-}: {
-  label: string;
-  value: string | null;
-  tone?: "default" | "positive" | "negative";
-}) {
-  const known = value !== null;
-  return (
-    <div className="min-w-0">
-      <dt className="text-[11px] font-medium uppercase tracking-wider text-muted">{label}</dt>
-      <dd
-        className={cn(
-          "mt-0.5 truncate text-sm tabular-nums",
-          !known && "font-normal text-faint",
-          known && tone === "default" && "font-semibold text-ink-900",
-          known && tone === "positive" && "font-semibold text-positive-700",
-          known && tone === "negative" && "font-semibold text-negative-700",
-        )}
-      >
-        {known ? value : "—"}
-      </dd>
-    </div>
-  );
-}
+const toneClass = {
+  default: "text-ink-900",
+  positive: "text-positive-700",
+  negative: "text-negative-700",
+} as const;
 
-/**
- * Standardized marketplace card. Hierarchy: name → industry • stage →
- * short description → 2x2 latest-metric mini-grid. The whole card is one
- * link to the company profile; unknown values render as an em dash, never
- * as a fabricated zero.
- */
-export function CompanyCard({ company, metrics, intents }: CompanyCardProps) {
+export function CompanyListRow({ company, metrics, intents }: CompanyListRowProps) {
   const stageLabel = company.stage ? STAGE_LABELS[company.stage] : null;
-  const metaLine = [company.industry, stageLabel].filter(Boolean).join(" • ");
+  const location = [company.hqCity, company.hqCountry].filter(Boolean).join(", ");
+  const meta = [company.industry, stageLabel, location || null].filter(Boolean).join(" · ");
   const revenue = pickRevenueMetric(metrics);
   const growth = pickGrowthMetric(metrics);
   const status = pickPublicIntent(intents);
 
   return (
-    <Link
-      href={`/companies/${company.slug}`}
-      className="group block h-full rounded-lg"
-      aria-label={`View ${company.name}`}
-    >
-      <Card className="flex h-full flex-col p-5 transition-colors group-hover:border-faint">
-        <h2 className="text-base font-semibold leading-snug text-ink-900">{company.name}</h2>
-        {metaLine ? <p className="mt-0.5 text-xs text-muted">{metaLine}</p> : null}
-        {company.shortDescription ? (
-          <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-slate-650">
-            {company.shortDescription}
-          </p>
-        ) : null}
-
-        <div aria-hidden="true" className="min-h-4 flex-1" />
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-3 border-t border-line pt-4">
-          <MiniStat label={revenue?.label ?? "Revenue"} value={revenue?.value ?? null} />
-          <MiniStat
-            label="Growth (YoY)"
-            value={growth?.value ?? null}
-            tone={growth?.tone ?? "default"}
-          />
-          <MiniStat label="Stage" value={stageLabel} />
-          {status ? (
-            <div className="min-w-0">
-              <dt className="text-[11px] font-medium uppercase tracking-wider text-muted">
-                Status
-              </dt>
-              <dd className="mt-1">
-                <Badge tone={status.intent === "not_raising" ? "neutral" : "accent"}>
-                  {status.label}
-                </Badge>
-              </dd>
-            </div>
+    <li>
+      <Link
+        href={`/companies/${company.slug}`}
+        aria-label={`View ${company.name}`}
+        className={cn(
+          "group block px-4 py-3.5 transition-colors hover:bg-mist/50 sm:px-5 md:py-3",
+          ROW_GRID,
+        )}
+      >
+        {/* ------------------------------ Identity ------------------------------ */}
+        <div className="min-w-0">
+          <h2 className="truncate text-sm font-semibold text-ink-900 group-hover:text-accent-700">
+            {company.name}
+          </h2>
+          {company.shortDescription ? (
+            <p className="mt-0.5 truncate text-sm text-slate-650">{company.shortDescription}</p>
           ) : null}
-        </dl>
+          {meta ? <p className="mt-0.5 truncate text-xs text-muted">{meta}</p> : null}
+        </div>
 
-        <span className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-accent-600 group-hover:text-accent-700">
-          View Company
-          <span aria-hidden="true">&rarr;</span>
-        </span>
-      </Card>
-    </Link>
+        {/* --------------------------- Desktop columns --------------------------- */}
+        <div className="hidden text-right md:block">
+          <span className="sr-only">Revenue: </span>
+          {revenue ? (
+            <>
+              <p className="text-sm font-semibold text-ink-900 tabular-nums">{revenue.value}</p>
+              <p className="text-[11px] uppercase tracking-wider text-muted">{revenue.label}</p>
+            </>
+          ) : (
+            <p className="text-sm text-faint">—</p>
+          )}
+        </div>
+        <div className="hidden text-right md:block">
+          <span className="sr-only">Growth (YoY): </span>
+          {growth ? (
+            <p className={cn("text-sm font-semibold tabular-nums", toneClass[growth.tone])}>
+              {growth.value}
+            </p>
+          ) : (
+            <p className="text-sm text-faint">—</p>
+          )}
+        </div>
+        <div className="hidden min-w-0 md:block">
+          {status ? (
+            <Badge dot tone={status.intent === "not_raising" ? "neutral" : "accent"}>
+              {status.label}
+            </Badge>
+          ) : null}
+        </div>
+
+        {/* ---------------------------- Mobile metrics ---------------------------- */}
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 md:hidden">
+          <span className="text-sm text-slate-650">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-muted">
+              {revenue ? revenue.label : "Revenue"}
+            </span>{" "}
+            <span
+              className={cn(
+                "tabular-nums",
+                revenue ? "font-semibold text-ink-900" : "text-faint",
+              )}
+            >
+              {revenue ? revenue.value : "—"}
+            </span>
+          </span>
+          <span className="text-sm text-slate-650">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-muted">
+              Growth
+            </span>{" "}
+            <span
+              className={cn(
+                "tabular-nums",
+                growth ? cn("font-semibold", toneClass[growth.tone]) : "text-faint",
+              )}
+            >
+              {growth ? growth.value : "—"}
+            </span>
+          </span>
+          {status ? (
+            <Badge dot tone={status.intent === "not_raising" ? "neutral" : "accent"}>
+              {status.label}
+            </Badge>
+          ) : null}
+        </div>
+      </Link>
+    </li>
   );
 }

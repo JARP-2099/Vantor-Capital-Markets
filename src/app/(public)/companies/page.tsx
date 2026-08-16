@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Container } from "@/components/layout/container";
-import { CompanyCard } from "@/components/marketplace/company-card";
+import { CompanyListHeader, CompanyListRow } from "@/components/marketplace/company-card";
 import { FilterBar, type MarketplaceFilterValues } from "@/components/marketplace/filter-bar";
 import { Pagination } from "@/components/marketplace/pagination";
 import { ButtonLink } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import {
 import {
   COMPANY_STAGES,
   PUBLIC_INTENT_BADGES,
+  STAGE_LABELS,
   type CompanyIntent,
   type CompanyStage,
 } from "@/lib/constants";
@@ -88,13 +90,22 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Se
 
   const nothingPublished = total === 0 && activeCount === 0;
 
+  // Human-readable summary of the active filters, shown beside the count.
+  const activeFilterParts = [
+    q ? `“${q}”` : null,
+    industry ?? null,
+    stage ? STAGE_LABELS[stage] : null,
+    country ?? null,
+    intent ? (PUBLIC_INTENT_BADGES[intent] ?? null) : null,
+  ].filter((part): part is string => Boolean(part));
+
   return (
     <Container className="py-10 sm:py-12">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
+        <h1 className="text-2xl font-semibold tracking-tight text-ink-900 sm:text-3xl">
           Discover Private Companies
         </h1>
-        <p className="mt-2 max-w-3xl text-xs leading-relaxed text-faint">
+        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted">
           Company information is provided by the companies themselves and has not been
           independently verified by Vantor.
         </p>
@@ -109,30 +120,54 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Se
         />
       </div>
 
-      <div className="mt-6 space-y-6">
+      {/* Result count + active filter summary */}
+      <div className="mt-5 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+        <p className="text-sm text-slate-650">
+          <span className="font-semibold text-ink-900 tabular-nums">
+            {total.toLocaleString("en-US")}
+          </span>{" "}
+          {total === 1 ? "company" : "companies"}
+        </p>
+        {activeFilterParts.length > 0 ? (
+          <p className="text-xs text-muted">
+            Filtered by {activeFilterParts.join(" · ")} ·{" "}
+            <Link
+              href="/companies"
+              className="font-medium text-accent-700 underline-offset-2 hover:underline"
+            >
+              Clear
+            </Link>
+          </p>
+        ) : null}
+      </div>
+
+      <div className="mt-3 space-y-4">
         {companies.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {companies.map((company) => (
-                <CompanyCard
-                  key={company.id}
-                  company={company}
-                  metrics={metricsByCompany.get(company.id)}
-                  intents={intentsByCompany.get(company.id) ?? []}
-                />
-              ))}
+            <div className="overflow-hidden rounded-lg border border-line bg-paper shadow-card">
+              <CompanyListHeader />
+              <ul className="divide-y divide-line">
+                {companies.map((company) => (
+                  <CompanyListRow
+                    key={company.id}
+                    company={company}
+                    metrics={metricsByCompany.get(company.id)}
+                    intents={intentsByCompany.get(company.id) ?? []}
+                  />
+                ))}
+              </ul>
             </div>
             <Pagination page={page} pageSize={pageSize} total={total} hrefFor={hrefFor} />
           </>
         ) : nothingPublished ? (
           <EmptyState
             title="No companies published yet"
-            description="Published company profiles will appear here as founders complete them. Check back soon."
+            description="Published profiles appear here as founders complete them — standardized story, metrics, and team. Check back soon."
           />
         ) : (
           <EmptyState
             title="No matching companies"
-            description="No published companies match the current filters. Adjust the criteria or clear the filters to see everything."
+            description="Nothing published matches these filters. Broaden the criteria or clear the filters to see every company."
             action={
               <ButtonLink href="/companies" variant="secondary" size="sm">
                 Clear filters

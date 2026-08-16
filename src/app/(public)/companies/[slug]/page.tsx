@@ -11,6 +11,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { MetricStat } from "@/components/ui/metric-stat";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Table, TBody, TD, TH, THead, TableWrap } from "@/components/ui/table";
 import { ValuationSection } from "@/components/marketplace/valuation-section";
 import { VerificationSection } from "@/components/marketplace/verification-section";
 import {
@@ -75,8 +77,10 @@ function periodLabel(row: CompanyMetricRow): string | null {
 function StoryBlock({ heading, body }: { heading: string; body: string }) {
   return (
     <div>
-      <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">{heading}</h3>
-      <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-650">{body}</p>
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">{heading}</h3>
+      <p className="mt-1.5 max-w-3xl whitespace-pre-line text-sm leading-relaxed text-slate-650">
+        {body}
+      </p>
     </div>
   );
 }
@@ -106,10 +110,15 @@ export default async function CompanyProfilePage({ params }: { params: Params })
   const intents = intentsByCompany.get(company.id) ?? [];
 
   /* ------------------------------ Header data ----------------------------- */
-  const industryLine = [company.industry, company.subindustry].filter(Boolean).join(" • ");
+  const industryLine = [company.industry, company.subindustry].filter(Boolean).join(" · ");
   const stageLabel = company.stage ? STAGE_LABELS[company.stage] : null;
   const hq = [company.hqCity, company.hqCountry].filter(Boolean).join(", ");
   const website = company.website ? websiteInfo(company.website) : null;
+  const metaLine = [
+    industryLine || null,
+    hq || null,
+    company.foundedYear ? `Founded ${company.foundedYear}` : null,
+  ].filter(Boolean);
 
   /* ---------------------------- Key metric tiles --------------------------- */
   const revenue = pickRevenueMetric(byType);
@@ -118,10 +127,15 @@ export default async function CompanyProfilePage({ params }: { params: Params })
   const employees = pickSimpleMetric(byType, "employees");
   const capitalRaised = pickSimpleMetric(byType, "capital_raised_total");
 
-  const tiles: { label: string; value: string; tone?: "default" | "positive" | "negative" }[] = [];
-  if (revenue) tiles.push({ label: revenue.label, value: revenue.value });
+  const tiles: {
+    label: string;
+    value: string;
+    tone?: "default" | "positive" | "negative";
+    size?: "md" | "lg";
+  }[] = [];
+  if (revenue) tiles.push({ label: revenue.label, value: revenue.value, size: "lg" });
   if (growth) {
-    tiles.push({ label: METRIC_LABELS.revenue_growth_yoy, value: growth.value, tone: growth.tone });
+    tiles.push({ label: "Growth (YoY)", value: growth.value, tone: growth.tone, size: "lg" });
   }
   if (customers) tiles.push({ label: customers.label, value: customers.value });
   if (employees) tiles.push({ label: employees.label, value: employees.value });
@@ -171,16 +185,16 @@ export default async function CompanyProfilePage({ params }: { params: Params })
       <div className="border-b border-line bg-paper">
         <Container className="py-10 sm:py-12">
           <header>
-            <h1 className="text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
+            <h1 className="text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl">
               {company.name}
             </h1>
-            {industryLine ? <p className="mt-1 text-sm text-muted">{industryLine}</p> : null}
 
-            {(stageLabel || hq || company.foundedYear) && (
-              <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            {(stageLabel || metaLine.length > 0) && (
+              <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
                 {stageLabel ? <Badge tone="ink">{stageLabel}</Badge> : null}
-                {hq ? <Badge>{hq}</Badge> : null}
-                {company.foundedYear ? <Badge>Founded {company.foundedYear}</Badge> : null}
+                {metaLine.length > 0 ? (
+                  <p className="text-sm text-muted">{metaLine.join(" · ")}</p>
+                ) : null}
               </div>
             )}
 
@@ -197,7 +211,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
                   href={website.href}
                   target="_blank"
                   rel="noopener noreferrer nofollow"
-                  className="inline-flex items-center gap-1 text-sm font-medium text-accent-600 hover:text-accent-700"
+                  className="inline-flex items-center gap-1 text-sm font-medium text-accent-700 underline-offset-2 hover:underline"
                 >
                   {website.label}
                   <span aria-hidden="true">&#8599;</span>
@@ -209,19 +223,21 @@ export default async function CompanyProfilePage({ params }: { params: Params })
 
           {/* --------------------------- Key metrics --------------------------- */}
           {tiles.length > 0 ? (
-            <Card className="mt-8 p-5">
+            <div className="mt-8 border-t border-line pt-6">
               <h2 className="sr-only">Key metrics</h2>
-              <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-6">
+              <dl className="grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-6">
                 {tiles.map((tile) => (
                   <MetricStat
                     key={tile.label}
                     label={tile.label}
                     value={tile.value}
                     tone={tile.tone}
+                    size={tile.size}
+                    className="tabular-nums"
                   />
                 ))}
               </dl>
-            </Card>
+            </div>
           ) : null}
         </Container>
       </div>
@@ -232,12 +248,12 @@ export default async function CompanyProfilePage({ params }: { params: Params })
         className="sticky top-16 z-30 border-b border-line bg-canvas/95 backdrop-blur"
       >
         <Container>
-          <div className="flex gap-6 overflow-x-auto py-3">
+          <div className="flex gap-6 overflow-x-auto">
             {navItems.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="whitespace-nowrap text-sm font-medium text-slate-650 transition-colors hover:text-ink-900"
+                className="whitespace-nowrap border-b-2 border-transparent py-3 text-sm font-medium text-muted transition-colors hover:border-line-strong hover:text-ink-900"
               >
                 {item.label}
               </a>
@@ -250,7 +266,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
         {/* ----------------------------- Overview ----------------------------- */}
         {hasOverview ? (
           <section id="overview" aria-labelledby="overview-heading" className="scroll-mt-32 pt-10">
-            <h2 id="overview-heading" className="text-lg font-semibold text-ink-900">
+            <h2 id="overview-heading" className="text-lg font-semibold tracking-tight text-ink-900">
               Overview
             </h2>
             <div className="mt-5 space-y-7">
@@ -268,70 +284,59 @@ export default async function CompanyProfilePage({ params }: { params: Params })
 
         {/* ---------------------------- Financials ---------------------------- */}
         <section id="financials" aria-labelledby="financials-heading" className="scroll-mt-32 pt-10">
-          <h2 id="financials-heading" className="text-lg font-semibold text-ink-900">
+          <h2 id="financials-heading" className="text-lg font-semibold tracking-tight text-ink-900">
             Financials
           </h2>
-          <p className="mt-1 text-xs text-faint">
+          <p className="mt-1 text-xs text-muted">
             Self-reported by the company. All reported values, newest first.
           </p>
           {metricRows.length > 0 ? (
-            <Card className="mt-5 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[28rem] text-sm">
-                  <thead>
-                    <tr className="border-b border-line text-left text-xs uppercase tracking-wider text-muted">
-                      <th scope="col" className="px-5 py-3 font-medium">
-                        Metric
-                      </th>
-                      <th scope="col" className="px-5 py-3 text-right font-medium">
-                        Value
-                      </th>
-                      <th scope="col" className="px-5 py-3 font-medium">
-                        As of
-                      </th>
-                      {showPeriodColumn ? (
-                        <th scope="col" className="px-5 py-3 font-medium">
-                          Period
+            <TableWrap className="mt-5">
+              <Table className="min-w-[30rem]">
+                <THead>
+                  <tr>
+                    <TH>Metric</TH>
+                    <TH numeric>Value</TH>
+                    <TH>As of</TH>
+                    {showPeriodColumn ? <TH>Period</TH> : null}
+                  </tr>
+                </THead>
+                <TBody>
+                  {metricRows.map((row) => {
+                    const n = metricNumber(row);
+                    return (
+                      <tr key={row.id}>
+                        <th
+                          scope="row"
+                          className="whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-ink-900"
+                        >
+                          {METRIC_LABELS[row.metricType]}
                         </th>
-                      ) : null}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-line">
-                    {metricRows.map((row) => {
-                      const n = metricNumber(row);
-                      return (
-                        <tr key={row.id}>
-                          <th
-                            scope="row"
-                            className="px-5 py-3 text-left font-medium text-ink-900"
-                          >
-                            {METRIC_LABELS[row.metricType]}
-                          </th>
-                          <td className="px-5 py-3 text-right font-semibold text-ink-900 tabular-nums">
-                            {n === null
-                              ? "—"
-                              : formatMetricValue(row.metricType, n, row.currency)}
-                          </td>
-                          <td className="px-5 py-3 text-muted tabular-nums">
-                            {formatDate(row.asOf)}
-                          </td>
-                          {showPeriodColumn ? (
-                            <td className="px-5 py-3 text-muted tabular-nums">
-                              {periodLabel(row) ?? "—"}
-                            </td>
-                          ) : null}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
+                        <TD numeric className="font-semibold text-ink-900">
+                          {n === null
+                            ? "—"
+                            : formatMetricValue(row.metricType, n, row.currency)}
+                        </TD>
+                        <TD className="whitespace-nowrap text-muted tabular-nums">
+                          {formatDate(row.asOf)}
+                        </TD>
+                        {showPeriodColumn ? (
+                          <TD className="whitespace-nowrap text-muted tabular-nums">
+                            {periodLabel(row) ?? "—"}
+                          </TD>
+                        ) : null}
+                      </tr>
+                    );
+                  })}
+                </TBody>
+              </Table>
+            </TableWrap>
           ) : (
-            <div className="mt-5 rounded-lg border border-dashed border-line bg-paper px-6 py-10 text-center">
-              <p className="text-sm text-muted">
-                This company has not published financial metrics.
-              </p>
+            <div className="mt-5">
+              <EmptyState
+                title="No published metrics"
+                description="This company has not published financial metrics."
+              />
             </div>
           )}
         </section>
@@ -339,7 +344,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
         {/* ----------------------------- Valuation ----------------------------- */}
         {valuationRun ? (
           <section id="valuation" aria-labelledby="valuation-heading" className="scroll-mt-32 pt-10">
-            <h2 id="valuation-heading" className="text-lg font-semibold text-ink-900">
+            <h2 id="valuation-heading" className="text-lg font-semibold tracking-tight text-ink-900">
               Estimated Private Market Valuation
             </h2>
             <ValuationSection
@@ -357,7 +362,10 @@ export default async function CompanyProfilePage({ params }: { params: Params })
             aria-labelledby="verification-heading"
             className="scroll-mt-32 pt-10"
           >
-            <h2 id="verification-heading" className="text-lg font-semibold text-ink-900">
+            <h2
+              id="verification-heading"
+              className="text-lg font-semibold tracking-tight text-ink-900"
+            >
               Data Verification
             </h2>
             <VerificationSection summary={verificationSummary} />
@@ -367,27 +375,33 @@ export default async function CompanyProfilePage({ params }: { params: Params })
         {/* ------------------------------- Team ------------------------------- */}
         {hasTeam ? (
           <section id="team" aria-labelledby="team-heading" className="scroll-mt-32 pt-10">
-            <h2 id="team-heading" className="text-lg font-semibold text-ink-900">
+            <h2 id="team-heading" className="text-lg font-semibold tracking-tight text-ink-900">
               Team
             </h2>
-            <ul className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {members.map((member) => (
-                <li key={member.id}>
-                  <Card className="h-full p-5">
-                    <div className="flex flex-wrap items-center gap-2">
+            <Card className="mt-5 overflow-hidden">
+              <ul className="divide-y divide-line">
+                {members.map((member) => (
+                  <li key={member.id} className="px-5 py-4">
+                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
                       <h3 className="text-sm font-semibold text-ink-900">{member.name}</h3>
-                      {member.role === "founder" ? <Badge tone="accent">Founder</Badge> : null}
+                      {member.title ? (
+                        <p className="text-sm text-muted">{member.title}</p>
+                      ) : null}
+                      {member.role === "founder" ? (
+                        <Badge dot tone="accent">
+                          Founder
+                        </Badge>
+                      ) : null}
                     </div>
-                    {member.title ? <p className="mt-0.5 text-sm text-muted">{member.title}</p> : null}
                     {member.bio ? (
-                      <p className="mt-2.5 whitespace-pre-line text-sm leading-relaxed text-slate-650">
+                      <p className="mt-1.5 max-w-3xl whitespace-pre-line text-sm leading-relaxed text-slate-650">
                         {member.bio}
                       </p>
                     ) : null}
-                  </Card>
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            </Card>
           </section>
         ) : null}
       </Container>

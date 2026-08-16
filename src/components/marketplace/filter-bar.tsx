@@ -1,6 +1,6 @@
-import { Card } from "@/components/ui/card";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
+import { cn } from "@/lib/cn";
 import {
   COMPANY_STAGES,
   PUBLIC_INTENT_BADGES,
@@ -23,22 +23,42 @@ type FilterFieldsProps = {
   industries: string[];
   countries: string[];
   activeCount: number;
+  /**
+   * toolbar = slim single-row desktop bar (labels visually hidden, compact
+   * controls); stacked = labelled fields for the mobile disclosure.
+   */
+  layout: "toolbar" | "stacked";
 };
-
-function labelClass() {
-  return "block text-xs font-medium uppercase tracking-wider text-muted";
-}
 
 /**
  * Plain GET form — filter state lives entirely in the URL, so views are
  * shareable and the whole bar works without JavaScript. Submitting resets
  * pagination because no `page` field is included.
  */
-function FilterFields({ idPrefix, values, industries, countries, activeCount }: FilterFieldsProps) {
+function FilterFields({
+  idPrefix,
+  values,
+  industries,
+  countries,
+  activeCount,
+  layout,
+}: FilterFieldsProps) {
+  const toolbar = layout === "toolbar";
+  const labelClass = toolbar
+    ? "sr-only"
+    : "block text-xs font-medium uppercase tracking-wider text-muted";
+  const fieldClass = toolbar ? "h-9" : undefined;
+
   return (
-    <form method="get" action="/companies" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      <div className="space-y-1.5 sm:col-span-2 lg:col-span-4">
-        <label htmlFor={`${idPrefix}-q`} className={labelClass()}>
+    <form
+      method="get"
+      action="/companies"
+      className={cn(
+        toolbar ? "flex flex-wrap items-center gap-2" : "grid gap-3",
+      )}
+    >
+      <div className={cn(toolbar ? "min-w-52 flex-[2]" : "space-y-1.5")}>
+        <label htmlFor={`${idPrefix}-q`} className={labelClass}>
           Search
         </label>
         <Input
@@ -47,14 +67,20 @@ function FilterFields({ idPrefix, values, industries, countries, activeCount }: 
           name="q"
           defaultValue={values.q ?? ""}
           placeholder="Company name, description, or industry"
+          className={fieldClass}
         />
       </div>
 
-      <div className="space-y-1.5">
-        <label htmlFor={`${idPrefix}-industry`} className={labelClass()}>
+      <div className={cn(toolbar ? "w-40" : "space-y-1.5")}>
+        <label htmlFor={`${idPrefix}-industry`} className={labelClass}>
           Industry
         </label>
-        <Select id={`${idPrefix}-industry`} name="industry" defaultValue={values.industry ?? ""}>
+        <Select
+          id={`${idPrefix}-industry`}
+          name="industry"
+          defaultValue={values.industry ?? ""}
+          className={fieldClass}
+        >
           <option value="">All industries</option>
           {industries.map((industry) => (
             <option key={industry} value={industry}>
@@ -64,11 +90,16 @@ function FilterFields({ idPrefix, values, industries, countries, activeCount }: 
         </Select>
       </div>
 
-      <div className="space-y-1.5">
-        <label htmlFor={`${idPrefix}-stage`} className={labelClass()}>
+      <div className={cn(toolbar ? "w-32" : "space-y-1.5")}>
+        <label htmlFor={`${idPrefix}-stage`} className={labelClass}>
           Stage
         </label>
-        <Select id={`${idPrefix}-stage`} name="stage" defaultValue={values.stage ?? ""}>
+        <Select
+          id={`${idPrefix}-stage`}
+          name="stage"
+          defaultValue={values.stage ?? ""}
+          className={fieldClass}
+        >
           <option value="">All stages</option>
           {COMPANY_STAGES.map((stage) => (
             <option key={stage} value={stage}>
@@ -78,11 +109,16 @@ function FilterFields({ idPrefix, values, industries, countries, activeCount }: 
         </Select>
       </div>
 
-      <div className="space-y-1.5">
-        <label htmlFor={`${idPrefix}-country`} className={labelClass()}>
+      <div className={cn(toolbar ? "w-36" : "space-y-1.5")}>
+        <label htmlFor={`${idPrefix}-country`} className={labelClass}>
           Country
         </label>
-        <Select id={`${idPrefix}-country`} name="country" defaultValue={values.country ?? ""}>
+        <Select
+          id={`${idPrefix}-country`}
+          name="country"
+          defaultValue={values.country ?? ""}
+          className={fieldClass}
+        >
           <option value="">All countries</option>
           {countries.map((country) => (
             <option key={country} value={country}>
@@ -92,11 +128,16 @@ function FilterFields({ idPrefix, values, industries, countries, activeCount }: 
         </Select>
       </div>
 
-      <div className="space-y-1.5">
-        <label htmlFor={`${idPrefix}-intent`} className={labelClass()}>
+      <div className={cn(toolbar ? "w-32" : "space-y-1.5")}>
+        <label htmlFor={`${idPrefix}-intent`} className={labelClass}>
           Status
         </label>
-        <Select id={`${idPrefix}-intent`} name="intent" defaultValue={values.intent ?? ""}>
+        <Select
+          id={`${idPrefix}-intent`}
+          name="intent"
+          defaultValue={values.intent ?? ""}
+          className={fieldClass}
+        >
           <option value="">Any status</option>
           {PUBLIC_INTENT_ORDER.map((intent: CompanyIntent) => (
             <option key={intent} value={intent}>
@@ -106,12 +147,17 @@ function FilterFields({ idPrefix, values, industries, countries, activeCount }: 
         </Select>
       </div>
 
-      <div className="flex items-center gap-2 sm:col-span-2 lg:col-span-4">
-        <Button type="submit" size="sm">
+      <div className="flex items-center gap-2">
+        <Button type="submit" variant="secondary" size="sm" className={toolbar ? "h-9" : undefined}>
           Apply
         </Button>
         {activeCount > 0 ? (
-          <ButtonLink href="/companies" variant="ghost" size="sm">
+          <ButtonLink
+            href="/companies"
+            variant="ghost"
+            size="sm"
+            className={toolbar ? "h-9" : undefined}
+          >
             Clear
           </ButtonLink>
         ) : null}
@@ -128,23 +174,24 @@ type FilterBarProps = {
 };
 
 /**
- * Marketplace filter bar. Always visible on desktop; collapses into a native
- * <details> disclosure on mobile (no client JS). The two renders are separate
- * forms with distinct field ids, so labels stay valid.
+ * Marketplace filter bar. A slim always-visible toolbar on desktop; collapses
+ * into a native <details> disclosure on mobile (no client JS). The two renders
+ * are separate forms with distinct field ids, so labels stay valid.
  */
 export function FilterBar({ values, industries, countries, activeCount }: FilterBarProps) {
   return (
     <section aria-label="Filter companies">
-      {/* Desktop: always expanded */}
-      <Card className="hidden p-4 md:block">
+      {/* Desktop: always expanded, single slim row */}
+      <div className="hidden rounded-lg border border-line bg-paper p-2 shadow-card md:block">
         <FilterFields
           idPrefix="filters"
           values={values}
           industries={industries}
           countries={countries}
           activeCount={activeCount}
+          layout="toolbar"
         />
-      </Card>
+      </div>
 
       {/* Mobile: native disclosure; open by default when filters are active */}
       <details
@@ -161,6 +208,7 @@ export function FilterBar({ values, industries, countries, activeCount }: Filter
             industries={industries}
             countries={countries}
             activeCount={activeCount}
+            layout="stacked"
           />
         </div>
       </details>
