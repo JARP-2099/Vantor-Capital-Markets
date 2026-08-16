@@ -10,7 +10,7 @@ companies.
 > functionality. All regulated capabilities are feature-flagged off in
 > `src/config/features.ts`.
 
-## Current scope (Phase 1)
+## Current scope (through Phase 2)
 
 - Public landing page and startup discovery marketplace (`/companies`) with
   search, filters, and standardized company cards
@@ -18,11 +18,18 @@ companies.
 - Email/password authentication with secure sessions
 - Founder onboarding wizard (7 steps, draft-saving) and founder dashboard
 - Admin review workflow (approve / send back / unpublish / archive)
+- **Valuation Engine V1** (`vantor-valuation-v1`): deterministic, versioned,
+  explainable estimate ranges with confidence and history — see
+  `docs/VALUATION_METHODOLOGY.md`
+- **Verification foundation**: per-category claims, evidence references,
+  admin review workflow, status-only public display
 - Audit logging, role/capability system, historical metrics model
+- Production-ready data layer (Railway PostgreSQL + Vercel) — see
+  `docs/DEPLOYMENT.md`
 
-Deferred by design: valuation engine (Phase 2), verification engine
-(Phase 3), watchlists UI, data rooms, acquisitions, anything regulated.
-See `docs/ARCHITECTURE.md` and `VANTOR_HANDOFF.md`.
+Deferred by design: watchlists UI, data rooms, acquisitions, external
+verification providers, anything regulated. See `docs/ARCHITECTURE.md`
+and `VANTOR_HANDOFF.md`.
 
 ## Stack
 
