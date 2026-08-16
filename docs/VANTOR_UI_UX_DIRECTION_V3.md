@@ -1,6 +1,12 @@
 # VANTOR UI/UX DIRECTION — V3 (Republic × AngelList)
 
-**Status: CURRENT visual source of truth.**
+> **REJECTED (2026-08-16). The operator rejected the V3 visual direction after
+> Gate 1 review. Do not use this document as the current art-direction source of
+> truth. The next redesign starts from
+> `docs/VANTOR_UI_REDESIGN_HANDOVER.md`.** Kept for research history and for
+> the product/regulatory rails, which remain valid.
+
+**Status: SUPERSEDED — historical record of the V3 (Gate 1) direction.**
 Supersedes `docs/VANTOR_UI_UX_REFERENCE_BRIEF.md` (V1, editorial/ivory — rejected) and
 `docs/UI_REDESIGN_V2_DECISIONS.md` (V2, dark/OLED cobalt — rejected) for all art direction.
 Product, security, and regulatory guidance in older docs remains valid where it does not

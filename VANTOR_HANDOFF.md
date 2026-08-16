@@ -1,12 +1,18 @@
 # VANTOR — Handoff (through UI Redesign V3 · Gate 1)
 
-Written for the next session (or engineer) with zero prior context. Read
-this, then **`docs/VANTOR_UI_UX_DIRECTION_V3.md` (CURRENT visual source of
-truth)**, `docs/ARCHITECTURE.md`, `docs/VALUATION_METHODOLOGY.md`,
-`docs/DEPLOYMENT.md`, and `docs/DEVELOPMENT_PLAYBOOK.md`.
-(`docs/UI_REDESIGN_V2_DECISIONS.md` and
-`docs/VANTOR_UI_UX_REFERENCE_BRIEF.md` are both SUPERSEDED for art
-direction — research history / product context only.)
+Written for the next session (or engineer) with zero prior context.
+
+> **UI STATUS (2026-08-16): the V3 Gate 1 direction was REJECTED by the
+> operator after review — as were V1 and V2 before it. A fourth redesign is
+> expected. Start from `docs/VANTOR_UI_REDESIGN_HANDOVER.md`, which carries
+> the full rejection history, locked constraints, file map, and environment
+> cheat-sheet.** All three direction docs
+> (`docs/VANTOR_UI_UX_DIRECTION_V3.md`, `docs/UI_REDESIGN_V2_DECISIONS.md`,
+> `docs/VANTOR_UI_UX_REFERENCE_BRIEF.md`) are historical only.
+
+For product/system context read `docs/ARCHITECTURE.md`,
+`docs/VALUATION_METHODOLOGY.md`, `docs/DEPLOYMENT.md`, and
+`docs/DEVELOPMENT_PLAYBOOK.md`.
 
 ## UI Redesign V3 — Gate 1 (this session, same branch)
 
