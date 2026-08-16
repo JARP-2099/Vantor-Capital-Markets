@@ -1,5 +1,15 @@
 # Vantor Capital Markets — UI / UX Reference Brief
 
+> **SUPERSEDED — Do not use this file as the current Vantor visual source
+> of truth. See `docs/UI_REDESIGN_V2_DECISIONS.md`.**
+>
+> The art direction below (warm ivory, editorial serif typography,
+> restrained editorial compositions, the V1 logo direction) was rejected
+> and replaced in the V2 redesign. This file is kept only for historical
+> and PRODUCT context — the product principles (financial clarity,
+> accessibility, honest data, no fake pricing, no crypto aesthetic,
+> marketing/product separation) remain valid.
+
 ## Purpose
 
 This document is the design source-of-truth for the upcoming Vantor visual overhaul.
