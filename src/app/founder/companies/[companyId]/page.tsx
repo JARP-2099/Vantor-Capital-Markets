@@ -17,12 +17,12 @@ const STEP_BY_CHECKLIST_KEY = {
   team: "team",
 } as const;
 
-function StatusExplanation({ status }: { status: CompanyStatus }) {
+function StatusExplanation({ status, slug }: { status: CompanyStatus; slug: string }) {
   if (status === "submitted" || status === "under_review") {
     return (
       <Alert tone="warn" title="Awaiting review">
         Your profile is with the Vantor review team. It is read-only until the review is complete.
-        we&apos;ll notify you as soon as there&apos;s a decision.
+        We&apos;ll notify you as soon as there&apos;s a decision.
       </Alert>
     );
   }
@@ -30,7 +30,11 @@ function StatusExplanation({ status }: { status: CompanyStatus }) {
     return (
       <Alert tone="success" title="Your company is live">
         Investors can see your profile on the marketplace. Edits made in the Profile, Metrics, and
-        Team tabs appear publicly as soon as you save.
+        Team tabs appear publicly as soon as you save.{" "}
+        <a href={`/companies/${slug}`} className="font-medium underline underline-offset-2">
+          View your public profile
+        </a>
+        .
       </Alert>
     );
   }
@@ -89,7 +93,7 @@ export default async function CompanyOverviewPage({
         </Alert>
       ) : null}
 
-      <StatusExplanation status={status} />
+      <StatusExplanation status={status} slug={company.slug} />
 
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <Card>

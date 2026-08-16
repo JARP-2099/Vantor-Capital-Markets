@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { db } from "@/db";
-import { companyMetrics } from "@/db/schema";
+import { companyMetrics, verificationRequests } from "@/db/schema";
 import { getLatestCompletedValuationRun, getValuationComponents, getValuationHistory } from "@/db/queries/valuations";
 import { findManageableCompany } from "@/lib/authz";
 import {
@@ -35,7 +35,7 @@ describe("valuation runs (persistence)", () => {
       now: t1,
     });
     expect(run1.status).toBe("completed");
-    expect(run1.engineVersion).toBe("vantor-valuation-v1");
+    expect(run1.engineVersion).toBe("vantor-valuation-v1.1");
     expect(Number(run1.valuationLow)).toBeGreaterThan(0);
 
     const components = await getValuationComponents(run1.id);
@@ -150,5 +150,70 @@ describe("valuation authorization surface", () => {
       now: new Date("2026-08-05T10:00:00Z"),
     });
     expect(await getValuationHistory(companyB.id)).toHaveLength(0);
+  });
+});
+
+describe("verified categories feeding confidence (latest-per-category)", () => {
+  it("a rejected resubmission removes the category's confidence bonus", async () => {
+    const founder = await createTestUser();
+    const company = await createTestCompany(founder.id, {
+      stage: "seed",
+      industry: "Software",
+      businessModel: "subscription",
+    });
+    await seedSaasMetrics(company.id);
+
+    // Old verified request, then a later rejected resubmission: the LATEST
+    // request governs the category, so no bonus may be paid.
+    await db.insert(verificationRequests).values({
+      companyId: company.id,
+      category: "revenue",
+      claimSummary: "ARR claim",
+      status: "verified",
+      submittedBy: founder.id,
+      createdAt: new Date("2026-07-01T10:00:00Z"),
+    });
+    await db.insert(verificationRequests).values({
+      companyId: company.id,
+      category: "revenue",
+      claimSummary: "ARR claim resubmitted",
+      status: "rejected",
+      submittedBy: founder.id,
+      createdAt: new Date("2026-07-02T10:00:00Z"),
+    });
+
+    const { run } = await executeValuationRun({
+      companyId: company.id,
+      requestedBy: founder.id,
+      now: new Date("2026-08-01T10:00:00Z"),
+    });
+    const snapshot = run.inputSnapshot as { verifiedCategories: string[] };
+    expect(snapshot.verifiedCategories).toEqual([]);
+  });
+
+  it("a currently verified category is included in the snapshot", async () => {
+    const founder = await createTestUser();
+    const company = await createTestCompany(founder.id, {
+      stage: "seed",
+      industry: "Software",
+      businessModel: "subscription",
+    });
+    await seedSaasMetrics(company.id);
+    await db.insert(verificationRequests).values({
+      companyId: company.id,
+      category: "revenue",
+      claimSummary: "ARR claim",
+      status: "verified",
+      submittedBy: founder.id,
+      createdAt: new Date("2026-07-01T10:00:00Z"),
+    });
+
+    const { run } = await executeValuationRun({
+      companyId: company.id,
+      requestedBy: founder.id,
+      now: new Date("2026-08-01T10:00:00Z"),
+    });
+    const snapshot = run.inputSnapshot as { verifiedCategories: string[] };
+    expect(snapshot.verifiedCategories).toEqual(["revenue"]);
   });
 });

@@ -107,10 +107,26 @@ export const metricEntrySchema = z
   })
   .refine(
     (m) =>
-      !["customers", "employees", "runway_months", "capital_raised_total"].includes(m.metricType) ||
-      m.value >= 0,
+      ![
+        "customers",
+        "employees",
+        "runway_months",
+        "capital_raised_total",
+        // Revenue and burn figures are magnitudes; only net profit may be
+        // negative among the monetary metrics.
+        "arr",
+        "mrr",
+        "revenue_annual",
+        "burn_monthly",
+      ].includes(m.metricType) || m.value >= 0,
     { message: "This metric cannot be negative", path: ["value"] },
   )
+  // numeric(20,4) holds 16 integer digits; bound below that so an absurd
+  // value fails with a field message instead of a database error.
+  .refine((m) => Math.abs(m.value) <= 1e15, {
+    message: "Value is too large. Check the amount (it should be the plain number, not scaled).",
+    path: ["value"],
+  })
   .refine(
     (m) =>
       !["gross_margin", "top_customer_revenue_pct"].includes(m.metricType) ||

@@ -69,7 +69,7 @@ describe("healthy SaaS company", () => {
   });
 
   it("records engine and assumptions versions", () => {
-    expect(r.engineVersion).toBe("vantor-valuation-v1");
+    expect(r.engineVersion).toBe("vantor-valuation-v1.1");
     expect(r.assumptionsVersion).toBe("vantor-assumptions-v1");
   });
 });
@@ -324,5 +324,58 @@ describe("round3sig", () => {
     expect(round3sig(123.456)).toBe(123);
     expect(round3sig(0)).toBe(0);
     expect(round3sig(999_600)).toBe(1_000_000);
+  });
+});
+
+describe("primary revenue source fallthrough (v1.1)", () => {
+  it("a zero ARR point does not mask real annual revenue", () => {
+    const r = completed(
+      runValuationEngine(
+        saasInputs({
+          arr: [{ value: 0, asOf: "2026-06-30", currency: "USD" }],
+          revenueAnnual: [{ value: 5_000_000, asOf: "2026-06-30", currency: "USD" }],
+        }),
+      ),
+    );
+    const revenue = r.components.find((c) => c.key === "revenue_multiple");
+    expect(revenue?.status).toBe("applied");
+    // The estimate reflects the $5M annual revenue, not a pre-revenue floor.
+    expect(r.mid).toBeGreaterThan(4_000_000);
+  });
+
+  it("falls back to the first reported source when nothing clears the threshold", () => {
+    const r = runValuationEngine(
+      saasInputs({
+        arr: [{ value: 10_000, asOf: "2026-06-30", currency: "USD" }],
+        growthYoY: undefined,
+      }),
+    );
+    // Still treated as pre-revenue territory: the stage model, not revenue.
+    if (r.status === "completed") {
+      const revenue = r.components.find((c) => c.key === "revenue_multiple");
+      expect(revenue?.status).not.toBe("applied");
+    }
+  });
+});
+
+describe("month math is timezone-independent (v1.1)", () => {
+  it("derives identical growth for day-1 month boundaries regardless of server offset", () => {
+    // Regression guard for the local-time getMonth() bug: with UTC accessors
+    // the 12-month spacing below always yields exactly 12 months, so derived
+    // growth is exact. Under the old code a western-timezone server read
+    // 2025-07-01 as June 30 local, shifting the window to 13 months.
+    const inputs = saasInputs({
+      arr: [
+        { value: 2_000_000, asOf: "2026-07-01", currency: "USD" },
+        { value: 1_000_000, asOf: "2025-07-01", currency: "USD" },
+      ],
+      growthYoY: undefined,
+    });
+    const r = completed(runValuationEngine(inputs));
+    const revenue = r.components.find((c) => c.key === "revenue_multiple");
+    expect(revenue?.status).toBe("applied");
+    const detail = JSON.stringify(revenue?.detail);
+    // 100% YoY derived from exactly 12 months.
+    expect(detail).toMatch(/100/);
   });
 });

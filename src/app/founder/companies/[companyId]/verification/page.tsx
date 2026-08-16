@@ -79,7 +79,8 @@ export default async function VerificationPage({
                   {latest.founderNote}
                 </p>
               ) : null}
-              {latest && status === "needs_update" ? (
+              {latest &&
+              (status === "pending" || status === "under_review" || status === "needs_update") ? (
                 <details className="mt-3 rounded-md border border-line">
                   <summary className="cursor-pointer select-none rounded-md px-3 py-2 text-sm font-medium text-ink-900 transition-colors hover:bg-canvas [&::-webkit-details-marker]:hidden">
                     Add evidence to this request

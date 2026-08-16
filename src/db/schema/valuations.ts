@@ -87,6 +87,12 @@ export const valuationRuns = pgTable(
       "valuation_runs_values_finite",
       sql`(${t.valuationLow} IS NULL OR ${t.valuationLow} <> 'NaN'::numeric) AND (${t.valuationHigh} IS NULL OR ${t.valuationHigh} <> 'NaN'::numeric) AND (${t.valuationMid} IS NULL OR ${t.valuationMid} <> 'NaN'::numeric)`,
     ),
+    // A completed run must carry its range; renderers Number() these columns
+    // and NULL would otherwise display as $0.
+    check(
+      "valuation_runs_completed_has_range",
+      sql`${t.status} <> 'completed' OR (${t.valuationLow} IS NOT NULL AND ${t.valuationHigh} IS NOT NULL AND ${t.valuationMid} IS NOT NULL AND ${t.confidence} IS NOT NULL)`,
+    ),
   ],
 );
 

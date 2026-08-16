@@ -148,3 +148,16 @@ describe("verification transition map", () => {
     expect(sources.sort()).toEqual(["partially_verified", "pending", "under_review"]);
   });
 });
+
+describe("latest-per-category privacy (v-stabilization)", () => {
+  it("getLatestRequestsByCategory strips internalNotes structurally", async () => {
+    const u = await createTestUser();
+    const c = await createTestCompany(u.id);
+    await addRequest(c.id, u.id, "revenue", "rejected", "internal: needs escalation");
+    const byCat = await getLatestRequestsByCategory(c.id);
+    const row = byCat.get("revenue");
+    expect(row).toBeDefined();
+    expect(row && "internalNotes" in row).toBe(false);
+    expect(JSON.stringify([...byCat.values()])).not.toContain("escalation");
+  });
+});

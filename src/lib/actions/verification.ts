@@ -222,9 +222,23 @@ export async function submitVerificationRequest(
       message: "Verification request submitted. The Vantor review team will take it from here.",
     };
   } catch (e) {
+    // A concurrent submit for the same category loses to the partial unique
+    // index — report the real situation, not a generic failure.
+    if (isUniqueViolation(e)) {
+      return err("A request for this category is already awaiting review.", {
+        category: "Already awaiting review",
+      });
+    }
     console.error("[verification] submit failed", e);
     return err(GENERIC_ERROR);
   }
+}
+
+function isUniqueViolation(e: unknown): boolean {
+  if (typeof e !== "object" || e === null) return false;
+  if ("code" in e && (e as { code?: unknown }).code === "23505") return true;
+  if ("cause" in e) return isUniqueViolation((e as { cause?: unknown }).cause);
+  return false;
 }
 
 /* -------------------------------------------------------------------------- */

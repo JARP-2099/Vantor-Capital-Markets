@@ -22,7 +22,13 @@ import type {
   ValuationResult,
 } from "./types";
 
-export const ENGINE_VERSION = "vantor-valuation-v1";
+/*
+ * v1.1: bug-fix release, same methodology.
+ *  - months are computed in UTC, so results no longer vary by server timezone
+ *  - a reported revenue point below the minimal threshold (e.g. ARR 0) falls
+ *    through to the next revenue source instead of masking real revenue
+ */
+export const ENGINE_VERSION = "vantor-valuation-v1.1";
 
 /* -------------------------------------------------------------------------- */
 /* Helpers                                                                    */
@@ -39,12 +45,21 @@ export function round3sig(v: number): number {
 }
 
 function monthsBetween(fromIso: string, toIso: string): number {
+  // UTC accessors: ISO date-only strings parse as UTC midnight, and local
+  // accessors would shift them a month in western timezones, making results
+  // depend on the server's timezone.
   const from = new Date(fromIso);
   const to = new Date(toIso);
-  return (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
+  return (to.getUTCFullYear() - from.getUTCFullYear()) * 12 + (to.getUTCMonth() - from.getUTCMonth());
 }
 
-/** Primary annual-revenue figure: ARR, else annual revenue, else MRR×12. */
+/**
+ * Primary annual-revenue figure: ARR, else annual revenue, else MRR×12.
+ * A source whose latest value is below the minimal-revenue threshold yields
+ * to a later source that clears it (e.g. a truthful ARR of 0 must not mask
+ * real annual revenue); when no source clears the bar, the first reported
+ * one is returned so pre-revenue detection still sees the actual figure.
+ */
 function primaryRevenue(inputs: ValuationInputs): {
   value: number;
   currency: string;
@@ -52,26 +67,33 @@ function primaryRevenue(inputs: ValuationInputs): {
   asOf: string;
 } | null {
   const { arr, revenueAnnual, mrr } = inputs.metrics;
+  const candidates: Array<{
+    value: number;
+    currency: string;
+    source: "arr" | "revenue_annual" | "mrr_annualized";
+    asOf: string;
+  }> = [];
   if (arr?.[0]) {
-    return { value: arr[0].value, currency: arr[0].currency ?? "USD", source: "arr", asOf: arr[0].asOf };
+    candidates.push({ value: arr[0].value, currency: arr[0].currency ?? "USD", source: "arr", asOf: arr[0].asOf });
   }
   if (revenueAnnual?.[0]) {
-    return {
+    candidates.push({
       value: revenueAnnual[0].value,
       currency: revenueAnnual[0].currency ?? "USD",
       source: "revenue_annual",
       asOf: revenueAnnual[0].asOf,
-    };
+    });
   }
   if (mrr?.[0]) {
-    return {
+    candidates.push({
       value: mrr[0].value * 12,
       currency: mrr[0].currency ?? "USD",
       source: "mrr_annualized",
       asOf: mrr[0].asOf,
-    };
+    });
   }
-  return null;
+  if (candidates.length === 0) return null;
+  return candidates.find((c) => c.value >= MINIMAL_REVENUE_THRESHOLD) ?? candidates[0];
 }
 
 /** Growth %: reported growth metric, else derived from revenue history. */

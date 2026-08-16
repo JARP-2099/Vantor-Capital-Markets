@@ -14,8 +14,12 @@ export function CardHeader({ className, ...props }: ComponentPropsWithoutRef<"di
   return <div className={cn("px-5 pt-5 pb-3", className)} {...props} />;
 }
 
-export function CardTitle({ className, ...props }: ComponentPropsWithoutRef<"h3">) {
-  return <h3 className={cn("text-base font-semibold text-ink-900", className)} {...props} />;
+export function CardTitle({
+  className,
+  as: Tag = "h3",
+  ...props
+}: ComponentPropsWithoutRef<"h3"> & { as?: "h1" | "h2" | "h3" }) {
+  return <Tag className={cn("text-base font-semibold text-ink-900", className)} {...props} />;
 }
 
 export function CardBody({ className, ...props }: ComponentPropsWithoutRef<"div">) {

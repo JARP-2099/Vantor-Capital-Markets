@@ -64,6 +64,8 @@ function fieldErrorsOf(error: z.ZodError): Record<string, string> {
 }
 
 const VALIDATION_MESSAGE = "Please fix the highlighted fields and try again.";
+const CONCURRENT_SAVE_MESSAGE =
+  "Another save for this company finished at the same time. Review the current values and try again.";
 
 /* -------------------------------------------------------------------------- */
 /* Authorization + status guards                                              */
@@ -280,13 +282,20 @@ export async function saveGoals(
   });
   if (!parsed.success) return err(VALIDATION_MESSAGE, fieldErrorsOf(parsed.error));
 
-  await db.transaction(async (tx) => {
-    await tx.delete(companyIntents).where(eq(companyIntents.companyId, companyId));
-    await tx
-      .insert(companyIntents)
-      .values(parsed.data.intents.map((intent) => ({ companyId, intent })));
-    await tx.update(companies).set({ updatedAt: new Date() }).where(eq(companies.id, companyId));
-  });
+  try {
+    await db.transaction(async (tx) => {
+      await tx.delete(companyIntents).where(eq(companyIntents.companyId, companyId));
+      await tx
+        .insert(companyIntents)
+        .values(parsed.data.intents.map((intent) => ({ companyId, intent })));
+      await tx.update(companies).set({ updatedAt: new Date() }).where(eq(companies.id, companyId));
+    });
+  } catch (e) {
+    // Two concurrent saves can interleave delete+insert; the PK turns the
+    // race into a unique violation rather than corrupt data. Ask to retry.
+    if (isUniqueViolation(e)) return err(CONCURRENT_SAVE_MESSAGE);
+    throw e;
+  }
 
   await recordAudit({
     actorUserId: ctx.user.id,
@@ -338,23 +347,30 @@ export async function saveMetrics(
     seen.add(key);
   }
 
-  await db.transaction(async (tx) => {
-    await tx.delete(companyMetrics).where(eq(companyMetrics.companyId, companyId));
-    if (parsed.data.metrics.length > 0) {
-      await tx.insert(companyMetrics).values(
-        parsed.data.metrics.map((m) => ({
-          companyId,
-          metricType: m.metricType,
-          value: String(m.value),
-          currency: MONETARY_METRICS.has(m.metricType as MetricType)
-            ? (m.currency ?? "USD")
-            : null,
-          asOf: m.asOf,
-        })),
-      );
-    }
-    await tx.update(companies).set({ updatedAt: new Date() }).where(eq(companies.id, companyId));
-  });
+  try {
+    await db.transaction(async (tx) => {
+      await tx.delete(companyMetrics).where(eq(companyMetrics.companyId, companyId));
+      if (parsed.data.metrics.length > 0) {
+        await tx.insert(companyMetrics).values(
+          parsed.data.metrics.map((m) => ({
+            companyId,
+            metricType: m.metricType,
+            value: String(m.value),
+            currency: MONETARY_METRICS.has(m.metricType as MetricType)
+              ? (m.currency ?? "USD")
+              : null,
+            asOf: m.asOf,
+          })),
+        );
+      }
+      await tx.update(companies).set({ updatedAt: new Date() }).where(eq(companies.id, companyId));
+    });
+  } catch (e) {
+    // Concurrent saves (double-click, second tab) interleave delete+insert;
+    // the unique point constraint turns that into a 23505 instead of dupes.
+    if (isUniqueViolation(e)) return err(CONCURRENT_SAVE_MESSAGE);
+    throw e;
+  }
 
   await recordAudit({
     actorUserId: ctx.user.id,
@@ -470,8 +486,9 @@ export async function saveTeam(
     });
   }
 
-  await db.transaction(async (tx) => {
-    if (creatorRow) {
+  try {
+    await db.transaction(async (tx) => {
+      if (creatorRow) {
       // Remove everything except the protected creator row, then refresh it.
       await tx
         .delete(companyMembers)
@@ -518,7 +535,13 @@ export async function saveTeam(
       );
     }
     await tx.update(companies).set({ updatedAt: new Date() }).where(eq(companies.id, companyId));
-  });
+    });
+  } catch (e) {
+    // Interleaved concurrent saves trip the one-linked-user-per-company
+    // partial unique index; surface a retry message instead of a 500.
+    if (isUniqueViolation(e)) return err(CONCURRENT_SAVE_MESSAGE);
+    throw e;
+  }
 
   await recordAudit({
     actorUserId: ctx.user.id,
@@ -584,10 +607,16 @@ export async function submitCompany(
     );
   }
 
-  await db
+  // Guarded transition: if a concurrent action already moved the company out
+  // of draft, report it instead of recording a submission that never happened.
+  const transitioned = await db
     .update(companies)
     .set({ status: "submitted", submittedAt: new Date(), updatedAt: new Date() })
-    .where(and(eq(companies.id, companyId), eq(companies.status, "draft")));
+    .where(and(eq(companies.id, companyId), eq(companies.status, "draft")))
+    .returning({ id: companies.id });
+  if (transitioned.length === 0) {
+    return err("This company is no longer a draft and cannot be submitted again.");
+  }
 
   await recordAudit({
     actorUserId: ctx.user.id,

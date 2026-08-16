@@ -18,19 +18,27 @@ import type { VerificationCategory, VerificationStatus } from "@/lib/verificatio
 export type VerificationRequestRow = typeof verificationRequests.$inferSelect;
 export type VerificationEvidenceRow = typeof verificationEvidence.$inferSelect;
 
-/** Latest request per category (governs the category's displayed status). */
+/**
+ * Latest request per category (governs the category's displayed status).
+ * internalNotes is stripped STRUCTURALLY here: this query serves founder and
+ * public paths, and the admin-only field must never depend on render-site
+ * discipline to stay private.
+ */
 export async function getLatestRequestsByCategory(
   companyId: string,
-): Promise<Map<VerificationCategory, VerificationRequestRow>> {
+): Promise<Map<VerificationCategory, Omit<VerificationRequestRow, "internalNotes">>> {
   const rows = await db
     .select()
     .from(verificationRequests)
     .where(eq(verificationRequests.companyId, companyId))
     .orderBy(desc(verificationRequests.createdAt));
-  const byCategory = new Map<VerificationCategory, VerificationRequestRow>();
+  const byCategory = new Map<VerificationCategory, Omit<VerificationRequestRow, "internalNotes">>();
   for (const row of rows) {
     const cat = row.category as VerificationCategory;
-    if (!byCategory.has(cat)) byCategory.set(cat, row);
+    if (!byCategory.has(cat)) {
+      const { internalNotes: _internalNotes, ...safe } = row;
+      byCategory.set(cat, safe);
+    }
   }
   return byCategory;
 }

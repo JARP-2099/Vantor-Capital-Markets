@@ -1,4 +1,4 @@
-import { boolean, index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { bigint, boolean, index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 /**
  * Authentication tables managed by better-auth (email/password + sessions).
@@ -63,4 +63,17 @@ export const verification = pgTable("verification", {
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+/**
+ * Shared rate-limit counters for better-auth (`rateLimit.storage: "database"`).
+ * In-memory counters are per-serverless-instance and effectively unenforced on
+ * Vercel; this table makes the limit hold across instances.
+ */
+export const rateLimit = pgTable("rate_limit", {
+  id: text("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  count: integer("count").notNull(),
+  /** Epoch milliseconds of the last counted request. */
+  lastRequest: bigint("last_request", { mode: "number" }).notNull(),
 });

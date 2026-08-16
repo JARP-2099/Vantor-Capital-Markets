@@ -31,6 +31,13 @@ async function main() {
     console.error("Refusing to seed: set ALLOW_SEED=true in the environment first.");
     process.exit(1);
   }
+  // Second, independent guard: the seed creates a demo admin account with a
+  // password committed to a public repository. A leaked ALLOW_SEED=true must
+  // not be enough to plant it in production.
+  if (process.env.NODE_ENV === "production") {
+    console.error("Refusing to seed: NODE_ENV is production.");
+    process.exit(1);
+  }
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not set");
 

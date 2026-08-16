@@ -112,3 +112,35 @@ describe("metric validation", () => {
     expect(companyMetricsSchema.safeParse({ metrics: [] }).success).toBe(true);
   });
 });
+
+describe("metric bounds (stabilization pass)", () => {
+  it("rejects negative revenue-style metrics", () => {
+    for (const metricType of ["arr", "mrr", "revenue_annual", "burn_monthly"]) {
+      const r = metricEntrySchema.safeParse({ metricType, value: -1, asOf: "2026-06-30", currency: "USD" });
+      expect(r.success).toBe(false);
+    }
+  });
+
+  it("still allows negative net profit", () => {
+    const r = metricEntrySchema.safeParse({
+      metricType: "net_profit_annual",
+      value: -250000,
+      asOf: "2026-06-30",
+      currency: "USD",
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it("rejects values beyond numeric(20,4) capacity with a field error", () => {
+    const r = metricEntrySchema.safeParse({
+      metricType: "arr",
+      value: "999999999999999999999",
+      asOf: "2026-06-30",
+      currency: "USD",
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(JSON.stringify(r.error.issues)).toMatch(/too large/i);
+    }
+  });
+});

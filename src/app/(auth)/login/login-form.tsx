@@ -41,7 +41,7 @@ export function LoginForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Sign in to Vantor</CardTitle>
+        <CardTitle as="h1">Sign in to Vantor</CardTitle>
       </CardHeader>
       <CardBody>
         <form onSubmit={onSubmit} className="space-y-4" noValidate>

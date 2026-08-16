@@ -65,9 +65,13 @@ export async function executeValuationRun(options: {
     result.status !== "completed" ||
     [result.low, result.high, result.mid].every((v) => Number.isFinite(v));
 
-  const [run] = await db
-    .insert(valuationRuns)
-    .values({
+  // Run + components commit atomically: a partial write would render an
+  // empty breakdown and, because the cooldown keys off the run row, lock the
+  // founder out of retrying for the full window.
+  const run = await db.transaction(async (tx) => {
+    const [inserted] = await tx
+      .insert(valuationRuns)
+      .values({
       companyId: options.companyId,
       engineVersion: result.engineVersion,
       assumptionsVersion: result.assumptionsVersion,
@@ -88,26 +92,29 @@ export async function executeValuationRun(options: {
         result.status === "insufficient_data"
           ? { reasons: result.reasons, hints: result.improvementHints }
           : { hints: result.improvementHints },
-      requestedBy: options.requestedBy,
-      createdAt: now,
-    })
-    .returning();
+        requestedBy: options.requestedBy,
+        createdAt: now,
+      })
+      .returning();
 
-  const finiteOrNull = (v: number | undefined) =>
-    v !== undefined && Number.isFinite(v) ? String(Math.round(v)) : null;
+    const finiteOrNull = (v: number | undefined) =>
+      v !== undefined && Number.isFinite(v) ? String(Math.round(v)) : null;
 
-  await db.insert(valuationComponents).values(
-    result.components.map((c) => ({
-      runId: run.id,
-      componentKey: c.key,
-      status: c.status,
-      valuationLow: finiteOrNull(c.low),
-      valuationHigh: finiteOrNull(c.high),
-      valuationMid: finiteOrNull(c.mid),
-      weight: String(c.weight),
-      detail: c.detail,
-    })),
-  );
+    await tx.insert(valuationComponents).values(
+      result.components.map((c) => ({
+        runId: inserted.id,
+        componentKey: c.key,
+        status: c.status,
+        valuationLow: finiteOrNull(c.low),
+        valuationHigh: finiteOrNull(c.high),
+        valuationMid: finiteOrNull(c.mid),
+        weight: String(c.weight),
+        detail: c.detail,
+      })),
+    );
+
+    return inserted;
+  });
 
   await recordAudit({
     actorUserId: options.requestedBy,

@@ -51,7 +51,7 @@ export function SignupForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create your Vantor account</CardTitle>
+        <CardTitle as="h1">Create your Vantor account</CardTitle>
       </CardHeader>
       <CardBody>
         <form onSubmit={onSubmit} className="space-y-4" noValidate>

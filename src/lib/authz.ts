@@ -53,7 +53,10 @@ export type PlatformRole = "founder" | "investor" | "buyer" | "admin";
 
 /**
  * Roles for a user: rows from user_roles, plus admin bootstrapped from
- * ADMIN_EMAILS (server env only) so the first admin needs no manual SQL.
+ * ADMIN_EMAILS in development/test only. In production `adminEmails` is
+ * always empty (see src/env.ts) — open signup with unverified emails means a
+ * listed address could be claimed by an attacker before its owner registers.
+ * Production admins are granted a user_roles row via scripts/grant-admin.ts.
  */
 export const getUserRoles = cache(async (user: AuthedUser): Promise<Set<PlatformRole>> => {
   const rows = await db

@@ -146,6 +146,8 @@ export const companies = pgTable(
   (t) => [
     uniqueIndex("companies_slug_idx").on(t.slug),
     index("companies_status_idx").on(t.status),
+    // Marketplace listing: WHERE status='published' ORDER BY published_at DESC.
+    index("companies_status_published_at_idx").on(t.status, t.publishedAt),
     index("companies_industry_idx").on(t.industry),
     index("companies_stage_idx").on(t.stage),
     index("companies_created_by_idx").on(t.createdBy),

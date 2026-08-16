@@ -3,8 +3,8 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db";
-import { account, session, user, verification } from "@/db/schema";
-import { env } from "@/env";
+import { account, rateLimit, session, user, verification } from "@/db/schema";
+import { betterAuthUrl, env } from "@/env";
 import { buildTrustedOrigins } from "@/lib/auth-origins";
 
 /**
@@ -12,21 +12,22 @@ import { buildTrustedOrigins } from "@/lib/auth-origins";
  * cookies and built-in rate limiting on auth endpoints.
  */
 export const auth = betterAuth({
-  baseURL: env.BETTER_AUTH_URL,
+  baseURL: betterAuthUrl,
   secret: env.BETTER_AUTH_SECRET,
-  // Canonical URL stays BETTER_AUTH_URL; the current Vercel deployment,
+  // Canonical URL stays BETTER_AUTH_URL (with the deployment's own URL as
+  // the Vercel fallback — see src/env.ts); the current Vercel deployment,
   // branch, and production hosts are additionally trusted so direct
   // deployment/preview URLs authenticate. Origin validation stays enabled;
   // no broad wildcards (see src/lib/auth-origins.ts).
   trustedOrigins: buildTrustedOrigins({
-    betterAuthUrl: env.BETTER_AUTH_URL,
+    betterAuthUrl,
     vercelUrl: env.VERCEL_URL,
     vercelBranchUrl: env.VERCEL_BRANCH_URL,
     vercelProjectProductionUrl: env.VERCEL_PROJECT_PRODUCTION_URL,
   }),
   database: drizzleAdapter(db, {
     provider: "pg",
-    schema: { user, session, account, verification },
+    schema: { user, session, account, verification, rateLimit },
   }),
   emailAndPassword: {
     enabled: true,
@@ -39,6 +40,15 @@ export const auth = betterAuth({
     enabled: true,
     window: 60,
     max: 30,
+    // In-memory counters are per-serverless-instance (effectively unenforced
+    // across Vercel instances); shared counters live in the rate_limit table.
+    storage: "database",
+    modelName: "rateLimit",
+    // Tighter ceilings on the credential endpoints specifically.
+    customRules: {
+      "/sign-in/email": { window: 60, max: 10 },
+      "/sign-up/email": { window: 60, max: 10 },
+    },
   },
   advanced: {
     useSecureCookies: env.NODE_ENV === "production",
