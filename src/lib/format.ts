@@ -11,6 +11,9 @@ export function formatCompactCurrency(value: number, currency = "USD"): string {
     style: "currency",
     currency,
     notation: "compact",
+    // Currency style would otherwise force a minimum of one fraction digit
+    // here, rendering "$580.0K" instead of "$580K".
+    minimumFractionDigits: 0,
     maximumFractionDigits: 1,
   }).format(value);
 }
