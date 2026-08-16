@@ -9,12 +9,16 @@ const base =
   "inline-flex items-center justify-center gap-2 font-medium rounded-md transition-colors " +
   "disabled:opacity-50 disabled:pointer-events-none select-none whitespace-nowrap";
 
+/*
+ * Dark-system button language: the primary action is a light fill with dark
+ * text (never trust-blue); secondary is transparent with a hairline border.
+ */
 const variants: Record<Variant, string> = {
-  primary: "bg-ink-900 text-white hover:bg-ink-700 active:bg-ink-950",
+  primary: "bg-ink-900 text-canvas hover:bg-ink-950 active:bg-ink-700",
   secondary:
-    "bg-paper text-ink-900 border border-line hover:border-faint hover:bg-canvas active:bg-mist",
-  ghost: "text-ink-900 hover:bg-mist active:bg-line",
-  danger: "bg-negative-700 text-white hover:opacity-90",
+    "bg-transparent text-ink-900 border border-line-strong hover:border-faint hover:bg-mist active:bg-raised",
+  ghost: "text-slate-650 hover:text-ink-900 hover:bg-mist active:bg-raised",
+  danger: "bg-negative-700 text-canvas hover:opacity-90",
 };
 
 const sizes: Record<Size, string> = {

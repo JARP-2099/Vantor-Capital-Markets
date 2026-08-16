@@ -10,8 +10,9 @@ const navLinkClass =
   "text-sm font-medium text-slate-650 hover:text-ink-900 transition-colors px-1 py-2";
 
 /**
- * Public site header (server component). Nav items adapt to session state;
- * this is presentation only — every destination re-checks authorization.
+ * Public site header (server component). Compact dark navigation; nav items
+ * adapt to session state — presentation only, every destination re-checks
+ * authorization.
  */
 export async function SiteHeader() {
   const user = await getSessionUser();
@@ -20,15 +21,16 @@ export async function SiteHeader() {
 
   const links = [
     { href: "/companies", label: "Discover" },
+    { href: "/signup", label: "For Founders" },
     ...(user ? [{ href: "/founder", label: "Founder" }] : []),
     ...(admin ? [{ href: "/admin", label: "Admin" }] : []),
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-line bg-canvas/90 backdrop-blur">
       <Container className="flex h-16 items-center justify-between gap-4">
         <div className="flex items-center gap-8">
-          <Logo />
+          <Logo withLabel />
           <nav aria-label="Main" className="hidden items-center gap-5 md:flex">
             {links.map((l) => (
               <Link key={l.href} href={l.href} className={navLinkClass}>
@@ -48,7 +50,7 @@ export async function SiteHeader() {
           ) : (
             <>
               <ButtonLink href="/login" variant="ghost" size="sm">
-                Sign in
+                Sign In
               </ButtonLink>
               <ButtonLink href="/signup" variant="primary" size="sm">
                 List Your Company

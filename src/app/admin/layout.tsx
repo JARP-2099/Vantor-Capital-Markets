@@ -34,7 +34,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <Container className="flex h-14 items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Logo href="/admin" />
-            <span className="rounded-sm bg-ink-900 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-widest text-white">
+            <span className="rounded-sm bg-ink-900 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-widest text-canvas">
               Admin
             </span>
           </div>

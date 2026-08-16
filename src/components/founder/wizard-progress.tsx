@@ -38,7 +38,7 @@ export function WizardProgress({ companyId, current }: WizardProgressProps) {
               aria-hidden="true"
               className={cn(
                 "flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-                active && "bg-ink-900 text-white",
+                active && "bg-ink-900 text-canvas",
                 done && "bg-positive-50 text-positive-700",
                 !active && !done && "bg-mist text-muted",
               )}

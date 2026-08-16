@@ -51,9 +51,9 @@ export function MobileNav({ links, signedIn }: { links: NavLink[]; signedIn: boo
           {!signedIn ? (
             <>
               <Link href="/login" onClick={close} className="rounded-md px-3 py-2.5 text-sm font-medium text-ink-900 hover:bg-mist">
-                Sign in
+                Sign In
               </Link>
-              <Link href="/signup" onClick={close} className="rounded-md px-3 py-2.5 text-sm font-medium text-accent-600 hover:bg-mist">
+              <Link href="/signup" onClick={close} className="rounded-md px-3 py-2.5 text-sm font-medium text-brand-soft hover:bg-mist">
                 List Your Company
               </Link>
             </>

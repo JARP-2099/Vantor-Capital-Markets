@@ -1,13 +1,13 @@
-import { Card } from "@/components/ui/card";
 import { MetricStat } from "@/components/ui/metric-stat";
 import type { ValuationComponentRow, ValuationRunRow } from "@/db/queries/valuations";
 import { formatCompactCurrency, formatDate } from "@/lib/format";
 
 /**
  * Public profile valuation section. Server-safe presentation only — callers
- * pass a completed run (visibility already enforced upstream). Deliberately
- * unlike stock-price UI: neutral ink, no gain/loss coloring, no change
- * badges — this is a model estimate, not a traded price.
+ * pass a completed run (visibility already enforced upstream). This is the
+ * one surface that uses the gilded copper accent: a model estimate range,
+ * deliberately not styled like a traded price (no gain/loss coloring, no
+ * change badges).
  */
 
 const COMPONENT_ORDER: string[] = [
@@ -43,17 +43,63 @@ function detailReason(row: ValuationComponentRow): string | null {
   return typeof detail?.reason === "string" ? detail.reason : null;
 }
 
+/**
+ * Gilded range bar: the estimate range drawn on a padded axis from
+ * 0.8×low to 1.2×high, with a midpoint tick. Pure presentation of real
+ * model output — no invented axis data beyond the padding.
+ */
+function GildedRangeBar({
+  low,
+  high,
+  mid,
+  currency,
+}: {
+  low: number;
+  high: number;
+  mid: number | null;
+  currency: string;
+}) {
+  const axisMin = low * 0.8;
+  const axisMax = high * 1.2;
+  const span = axisMax - axisMin || 1;
+  const pct = (v: number) => Math.min(100, Math.max(0, ((v - axisMin) / span) * 100));
+  return (
+    <div aria-hidden="true" className="mt-4 max-w-xl">
+      <div className="relative h-2 w-full rounded-full bg-raised">
+        <div
+          className="gilded-range absolute inset-y-0 rounded-full"
+          style={{ left: `${pct(low)}%`, right: `${100 - pct(high)}%` }}
+        />
+        {mid !== null ? (
+          <span
+            className="absolute top-1/2 h-3.5 w-0.5 -translate-y-1/2 rounded-full bg-ink-950"
+            style={{ left: `${pct(mid)}%` }}
+          />
+        ) : null}
+      </div>
+      <div className="relative mt-1.5 h-4 text-[11px] text-faint tabular-nums">
+        <span className="absolute -translate-x-1/2" style={{ left: `${pct(low)}%` }}>
+          {formatCompactCurrency(low, currency)}
+        </span>
+        <span className="absolute -translate-x-1/2" style={{ left: `${pct(high)}%` }}>
+          {formatCompactCurrency(high, currency)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 type HistoryPoint = { date: Date; mid: number; currency: string };
 
 /**
- * Inline midpoint sparkline. Pure SVG, neutral ink, no axes or gain/loss
- * styling; the adjacent table is the accessible/data view, and the aria-label
- * narrates first and latest values.
+ * Midpoint history line: restrained copper on a dark panel with thin grid
+ * lines. The adjacent table is the accessible/data view; the aria-label
+ * narrates first and latest values. Renders only when real history exists.
  */
 function MidpointSparkline({ points }: { points: HistoryPoint[] }) {
   const width = 480;
-  const height = 60;
-  const pad = 6;
+  const height = 96;
+  const pad = 8;
   const first = points[0];
   const last = points[points.length - 1];
   const mids = points.map((p) => p.mid);
@@ -65,6 +111,7 @@ function MidpointSparkline({ points }: { points: HistoryPoint[] }) {
   const d = points
     .map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(p.mid).toFixed(1)}`)
     .join(" ");
+  const gridYs = [0.25, 0.5, 0.75].map((t) => pad + t * (height - 2 * pad));
 
   return (
     <svg
@@ -72,13 +119,25 @@ function MidpointSparkline({ points }: { points: HistoryPoint[] }) {
       preserveAspectRatio="none"
       role="img"
       aria-label={`Vantor estimated midpoint moved from ${formatCompactCurrency(first.mid, first.currency)} on ${formatDate(first.date)} to ${formatCompactCurrency(last.mid, last.currency)} on ${formatDate(last.date)}, across ${points.length} estimates.`}
-      className="h-[60px] w-full text-ink-900"
+      className="h-24 w-full"
     >
+      {gridYs.map((gy) => (
+        <line
+          key={gy}
+          x1={pad}
+          x2={width - pad}
+          y1={gy}
+          y2={gy}
+          stroke="var(--color-line)"
+          strokeWidth={1}
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
       <path
         d={d}
         fill="none"
-        stroke="currentColor"
-        strokeWidth={2}
+        stroke="var(--color-brand)"
+        strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
         vectorEffect="non-scaling-stroke"
@@ -102,7 +161,7 @@ export function ValuationSection({
   const mid = num(run.valuationMid);
   const range =
     low !== null && high !== null
-      ? `${formatCompactCurrency(low, currency)} – ${formatCompactCurrency(high, currency)}`
+      ? `${formatCompactCurrency(low, currency)} to ${formatCompactCurrency(high, currency)}`
       : mid !== null
         ? formatCompactCurrency(mid, currency)
         : null;
@@ -119,15 +178,18 @@ export function ValuationSection({
   const showHistory = points.length >= 2;
 
   return (
-    <div className="mt-5 space-y-5">
+    <div className="mt-5 space-y-6">
       {/* ---------------------------- Headline band ---------------------------- */}
-      <Card className="p-5">
+      <div className="rounded-lg border border-line bg-deep p-5 sm:p-6">
         {range ? (
-          <p className="text-2xl font-bold tracking-tight text-ink-900 tabular-nums sm:text-3xl">
+          <p className="text-3xl font-bold tracking-tight text-brand-soft tabular-nums sm:text-4xl">
             {range}
           </p>
         ) : null}
-        <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
+        {low !== null && high !== null ? (
+          <GildedRangeBar low={low} high={high} mid={mid} currency={currency} />
+        ) : null}
+        <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-line pt-5 sm:grid-cols-4">
           <MetricStat
             className="tabular-nums"
             label="Midpoint"
@@ -139,23 +201,23 @@ export function ValuationSection({
             value={run.confidence !== null ? `${run.confidence}%` : null}
           />
           <MetricStat
-            label="Data Quality"
+            label="Data Sufficiency"
             value={SUFFICIENCY_LABELS[run.dataSufficiency] ?? null}
           />
           <MetricStat
             className="tabular-nums"
-            label="Last updated"
+            label="Updated"
             value={formatDate(run.createdAt)}
           />
         </dl>
-      </Card>
+      </div>
 
       {/* -------------------------- Estimate Breakdown ------------------------- */}
-      <Card className="p-5">
+      <div>
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">
           Estimate Breakdown
         </h3>
-        <div className="mt-1 divide-y divide-line">
+        <div className="mt-2 divide-y divide-line border-y border-line">
           {ordered.map((row) => {
             const label = COMPONENT_LABELS[row.componentKey] ?? row.componentKey;
             const reason = detailReason(row);
@@ -171,7 +233,7 @@ export function ValuationSection({
                   <p className="text-sm font-medium text-ink-900">{label}</p>
                   <p className="text-sm font-semibold text-ink-900 tabular-nums">
                     {cLow !== null && cHigh !== null
-                      ? `${formatCompactCurrency(cLow, currency)} – ${formatCompactCurrency(cHigh, currency)}`
+                      ? `${formatCompactCurrency(cLow, currency)} to ${formatCompactCurrency(cHigh, currency)}`
                       : null}
                     {weight !== null ? (
                       <span className="ml-2 font-normal text-muted">
@@ -188,23 +250,23 @@ export function ValuationSection({
                   <p className="text-sm text-muted">{label}</p>
                   <p className="text-xs text-faint">
                     {row.status === "not_applicable" ? "Not applicable" : "Insufficient data"}
-                    {reason ? ` — ${reason}` : null}
+                    {reason ? `: ${reason}` : null}
                   </p>
                 </div>
               </div>
             );
           })}
         </div>
-      </Card>
+      </div>
 
       {/* ---------------------------- History ---------------------------- */}
       {showHistory ? (
-        <Card className="p-5">
+        <div className="rounded-lg border border-line bg-deep p-5">
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">
-            Vantor Estimated Private Market Valuation
+            Valuation History
           </h3>
           <p className="mt-1 text-xs text-faint">
-            Model-estimated midpoints over time — not a traded price.
+            Model-estimated midpoints over time. Not a traded price.
           </p>
           <div className="mt-4">
             <MidpointSparkline points={points} />
@@ -212,7 +274,7 @@ export function ValuationSection({
           <div className="mt-4 overflow-x-auto">
             <table className="w-full min-w-64 text-left text-sm">
               <thead>
-                <tr className="border-b border-line text-xs uppercase tracking-wider text-muted">
+                <tr className="border-b border-line text-xs uppercase tracking-wider text-faint">
                   <th scope="col" className="py-2 pr-4 font-medium">
                     Date
                   </th>
@@ -235,7 +297,7 @@ export function ValuationSection({
               </tbody>
             </table>
           </div>
-        </Card>
+        </div>
       ) : null}
 
       <p className="text-xs leading-relaxed text-faint">

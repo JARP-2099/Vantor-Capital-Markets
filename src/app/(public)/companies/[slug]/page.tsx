@@ -10,7 +10,6 @@ import {
 } from "@/components/marketplace/metrics";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { MetricStat } from "@/components/ui/metric-stat";
 import { ValuationSection } from "@/components/marketplace/valuation-section";
 import { VerificationSection } from "@/components/marketplace/verification-section";
 import {
@@ -28,7 +27,8 @@ import {
 import { getPublicVerificationSummary } from "@/db/queries/verifications";
 import { features } from "@/config/features";
 import { METRIC_LABELS, METRIC_TYPES, STAGE_LABELS } from "@/lib/constants";
-import { formatDate, formatMetricValue } from "@/lib/format";
+import { cn } from "@/lib/cn";
+import { formatCompactCurrency, formatDate, formatMetricValue } from "@/lib/format";
 
 import { getCompany } from "./company-lookup";
 
@@ -118,15 +118,42 @@ export default async function CompanyProfilePage({ params }: { params: Params })
   const employees = pickSimpleMetric(byType, "employees");
   const capitalRaised = pickSimpleMetric(byType, "capital_raised_total");
 
-  const tiles: { label: string; value: string; tone?: "default" | "positive" | "negative" }[] = [];
-  if (revenue) tiles.push({ label: revenue.label, value: revenue.value });
-  if (growth) {
-    tiles.push({ label: METRIC_LABELS.revenue_growth_yoy, value: growth.value, tone: growth.tone });
+  /* --------------------- Financial information band --------------------- */
+  // Estimated valuation range for the headline band (public gate applied at
+  // fetch time above); "low to high" per copy rules, midpoint as fallback.
+  const vLow = valuationRun ? Number(valuationRun.valuationLow) : NaN;
+  const vHigh = valuationRun ? Number(valuationRun.valuationHigh) : NaN;
+  const vMid = valuationRun ? Number(valuationRun.valuationMid) : NaN;
+  const valuationRange = valuationRun
+    ? Number.isFinite(vLow) && Number.isFinite(vHigh)
+      ? `${formatCompactCurrency(vLow, valuationRun.currency)} to ${formatCompactCurrency(vHigh, valuationRun.currency)}`
+      : Number.isFinite(vMid)
+        ? formatCompactCurrency(vMid, valuationRun.currency)
+        : null
+    : null;
+
+  type BandEntry = { label: string; value: string; tone?: "brand" | "positive" | "negative" };
+  const bandEntries: BandEntry[] = [];
+  if (valuationRange) {
+    bandEntries.push({ label: "Estimated Valuation", value: valuationRange, tone: "brand" });
   }
-  if (customers) tiles.push({ label: customers.label, value: customers.value });
-  if (employees) tiles.push({ label: employees.label, value: employees.value });
-  if (capitalRaised) tiles.push({ label: capitalRaised.label, value: capitalRaised.value });
-  if (company.foundedYear) tiles.push({ label: "Founded", value: String(company.foundedYear) });
+  if (revenue) bandEntries.push({ label: revenue.label, value: revenue.value });
+  if (growth) {
+    bandEntries.push({
+      label: METRIC_LABELS.revenue_growth_yoy,
+      value: growth.value,
+      tone: growth.tone === "default" ? undefined : growth.tone,
+    });
+  }
+  if (capitalRaised) bandEntries.push({ label: "Raised", value: capitalRaised.value });
+  if (verificationSummary?.verifiedPct !== null && verificationSummary !== null) {
+    bandEntries.push({ label: "Verification", value: `${verificationSummary.verifiedPct}%` });
+  }
+  if (customers) bandEntries.push({ label: customers.label, value: customers.value });
+  if (employees) bandEntries.push({ label: employees.label, value: employees.value });
+  if (company.foundedYear) {
+    bandEntries.push({ label: "Founded", value: String(company.foundedYear) });
+  }
 
   /* ------------------------------- Sections ------------------------------- */
   const storyBlocks: { heading: string; body: string }[] = [
@@ -168,7 +195,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
   return (
     <>
       {/* ------------------------------ Header ------------------------------ */}
-      <div className="border-b border-line bg-paper">
+      <div className="border-b border-line">
         <Container className="py-10 sm:py-12">
           <header>
             <h1 className="text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
@@ -207,21 +234,32 @@ export default async function CompanyProfilePage({ params }: { params: Params })
             </div>
           </header>
 
-          {/* --------------------------- Key metrics --------------------------- */}
-          {tiles.length > 0 ? (
-            <Card className="mt-8 p-5">
+          {/* --------------------- Financial information band --------------------- */}
+          {bandEntries.length > 0 ? (
+            <div className="mt-8 overflow-hidden rounded-lg border border-line bg-deep">
               <h2 className="sr-only">Key metrics</h2>
-              <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-6">
-                {tiles.map((tile) => (
-                  <MetricStat
-                    key={tile.label}
-                    label={tile.label}
-                    value={tile.value}
-                    tone={tile.tone}
-                  />
+              <dl className="grid grid-cols-2 divide-line sm:grid-cols-4 lg:flex lg:flex-wrap lg:divide-x">
+                {bandEntries.map((entry) => (
+                  <div key={entry.label} className="min-w-0 px-5 py-4 lg:flex-1">
+                    <dt className="text-[11px] font-medium uppercase tracking-wider text-faint">
+                      {entry.label}
+                    </dt>
+                    <dd
+                      data-metric-value
+                      className={cn(
+                        "mt-1 truncate text-lg font-bold tracking-tight",
+                        entry.tone === "brand" && "text-brand-soft",
+                        entry.tone === "positive" && "text-positive-700",
+                        entry.tone === "negative" && "text-negative-700",
+                        !entry.tone && "text-ink-900",
+                      )}
+                    >
+                      {entry.value}
+                    </dd>
+                  </div>
                 ))}
               </dl>
-            </Card>
+            </div>
           ) : null}
         </Container>
       </div>

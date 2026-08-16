@@ -3,12 +3,14 @@ import { Container } from "@/components/layout/container";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-line bg-paper">
+    <footer className="mt-auto border-t border-line bg-deep">
       <Container className="py-10">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-sm font-bold tracking-[0.18em] text-ink-900">VANTOR</p>
-            <p className="mt-1 text-xs text-muted">Vantor Capital Markets</p>
+            <p className="text-sm font-bold tracking-[0.22em] text-ink-900">VANTOR</p>
+            <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.2em] text-faint">
+              Capital Markets
+            </p>
           </div>
           <nav aria-label="Footer" className="flex gap-6 text-sm text-slate-650">
             <Link href="/companies" className="hover:text-ink-900">

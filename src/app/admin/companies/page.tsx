@@ -31,7 +31,7 @@ function FilterLink({
       className={cn(
         "rounded-full border px-3 py-1 text-sm font-medium transition-colors",
         active
-          ? "border-ink-900 bg-ink-900 text-white"
+          ? "border-brand-deep bg-brand-tint text-brand-soft"
           : "border-line bg-paper text-slate-650 hover:border-faint hover:text-ink-900",
       )}
     >
