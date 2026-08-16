@@ -13,6 +13,14 @@ const envSchema = z.object({
   BETTER_AUTH_URL: z.url().default("http://localhost:3000"),
   ADMIN_EMAILS: z.string().default(""),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  /**
+   * Vercel system variables (bare hosts, auto-populated per deployment when
+   * "Automatically expose System Environment Variables" is on). Used only to
+   * extend Better Auth trusted origins with this deployment's own URLs.
+   */
+  VERCEL_URL: z.string().optional(),
+  VERCEL_BRANCH_URL: z.string().optional(),
+  VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

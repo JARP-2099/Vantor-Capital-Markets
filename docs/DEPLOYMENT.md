@@ -49,6 +49,12 @@ the command above before deploying code that needs it.
    - `ADMIN_EMAILS` = your admin email
 3. Deploy. After the first deploy, set `BETTER_AUTH_URL` to the exact
    assigned production URL if it differs, and redeploy.
+4. Ensure Project → Settings → Environment Variables has **"Automatically
+   expose System Environment Variables"** enabled (Vercel's default). Auth
+   trusts the current deployment/branch/production hosts via `VERCEL_URL`,
+   `VERCEL_BRANCH_URL`, and `VERCEL_PROJECT_PRODUCTION_URL`
+   (see `src/lib/auth-origins.ts`) so direct deployment URLs can sign in
+   without trusting all of `*.vercel.app`.
 
 ## Serverless connection behavior
 

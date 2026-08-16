@@ -5,6 +5,7 @@ import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db";
 import { account, session, user, verification } from "@/db/schema";
 import { env } from "@/env";
+import { buildTrustedOrigins } from "@/lib/auth-origins";
 
 /**
  * Server-side auth instance. Email/password with secure, httpOnly session
@@ -13,6 +14,16 @@ import { env } from "@/env";
 export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
+  // Canonical URL stays BETTER_AUTH_URL; the current Vercel deployment,
+  // branch, and production hosts are additionally trusted so direct
+  // deployment/preview URLs authenticate. Origin validation stays enabled;
+  // no broad wildcards (see src/lib/auth-origins.ts).
+  trustedOrigins: buildTrustedOrigins({
+    betterAuthUrl: env.BETTER_AUTH_URL,
+    vercelUrl: env.VERCEL_URL,
+    vercelBranchUrl: env.VERCEL_BRANCH_URL,
+    vercelProjectProductionUrl: env.VERCEL_PROJECT_PRODUCTION_URL,
+  }),
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: { user, session, account, verification },
