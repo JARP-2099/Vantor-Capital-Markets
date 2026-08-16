@@ -6,7 +6,7 @@ import { formatDate } from "@/lib/format";
 import { StatusBadge } from "./status-badge";
 
 const thClass =
-  "px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-muted whitespace-nowrap";
+  "px-4 py-2.5 text-left text-xs font-medium text-faint whitespace-nowrap";
 const tdClass = "px-4 py-3 text-sm text-slate-650 whitespace-nowrap";
 
 type CompanyTableProps = {
@@ -56,20 +56,20 @@ export function CompanyTable({ companies, emptyTitle, emptyDescription }: Compan
               <td className={tdClass}>
                 <Link
                   href={`/admin/companies/${company.id}`}
-                  className="font-medium text-ink-900 hover:text-accent-600"
+                  className="font-medium text-ink-900 hover:underline"
                 >
                   {company.name}
                 </Link>
                 {company.isDemo ? (
-                  <span className="ml-2 rounded-sm bg-mist px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted">
+                  <span className="ml-2 rounded-sm bg-mist px-1.5 py-0.5 text-[10px] font-medium text-muted">
                     Demo
                   </span>
                 ) : null}
               </td>
-              <td className={tdClass}>{company.industry ?? "—"}</td>
-              <td className={tdClass}>{company.stage ? STAGE_LABELS[company.stage] : "—"}</td>
+              <td className={tdClass}>{company.industry ?? "–"}</td>
+              <td className={tdClass}>{company.stage ? STAGE_LABELS[company.stage] : "–"}</td>
               <td className={tdClass}>
-                {company.submittedAt ? formatDate(company.submittedAt) : "—"}
+                {company.submittedAt ? formatDate(company.submittedAt) : "–"}
               </td>
               <td className={tdClass}>
                 <StatusBadge status={company.status as CompanyStatus} />

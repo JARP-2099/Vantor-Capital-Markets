@@ -544,7 +544,7 @@ export function runValuationEngine(inputs: ValuationInputs): ValuationResult {
   const currency = primaryRevenue(inputs)?.currency ?? "USD";
 
   const extraHints: string[] = [];
-  if (!fresh) extraHints.push("Update your metrics — the newest reported values are over a year old");
+  if (!fresh) extraHints.push("Update your metrics. The newest reported values are over a year old");
   if (outlierWidening) extraHints.push("Model outputs disagree; more complete financials would narrow the range");
 
   return {

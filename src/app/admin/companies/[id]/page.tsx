@@ -24,7 +24,7 @@ import {
 } from "@/lib/constants";
 import { formatDate, formatMetricValue } from "@/lib/format";
 
-export const metadata: Metadata = { title: "Admin — Review Company" };
+export const metadata: Metadata = { title: "Admin · Review Company" };
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -122,7 +122,7 @@ export default async function AdminCompanyReviewPage({
                       href={company.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-accent-600 hover:underline"
+                      className="text-ink-900 underline decoration-line-strong underline-offset-2 hover:decoration-faint"
                     >
                       {company.website}
                     </a>
@@ -174,7 +174,7 @@ export default async function AdminCompanyReviewPage({
                 <ul className="flex flex-wrap gap-2">
                   {intents.map((intent) => (
                     <li key={intent}>
-                      <Badge tone="accent">{INTENT_LABELS[intent]}</Badge>
+                      <Badge tone="neutral">{INTENT_LABELS[intent]}</Badge>
                     </li>
                   ))}
                 </ul>
@@ -194,16 +194,16 @@ export default async function AdminCompanyReviewPage({
                   <table className="w-full min-w-120 border-collapse">
                     <thead className="border-b border-line">
                       <tr>
-                        <th scope="col" className="py-2 pr-4 text-left text-xs font-semibold uppercase tracking-wider text-muted">
+                        <th scope="col" className="py-2 pr-4 text-left text-xs font-medium text-faint">
                           Metric
                         </th>
-                        <th scope="col" className="py-2 pr-4 text-left text-xs font-semibold uppercase tracking-wider text-muted">
+                        <th scope="col" className="py-2 pr-4 text-left text-xs font-medium text-faint">
                           Latest value
                         </th>
-                        <th scope="col" className="py-2 pr-4 text-left text-xs font-semibold uppercase tracking-wider text-muted">
+                        <th scope="col" className="py-2 pr-4 text-left text-xs font-medium text-faint">
                           As of
                         </th>
-                        <th scope="col" className="py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">
+                        <th scope="col" className="py-2 text-left text-xs font-medium text-faint">
                           Source
                         </th>
                       </tr>
@@ -243,7 +243,7 @@ export default async function AdminCompanyReviewPage({
                 storySections.map((section) =>
                   section.value ? (
                     <section key={section.label}>
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted">
+                      <h4 className="text-xs font-medium text-faint">
                         {section.label}
                       </h4>
                       <p className="mt-1.5 text-sm leading-relaxed whitespace-pre-wrap text-slate-650">

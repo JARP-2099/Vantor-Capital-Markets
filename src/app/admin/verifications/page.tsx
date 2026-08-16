@@ -15,10 +15,10 @@ import {
   type VerificationStatus,
 } from "@/lib/verification/constants";
 
-export const metadata: Metadata = { title: "Admin — Verifications" };
+export const metadata: Metadata = { title: "Admin · Verifications" };
 
 const thClass =
-  "px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-muted whitespace-nowrap";
+  "px-4 py-2.5 text-left text-xs font-medium text-faint whitespace-nowrap";
 const tdClass = "px-4 py-2.5 text-sm text-slate-650 whitespace-nowrap";
 
 export default async function AdminVerificationsPage() {
@@ -92,7 +92,7 @@ export default async function AdminVerificationsPage() {
                   <td className={`${tdClass} text-right`}>
                     <Link
                       href={`/admin/verifications/${request.id}`}
-                      className="text-sm font-medium text-accent-600 hover:underline"
+                      className="text-sm font-medium text-ink-900 underline decoration-line-strong underline-offset-2 hover:decoration-faint"
                     >
                       Review
                     </Link>

@@ -44,7 +44,7 @@ export default async function VerificationPage({
         <h2 className="text-lg font-semibold text-ink-900">Data verification</h2>
         <p className="mt-1.5 text-sm leading-relaxed text-muted">
           Verification means Vantor has reviewed evidence supporting a specific claim about your
-          company — for example your revenue or ownership structure. It never scores or endorses
+          company, for example your revenue or ownership structure. It never scores or endorses
           your company as an investment; it only confirms what the evidence shows.
         </p>
       </div>
@@ -81,7 +81,7 @@ export default async function VerificationPage({
               ) : null}
               {latest && status === "needs_update" ? (
                 <details className="mt-3 rounded-md border border-line">
-                  <summary className="cursor-pointer select-none rounded-md px-3 py-2 text-sm font-medium text-accent-600 transition-colors hover:bg-canvas [&::-webkit-details-marker]:hidden">
+                  <summary className="cursor-pointer select-none rounded-md px-3 py-2 text-sm font-medium text-ink-900 transition-colors hover:bg-canvas [&::-webkit-details-marker]:hidden">
                     Add evidence to this request
                   </summary>
                   <div className="space-y-4 border-t border-line p-3">

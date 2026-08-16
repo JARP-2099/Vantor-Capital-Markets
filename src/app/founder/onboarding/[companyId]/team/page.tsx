@@ -29,7 +29,7 @@ export default async function OnboardingTeamPage({
       companyId={companyId}
       step={5}
       title="Who's on the team?"
-      description="List the people behind the company. Team members listed here appear on your public profile — they don't need Vantor accounts."
+      description="List the people behind the company. Team members listed here appear on your public profile. They don't need Vantor accounts."
     >
       <TeamForm action={action} initial={initial} submitLabel="Save & continue" />
     </WizardShell>

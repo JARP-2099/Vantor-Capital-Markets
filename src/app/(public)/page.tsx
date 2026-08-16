@@ -7,26 +7,22 @@ import { cn } from "@/lib/cn";
 /**
  * Marketing landing page. One coherent dark environment: the page canvas
  * stays near-black throughout and sections separate with hairline dividers
- * and surface depth, never alternating light blocks. All product imagery is
- * built from real product UI patterns with clearly captioned example data.
+ * and surface depth. The champagne metal appears only in the valuation
+ * compositions. All product imagery is built from real product UI patterns
+ * with clearly captioned example data.
  */
 
-function SectionHeading({
-  kicker,
-  title,
-  body,
-}: {
-  kicker: string;
-  title: string;
-  body?: string;
-}) {
+function SectionHeading({ title, body }: { title: string; body?: string }) {
   return (
     <div className="max-w-2xl">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">{kicker}</p>
-      <h2 className="mt-3 text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">{title}</h2>
+      <h2 className="text-3xl font-bold tracking-[-0.02em] text-ink-900 sm:text-4xl">{title}</h2>
       {body ? <p className="mt-4 text-base leading-relaxed text-slate-650">{body}</p> : null}
     </div>
   );
+}
+
+function StatLabel({ children }: { children: React.ReactNode }) {
+  return <dt className="text-[11px] font-medium text-faint">{children}</dt>;
 }
 
 function DemoVerificationRow({ label, status }: { label: string; status: string }) {
@@ -52,12 +48,12 @@ export default function LandingPage() {
         <Container className="py-16 lg:py-20">
           <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
             <div>
-              <h1 className="text-4xl font-bold leading-[1.05] tracking-tight text-ink-900 sm:text-5xl xl:text-6xl">
-                The private market, in one place.
+              <h1 className="text-4xl font-bold leading-[1.04] tracking-[-0.035em] text-ink-900 sm:text-5xl xl:text-[64px]">
+                Research private companies in one place.
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-650">
-                Discover private companies, compare financial performance, review Vantor
-                valuation estimates, and see what company information has been verified.
+                Compare company data, review Vantor valuation estimates, and see which
+                information has been verified.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <ButtonLink href="/companies" size="lg">
@@ -71,7 +67,7 @@ export default function LandingPage() {
             <div>
               <HeroPreview />
               <p className="mt-3 text-right text-[11px] text-faint">
-                Product interface with illustrative example data.
+                Product interface with example data.
               </p>
             </div>
           </div>
@@ -82,15 +78,14 @@ export default function LandingPage() {
       <section className="border-b border-line">
         <Container className="py-24">
           <SectionHeading
-            kicker="Discover"
             title="Discover private companies"
-            body="Browse a marketplace of private companies with standardized data. Filter by industry, stage, revenue, growth, valuation, and verification to find the companies that fit your criteria."
+            body="Browse a marketplace of private companies with standardized data. Filter by industry, stage, revenue, growth, valuation, and verification."
           />
           <div className="mt-10 overflow-hidden rounded-xl border border-line bg-deep">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[860px] text-sm">
                 <thead>
-                  <tr className="border-b border-line text-left text-xs uppercase tracking-wider text-faint">
+                  <tr className="border-b border-line text-left text-xs font-medium text-faint">
                     <th scope="col" className="px-5 py-3 font-medium">Company</th>
                     <th scope="col" className="px-5 py-3 font-medium">Industry / Stage</th>
                     <th scope="col" className="px-5 py-3 text-right font-medium">Revenue</th>
@@ -113,7 +108,7 @@ export default function LandingPage() {
                       <td className="px-5 py-3.5 text-right font-medium text-positive-700 tabular-nums">
                         {c.growth}
                       </td>
-                      <td className="px-5 py-3.5 text-right font-medium text-brand-soft tabular-nums">
+                      <td className="px-5 py-3.5 text-right font-medium text-ink-900 tabular-nums">
                         {c.valuation}
                       </td>
                       <td className="px-5 py-3.5 text-right font-medium text-ink-900 tabular-nums">
@@ -126,7 +121,7 @@ export default function LandingPage() {
               </table>
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-5 py-3">
-              <p className="text-[11px] text-faint">Illustrative example data.</p>
+              <p className="text-[11px] text-faint">Example data.</p>
               <ButtonLink href="/companies" variant="secondary" size="sm">
                 Explore Companies
               </ButtonLink>
@@ -140,9 +135,8 @@ export default function LandingPage() {
         <Container className="py-24">
           <div className="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-center">
             <SectionHeading
-              kicker="Company Intelligence"
-              title="Every company, in the same structure"
-              body="Each profile presents the company the same way: what it does, its financial metrics with history, its team, and its current status. You can compare two companies without translating two different pitch decks."
+              title="Every company, presented the same way"
+              body="Each profile covers the same ground: what the company does, its financial metrics with history, its team, and its current status. You can compare two companies directly."
             />
             <div className="rounded-xl border border-line bg-deep p-5 sm:p-6">
               <div className="flex flex-wrap items-start justify-between gap-2 border-b border-line pb-4">
@@ -158,33 +152,29 @@ export default function LandingPage() {
               </div>
               <dl className="grid grid-cols-2 gap-x-6 gap-y-5 pt-5 sm:grid-cols-5">
                 <div>
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">
-                    Est. Valuation
-                  </dt>
-                  <dd className="mt-1 text-sm font-semibold text-brand-soft tabular-nums">
+                  <StatLabel>Est. valuation</StatLabel>
+                  <dd className="mt-1 text-sm font-semibold text-ink-900 tabular-nums">
                     {DEMO_SELECTED.valuation}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">Revenue</dt>
+                  <StatLabel>Revenue</StatLabel>
                   <dd className="mt-1 text-sm font-semibold text-ink-900 tabular-nums">
                     {DEMO_SELECTED.revenue}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">Growth</dt>
+                  <StatLabel>Growth</StatLabel>
                   <dd className="mt-1 text-sm font-semibold text-positive-700 tabular-nums">
                     {DEMO_SELECTED.growth}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">Raised</dt>
+                  <StatLabel>Raised</StatLabel>
                   <dd className="mt-1 text-sm font-semibold text-ink-900 tabular-nums">$2.5M</dd>
                 </div>
                 <div>
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">
-                    Verification
-                  </dt>
+                  <StatLabel>Verification</StatLabel>
                   <dd className="mt-1 text-sm font-semibold text-ink-900 tabular-nums">
                     {DEMO_SELECTED.verification}
                   </dd>
@@ -207,14 +197,14 @@ export default function LandingPage() {
         <Container className="py-24">
           <div className="grid gap-12 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-center">
             <div className="order-2 rounded-xl border border-line bg-deep p-5 sm:p-6 lg:order-1">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-faint">
-                Estimated Private Market Valuation
+              <p className="text-[11px] font-medium text-faint">
+                Estimated private market valuation
               </p>
               <p className="mt-2 text-3xl font-bold tracking-tight text-brand-soft tabular-nums">
                 {DEMO_SELECTED.valuation}
               </p>
               <div aria-hidden="true" className="mt-4">
-                <div className="relative h-2 w-full rounded-full bg-raised">
+                <div className="relative h-1.5 w-full rounded-full bg-raised">
                   <div className="gilded-range absolute inset-y-0 left-[30%] right-[15%] rounded-full" />
                 </div>
                 <div className="mt-1.5 flex justify-between text-[10px] text-faint tabular-nums">
@@ -224,21 +214,19 @@ export default function LandingPage() {
               </div>
               <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-line pt-5 sm:grid-cols-4">
                 <div>
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">Midpoint</dt>
+                  <StatLabel>Midpoint</StatLabel>
                   <dd className="mt-1 text-sm font-semibold text-ink-900 tabular-nums">$4.6M</dd>
                 </div>
                 <div>
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">Confidence</dt>
+                  <StatLabel>Confidence</StatLabel>
                   <dd className="mt-1 text-sm font-semibold text-ink-900 tabular-nums">71%</dd>
                 </div>
                 <div>
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">
-                    Data Sufficiency
-                  </dt>
+                  <StatLabel>Data sufficiency</StatLabel>
                   <dd className="mt-1 text-sm font-semibold text-ink-900">Strong</dd>
                 </div>
                 <div>
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">Updated</dt>
+                  <StatLabel>Updated</StatLabel>
                   <dd className="mt-1 text-sm font-semibold text-ink-900 tabular-nums">Aug 2026</dd>
                 </div>
               </dl>
@@ -256,13 +244,12 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-              <p className="mt-4 text-[11px] text-faint">Illustrative example data.</p>
+              <p className="mt-4 text-[11px] text-faint">Example data.</p>
             </div>
             <div className="order-1 lg:order-2">
               <SectionHeading
-                kicker="Valuation"
-                title="A valuation estimate you can inspect"
-                body="Vantor estimates a valuation range for each company from its reported financials, stage, and risk profile. Every estimate shows its models, weights, confidence, and data sufficiency, so you can see how the number was produced and how much to rely on it."
+                title="See how Vantor calculated the estimate"
+                body="Vantor estimates a valuation range for each company from its reported financials, stage, and risk profile. Every estimate shows its models, weights, confidence, and data sufficiency."
               />
             </div>
           </div>
@@ -274,9 +261,8 @@ export default function LandingPage() {
         <Container className="py-24">
           <div className="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-center">
             <SectionHeading
-              kicker="Verification"
-              title="Know what has been checked"
-              body="Companies submit evidence for identity, formation, revenue, and other categories. Vantor reviews the evidence and shows the status of each category, so you always know which information has been verified and which is still self-reported."
+              title="See which information has been verified"
+              body="Companies submit evidence for identity, formation, revenue, and other categories. Vantor reviews the evidence and shows the status of each category, so you know which information has been reviewed and which is self-reported."
             />
             <div className="rounded-xl border border-line bg-deep p-5 sm:p-6">
               <div className="flex items-baseline gap-3 border-b border-line pb-4">
@@ -290,7 +276,7 @@ export default function LandingPage() {
                 <DemoVerificationRow label="Financial statements" status="Under review" />
                 <DemoVerificationRow label="Customer metrics" status="Pending" />
               </ul>
-              <p className="mt-2 text-[11px] text-faint">Illustrative example data.</p>
+              <p className="mt-2 text-[11px] text-faint">Example data.</p>
             </div>
           </div>
         </Container>
@@ -301,37 +287,30 @@ export default function LandingPage() {
         <Container className="py-24">
           <div className="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-center">
             <SectionHeading
-              kicker="For Founders"
-              title="One place to manage how your company is seen"
-              body="Founders control the profile: report metrics with history, request verification, generate a valuation estimate, and decide what becomes public. A clear task list shows exactly what to complete next."
+              title="Give investors the information they need"
+              body="Founders control the profile: report metrics with history, request verification, generate a valuation estimate, and decide what becomes public. A task list shows what to complete next."
             />
             <div className="rounded-xl border border-line bg-deep p-5 sm:p-6">
               <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
                 <div>
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">Status</dt>
+                  <StatLabel>Status</StatLabel>
                   <dd className="mt-1 text-sm font-semibold text-ink-900">Published</dd>
                 </div>
                 <div>
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">Valuation</dt>
-                  <dd className="mt-1 text-sm font-semibold text-brand-soft tabular-nums">$4.6M mid</dd>
+                  <StatLabel>Valuation midpoint</StatLabel>
+                  <dd className="mt-1 text-sm font-semibold text-ink-900 tabular-nums">$4.6M</dd>
                 </div>
                 <div>
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">
-                    Profile completeness
-                  </dt>
+                  <StatLabel>Profile completeness</StatLabel>
                   <dd className="mt-1 text-sm font-semibold text-ink-900 tabular-nums">92%</dd>
                 </div>
                 <div>
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">
-                    Verification
-                  </dt>
+                  <StatLabel>Verification</StatLabel>
                   <dd className="mt-1 text-sm font-semibold text-ink-900 tabular-nums">82%</dd>
                 </div>
               </dl>
               <div className="mt-5 border-t border-line pt-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted">
-                  Next actions
-                </p>
+                <p className="text-sm font-semibold text-ink-900">Next actions</p>
                 <ul className="mt-2 space-y-2 text-sm text-ink-800">
                   {[
                     "Add current revenue data",
@@ -339,13 +318,13 @@ export default function LandingPage() {
                     "Review public profile",
                   ].map((action) => (
                     <li key={action} className="flex items-center gap-2.5">
-                      <span aria-hidden="true" className="size-1.5 rounded-full bg-brand" />
+                      <span aria-hidden="true" className="size-1.5 rounded-full bg-faint" />
                       {action}
                     </li>
                   ))}
                 </ul>
               </div>
-              <p className="mt-4 text-[11px] text-faint">Illustrative example data.</p>
+              <p className="mt-4 text-[11px] text-faint">Example data.</p>
             </div>
           </div>
         </Container>
@@ -355,12 +334,12 @@ export default function LandingPage() {
       <section>
         <Container className="py-24">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">
-              See the private market clearly.
+            <h2 className="text-3xl font-bold tracking-[-0.02em] text-ink-900 sm:text-4xl">
+              Explore private companies on Vantor.
             </h2>
             <p className="mt-4 text-base leading-relaxed text-slate-650">
-              Explore standardized profiles of private companies, or list your own company and
-              control how it is presented.
+              Browse standardized company profiles, or list your own company and control how it
+              is presented.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <ButtonLink href="/companies" size="lg">

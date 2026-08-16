@@ -25,7 +25,7 @@ import {
 export const metadata: Metadata = {
   title: "Discover Private Companies",
   description:
-    "Browse standardized profiles of private companies — story, metrics, and team — on Vantor.",
+    "Browse standardized profiles of private companies on Vantor: story, metrics, and team.",
 };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;

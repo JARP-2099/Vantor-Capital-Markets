@@ -25,7 +25,7 @@ export default async function OnboardingMetricsPage({
       companyId={companyId}
       step={3}
       title="Share your metrics"
-      description="Real numbers, reported by you, with the date they describe. Add as many or as few as you like — you can skip this entirely if you're pre-revenue."
+      description="Real numbers, reported by you, with the date they describe. Add as many or as few as you like. You can skip this entirely if you're pre-revenue."
     >
       <MetricsForm action={action} initial={initial} submitLabel="Save & continue" />
     </WizardShell>

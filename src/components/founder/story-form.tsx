@@ -20,7 +20,7 @@ const SECTIONS = [
   {
     name: "solution",
     label: "Solution",
-    hint: "How does your product solve that problem? Focus on what changes for the customer, not on feature lists.",
+    hint: "How does your product solve that problem? Focus on what changes for the customer.",
   },
   {
     name: "market",
@@ -40,12 +40,12 @@ const SECTIONS = [
   {
     name: "traction",
     label: "Traction",
-    hint: "What proof do you have that this is working? Customers, revenue, partnerships, retention — concrete beats abstract.",
+    hint: "What proof do you have that this is working? Customers, revenue, partnerships, retention. Specific numbers work best.",
   },
   {
     name: "roadmap",
     label: "Roadmap",
-    hint: "Where is the company going over the next 12–24 months? Milestones you plan to hit and what unlocks them.",
+    hint: "Where is the company going over the next 12 to 24 months? List the milestones you plan to reach.",
   },
   {
     name: "fullDescription",
@@ -72,7 +72,7 @@ export function StoryForm({ action, initial, submitLabel, disabled }: StoryFormP
       <fieldset disabled={disabled} className="space-y-5">
         <FormStateAlert state={state} />
         <p className="text-xs leading-relaxed text-muted">
-          Every section is optional — write the ones that matter for your company. You can come
+          Every section is optional. Write the ones that matter for your company. You can come
           back and refine them at any time.
         </p>
         {SECTIONS.map((s) => (

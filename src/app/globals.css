@@ -1,32 +1,41 @@
 @import "tailwindcss";
 
 /*
- * Vantor design tokens — dark private-markets system.
+ * Vantor design tokens — dark private-markets system, refinement pass.
  *
- * One coherent near-black environment with layered surfaces, hairline
- * borders, and a single warm brand accent. The brand accent is COPPER for
- * now, but every component consumes it through the semantic --color-brand-*
- * tokens; when the final Vantor identity lands, changing the three brand
- * values below restyles the whole product.
+ * One near-black environment with a clear surface ladder, hairline borders,
+ * and a single restrained metallic accent. The interface is ~90% neutral;
+ * the champagne metal appears only at selected financial moments (valuation
+ * ranges, the valuation history line, selection details). It is consumed
+ * exclusively through the semantic --color-brand-* tokens; when the final
+ * Vantor identity lands, changing the four brand values below restyles the
+ * whole product.
  *
  * Legacy token names from the light system (ink/paper/canvas/mist/line/
- * accent) are kept as aliases onto the dark palette so every existing
- * surface participates in the theme without a file-by-file rewrite:
- *   paper   -> surface        canvas -> page background
- *   mist    -> raised surface line   -> hairline border
- *   ink-9xx -> primary text   accent -> brand (copper)
+ * accent) remain aliases onto the dark palette so every existing surface
+ * participates without a file-by-file rewrite:
+ *   paper   -> standard surface  canvas -> page background
+ *   mist    -> raised surface    line   -> hairline border
+ *   ink-9xx -> primary text      accent -> brand (champagne metal)
+ *
+ * Surface ladder (every level has one job):
+ *   canvas #08080A  page background
+ *   deep   #0C0C0F  large product panels / footer
+ *   paper  #121317  standard surface (cards, tables)
+ *   mist   #18191E  inputs, hovers, chips
+ *   raised #1E1F25  topmost elements (bars, markers, menus)
  */
 @theme {
   /* Backgrounds and surfaces */
   --color-canvas: #08080a;
-  --color-deep: #040406;
+  --color-deep: #0c0c0f;
   --color-paper: #121317;
-  --color-mist: #191a1f;
-  --color-raised: #1f2026;
+  --color-mist: #18191e;
+  --color-raised: #1e1f25;
 
   /* Hairlines */
-  --color-line: #25262c;
-  --color-line-strong: #34363e;
+  --color-line: #24252b;
+  --color-line-strong: #33353d;
 
   /* Text */
   --color-ink-950: #ffffff;
@@ -38,19 +47,19 @@
   --color-muted: #9a9daa;
   --color-faint: #777a88;
 
-  /* Brand — semantic; currently copper. Swap these to rebrand. */
-  --color-brand: #cc9166;
-  --color-brand-soft: #e2b28e;
-  --color-brand-deep: #a96f49;
-  --color-brand-tint: #241a12;
+  /* Brand — semantic; currently champagne metal. Swap these to rebrand. */
+  --color-brand: #b7a174;
+  --color-brand-soft: #d6c39a;
+  --color-brand-deep: #746a54;
+  --color-brand-tint: #1b1811;
 
   /* Legacy accent aliases (drive existing accent-* utility usage). */
-  --color-accent-700: #e2b28e;
-  --color-accent-600: #cc9166;
-  --color-accent-500: #cc9166;
-  --color-accent-50: #241a12;
+  --color-accent-700: #d6c39a;
+  --color-accent-600: #b7a174;
+  --color-accent-500: #b7a174;
+  --color-accent-50: #1b1811;
 
-  /* Semantic status */
+  /* Semantic status — never mixed with brand meaning */
   --color-positive-700: #55b98a;
   --color-positive-50: #10231b;
   --color-negative-700: #e06c75;
@@ -58,8 +67,8 @@
   --color-warn-700: #d8a657;
   --color-warn-50: #292013;
 
-  --font-sans: var(--font-geist), "Geist", -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--font-vantor), "Familjen Grotesk", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "SFMono-Regular", ui-monospace, "Cascadia Mono", "Roboto Mono",
     Menlo, monospace;
 
@@ -80,7 +89,6 @@ html {
 body {
   background-color: var(--color-canvas);
   color: var(--color-ink-900);
-  font-feature-settings: "cv11";
   -webkit-font-smoothing: antialiased;
 }
 
@@ -96,8 +104,9 @@ body {
 }
 
 /*
- * Gilded accent — reserved for high-value financial visualization only
- * (valuation ranges, funding progress). Never buttons, headings, or cards.
+ * Metallic accent — reserved for high-value financial visualization only
+ * (valuation ranges, the valuation history line). Never buttons, headings,
+ * links, or chrome.
  */
 .gilded-range {
   background-image: linear-gradient(
@@ -106,16 +115,6 @@ body {
     var(--color-brand) 55%,
     var(--color-brand-soft)
   );
-}
-.gilded-text {
-  background-image: linear-gradient(
-    90deg,
-    var(--color-brand-soft),
-    var(--color-brand)
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
 }
 
 /* Visible focus for keyboard users everywhere, without double outlines. */

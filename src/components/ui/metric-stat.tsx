@@ -16,7 +16,7 @@ export function MetricStat({ label, value, tone = "default", className }: Metric
   const known = value !== null && value !== undefined && value !== "";
   return (
     <div className={cn("min-w-0", className)}>
-      <dt className="text-xs font-medium uppercase tracking-wider text-muted">{label}</dt>
+      <dt className="text-xs font-medium text-faint">{label}</dt>
       <dd
         data-metric-value
         className={cn(

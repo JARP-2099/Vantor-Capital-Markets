@@ -19,7 +19,7 @@ export default async function ManageCompanyLayout({
     <>
       <div className="border-b border-line bg-paper">
         <Container className="pt-8">
-          <Link href="/founder" className="text-xs font-medium text-accent-600 hover:underline">
+          <Link href="/founder" className="text-xs font-medium text-slate-650 hover:text-ink-900">
             &larr; Founder dashboard
           </Link>
           <div className="mt-3 flex flex-wrap items-center gap-3">

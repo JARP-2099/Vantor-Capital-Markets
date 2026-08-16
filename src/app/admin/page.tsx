@@ -9,10 +9,10 @@ import { Container } from "@/components/layout/container";
 import { Card } from "@/components/ui/card";
 import { formatDate } from "@/lib/format";
 
-export const metadata: Metadata = { title: "Admin — Review Queue" };
+export const metadata: Metadata = { title: "Admin · Review Queue" };
 
 const thClass =
-  "px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-muted whitespace-nowrap";
+  "px-4 py-2.5 text-left text-xs font-medium text-faint whitespace-nowrap";
 const tdClass = "px-4 py-2.5 text-sm text-slate-650 whitespace-nowrap";
 
 export default async function AdminDashboardPage() {
@@ -46,7 +46,7 @@ export default async function AdminDashboardPage() {
       <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((stat) => (
           <Card key={stat.label} className="px-5 py-4">
-            <dt className="text-xs font-medium uppercase tracking-wider text-muted">
+            <dt className="text-xs font-medium text-faint">
               {stat.label}
             </dt>
             <dd className="mt-1 text-2xl font-bold text-ink-900">{stat.value}</dd>

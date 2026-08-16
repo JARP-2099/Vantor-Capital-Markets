@@ -29,7 +29,7 @@ function Value({ children }: { children: ReactNode }) {
 function SummaryRow({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="grid gap-0.5 py-2 sm:grid-cols-[11rem_1fr] sm:gap-4">
-      <dt className="text-xs font-medium uppercase tracking-wider text-muted sm:pt-0.5">
+      <dt className="text-xs font-medium text-faint sm:pt-0.5">
         {label}
       </dt>
       <dd className="min-w-0 break-words">
@@ -52,7 +52,7 @@ function SectionCard({
     <Card>
       <CardHeader className="flex items-center justify-between">
         <CardTitle>{title}</CardTitle>
-        <Link href={editHref} className="text-sm font-medium text-accent-600 hover:underline">
+        <Link href={editHref} className="text-sm font-medium text-ink-900 underline decoration-line-strong underline-offset-2 hover:decoration-faint">
           Edit
         </Link>
       </CardHeader>
@@ -128,7 +128,7 @@ export default async function OnboardingReviewPage({
           ) : (
             <div className="flex flex-wrap gap-2">
               {intents.map((i) => (
-                <Badge key={i} tone="accent">
+                <Badge key={i} tone="neutral">
                   {INTENT_LABELS[i]}
                 </Badge>
               ))}
@@ -139,13 +139,13 @@ export default async function OnboardingReviewPage({
         <SectionCard title="Metrics" editHref={`${base}/metrics`}>
           {metrics.length === 0 ? (
             <p className="text-sm text-faint">
-              No metrics reported — fine for pre-revenue companies.
+              No metrics reported. That&apos;s fine for pre-revenue companies.
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-96 text-left text-sm">
                 <thead>
-                  <tr className="border-b border-line text-xs font-medium uppercase tracking-wider text-muted">
+                  <tr className="border-b border-line text-xs font-medium text-faint">
                     <th scope="col" className="py-2 pr-4 font-medium">Metric</th>
                     <th scope="col" className="py-2 pr-4 font-medium">Value</th>
                     <th scope="col" className="py-2 font-medium">As of</th>
@@ -206,7 +206,7 @@ export default async function OnboardingReviewPage({
           <CardBody className="space-y-4">
             <Alert tone="info">
               Your profile stays private until the Vantor team approves it. Signals like
-              &ldquo;seeking investment&rdquo; describe openness to conversations — they are not an
+              &ldquo;seeking investment&rdquo; describe openness to conversations. They are not an
               offering of securities.
             </Alert>
             <SubmitPanel action={submitCompany.bind(null, companyId)} />

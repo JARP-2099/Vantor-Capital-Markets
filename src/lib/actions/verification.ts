@@ -257,7 +257,7 @@ export async function addVerificationEvidence(
     }
     const open: string[] = ["pending", "under_review", "needs_update"];
     if (!open.includes(request.status)) {
-      return err("This request has been decided — evidence can no longer be added to it.");
+      return err("This request has been decided. Evidence can no longer be added to it.");
     }
 
     // Cap evidence per request so the admin review surface cannot be spammed.

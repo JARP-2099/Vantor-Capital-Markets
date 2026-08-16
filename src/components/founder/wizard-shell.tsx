@@ -16,10 +16,10 @@ export function WizardShell({ companyId, step, title, description, children }: W
   return (
     <Container className="max-w-3xl py-8 sm:py-12">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+        <p className="text-xs font-medium text-faint">
           List your company
         </p>
-        <Link href="/founder" className="text-sm font-medium text-accent-600 hover:underline">
+        <Link href="/founder" className="text-sm font-medium text-slate-650 hover:text-ink-900">
           Save &amp; exit
         </Link>
       </div>

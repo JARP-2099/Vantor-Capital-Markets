@@ -65,7 +65,7 @@ function websiteInfo(website: string): { href: string; label: string } {
 
 function periodLabel(row: CompanyMetricRow): string | null {
   if (row.periodStart && row.periodEnd) {
-    return `${formatDate(row.periodStart)} – ${formatDate(row.periodEnd)}`;
+    return `${formatDate(row.periodStart)} to ${formatDate(row.periodEnd)}`;
   }
   if (row.periodStart) return `From ${formatDate(row.periodStart)}`;
   if (row.periodEnd) return `Through ${formatDate(row.periodEnd)}`;
@@ -75,7 +75,7 @@ function periodLabel(row: CompanyMetricRow): string | null {
 function StoryBlock({ heading, body }: { heading: string; body: string }) {
   return (
     <div>
-      <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">{heading}</h3>
+      <h3 className="text-sm font-semibold text-ink-900">{heading}</h3>
       <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-650">{body}</p>
     </div>
   );
@@ -135,7 +135,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
   type BandEntry = { label: string; value: string; tone?: "brand" | "positive" | "negative" };
   const bandEntries: BandEntry[] = [];
   if (valuationRange) {
-    bandEntries.push({ label: "Estimated Valuation", value: valuationRange, tone: "brand" });
+    bandEntries.push({ label: "Estimated valuation", value: valuationRange, tone: "brand" });
   }
   if (revenue) bandEntries.push({ label: revenue.label, value: revenue.value });
   if (growth) {
@@ -224,7 +224,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
                   href={website.href}
                   target="_blank"
                   rel="noopener noreferrer nofollow"
-                  className="inline-flex items-center gap-1 text-sm font-medium text-accent-600 hover:text-accent-700"
+                  className="inline-flex items-center gap-1 text-sm font-medium text-slate-650 underline decoration-line-strong underline-offset-4 hover:text-ink-900"
                 >
                   {website.label}
                   <span aria-hidden="true">&#8599;</span>
@@ -241,7 +241,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
               <dl className="grid grid-cols-2 divide-line sm:grid-cols-4 lg:flex lg:flex-wrap lg:divide-x">
                 {bandEntries.map((entry) => (
                   <div key={entry.label} className="min-w-0 px-5 py-4 lg:flex-1">
-                    <dt className="text-[11px] font-medium uppercase tracking-wider text-faint">
+                    <dt className="text-[11px] font-medium text-faint">
                       {entry.label}
                     </dt>
                     <dd
@@ -317,7 +317,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[28rem] text-sm">
                   <thead>
-                    <tr className="border-b border-line text-left text-xs uppercase tracking-wider text-muted">
+                    <tr className="border-b border-line text-left text-xs font-medium text-faint">
                       <th scope="col" className="px-5 py-3 font-medium">
                         Metric
                       </th>
@@ -347,7 +347,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
                           </th>
                           <td className="px-5 py-3 text-right font-semibold text-ink-900 tabular-nums">
                             {n === null
-                              ? "—"
+                              ? "–"
                               : formatMetricValue(row.metricType, n, row.currency)}
                           </td>
                           <td className="px-5 py-3 text-muted tabular-nums">
@@ -355,7 +355,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
                           </td>
                           {showPeriodColumn ? (
                             <td className="px-5 py-3 text-muted tabular-nums">
-                              {periodLabel(row) ?? "—"}
+                              {periodLabel(row) ?? "–"}
                             </td>
                           ) : null}
                         </tr>
@@ -414,7 +414,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
                   <Card className="h-full p-5">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-sm font-semibold text-ink-900">{member.name}</h3>
-                      {member.role === "founder" ? <Badge tone="accent">Founder</Badge> : null}
+                      {member.role === "founder" ? <Badge tone="neutral">Founder</Badge> : null}
                     </div>
                     {member.title ? <p className="mt-0.5 text-sm text-muted">{member.title}</p> : null}
                     {member.bio ? (

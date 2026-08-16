@@ -95,19 +95,19 @@ export function HeroPreview() {
 
           <dl className="mt-4 grid grid-cols-3 gap-x-4 gap-y-4">
             <div>
-              <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">Revenue</dt>
+              <dt className="text-[10px] font-medium text-faint">Revenue</dt>
               <dd className="mt-0.5 text-sm font-semibold text-ink-900 tabular-nums">
                 {DEMO_SELECTED.revenue}
               </dd>
             </div>
             <div>
-              <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">Growth</dt>
+              <dt className="text-[10px] font-medium text-faint">Growth</dt>
               <dd className="mt-0.5 text-sm font-semibold text-positive-700 tabular-nums">
                 {DEMO_SELECTED.growth}
               </dd>
             </div>
             <div>
-              <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">Verification</dt>
+              <dt className="text-[10px] font-medium text-faint">Verification</dt>
               <dd className="mt-0.5 text-sm font-semibold text-ink-900 tabular-nums">
                 {DEMO_SELECTED.verification}
               </dd>
@@ -115,9 +115,7 @@ export function HeroPreview() {
           </dl>
 
           <div className="mt-4 rounded-lg border border-line bg-paper p-3.5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-faint">
-              Estimated Valuation
-            </p>
+            <p className="text-[10px] font-medium text-faint">Estimated valuation</p>
             <p className="mt-1 text-lg font-bold tracking-tight text-brand-soft tabular-nums">
               {DEMO_SELECTED.valuation}
             </p>

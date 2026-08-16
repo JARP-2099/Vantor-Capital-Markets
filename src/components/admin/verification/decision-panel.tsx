@@ -57,7 +57,7 @@ export function DecisionPanel({
       <div className="space-y-3">
         {state?.ok ? <Alert tone="success">{state.message ?? "Done."}</Alert> : null}
         <p className="text-sm text-muted">
-          This request is {VERIFICATION_STATUS_LABELS[status]} — no further transitions are
+          This request is {VERIFICATION_STATUS_LABELS[status]} . No further transitions are
           available. The founder can submit a new request for the category.
         </p>
       </div>
@@ -78,7 +78,7 @@ export function DecisionPanel({
       <Field
         label="Internal notes"
         htmlFor="decision-internal-notes"
-        hint="Visible to admins only — never shown to the founder or the public."
+        hint="Visible to admins only. Never shown to the founder or the public."
         error={internalNotesError}
       >
         <Textarea

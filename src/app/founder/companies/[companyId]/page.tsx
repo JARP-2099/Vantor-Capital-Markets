@@ -21,7 +21,7 @@ function StatusExplanation({ status }: { status: CompanyStatus }) {
   if (status === "submitted" || status === "under_review") {
     return (
       <Alert tone="warn" title="Awaiting review">
-        Your profile is with the Vantor review team. It is read-only until the review is complete —
+        Your profile is with the Vantor review team. It is read-only until the review is complete.
         we&apos;ll notify you as soon as there&apos;s a decision.
       </Alert>
     );
@@ -73,7 +73,7 @@ export default async function CompanyOverviewPage({
     <div className="space-y-6">
       {submitted === "1" && (status === "submitted" || status === "under_review") ? (
         <Alert tone="success" title="Submitted for review">
-          Thanks — your profile is now with the Vantor review team. We&apos;ll let you know when
+          Your profile is now with the Vantor review team. We&apos;ll let you know when
           it&apos;s approved{company.submittedAt ? ` (submitted ${formatDate(company.submittedAt)})` : ""}.
         </Alert>
       ) : null}
@@ -110,7 +110,7 @@ export default async function CompanyOverviewPage({
               className="mt-2 h-2 overflow-hidden rounded-full bg-mist"
             >
               <div
-                className="h-full rounded-full bg-accent-500"
+                className="h-full rounded-full bg-slate-650"
                 style={{ width: `${completion.percent}%` }}
               />
             </div>
@@ -129,7 +129,7 @@ export default async function CompanyOverviewPage({
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-ink-900">
                       {item.label}
-                      <span className="sr-only">{item.done ? " — complete" : " — incomplete"}</span>
+                      <span className="sr-only">{item.done ? " (complete)" : " (incomplete)"}</span>
                     </p>
                     <p className="text-xs text-muted">{item.detail}</p>
                   </div>
@@ -138,7 +138,7 @@ export default async function CompanyOverviewPage({
                       href={`/founder/onboarding/${companyId}/${STEP_BY_CHECKLIST_KEY[item.key]}`}
                       variant="ghost"
                       size="sm"
-                      className="ml-auto shrink-0 text-accent-600"
+                      className="ml-auto shrink-0 text-slate-650"
                     >
                       Edit
                     </ButtonLink>
@@ -160,7 +160,7 @@ export default async function CompanyOverviewPage({
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {intents.map((i) => (
-                    <Badge key={i} tone="accent">
+                    <Badge key={i} tone="neutral">
                       {INTENT_LABELS[i]}
                     </Badge>
                   ))}
@@ -188,7 +188,7 @@ export default async function CompanyOverviewPage({
                 ) : (
                   <>
                     <p className="text-sm leading-relaxed text-muted">
-                      Finish the required sections — identity and at least one goal — to submit your
+                      Finish the required sections (identity and at least one goal) to submit your
                       profile for review.
                     </p>
                     <ButtonLink

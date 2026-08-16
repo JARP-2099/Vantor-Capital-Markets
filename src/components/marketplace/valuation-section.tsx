@@ -5,7 +5,7 @@ import { formatCompactCurrency, formatDate } from "@/lib/format";
 /**
  * Public profile valuation section. Server-safe presentation only — callers
  * pass a completed run (visibility already enforced upstream). This is the
- * one surface that uses the gilded copper accent: a model estimate range,
+ * one surface that uses the champagne metal accent: a model estimate range,
  * deliberately not styled like a traded price (no gain/loss coloring, no
  * change badges).
  */
@@ -92,7 +92,7 @@ function GildedRangeBar({
 type HistoryPoint = { date: Date; mid: number; currency: string };
 
 /**
- * Midpoint history line: restrained copper on a dark panel with thin grid
+ * Midpoint history line: a restrained metal line on a dark panel with thin grid
  * lines. The adjacent table is the accessible/data view; the aria-label
  * narrates first and latest values. Renders only when real history exists.
  */
@@ -201,7 +201,7 @@ export function ValuationSection({
             value={run.confidence !== null ? `${run.confidence}%` : null}
           />
           <MetricStat
-            label="Data Sufficiency"
+            label="Data sufficiency"
             value={SUFFICIENCY_LABELS[run.dataSufficiency] ?? null}
           />
           <MetricStat
@@ -214,9 +214,7 @@ export function ValuationSection({
 
       {/* -------------------------- Estimate Breakdown ------------------------- */}
       <div>
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">
-          Estimate Breakdown
-        </h3>
+        <h3 className="text-sm font-semibold text-ink-900">Estimate breakdown</h3>
         <div className="mt-2 divide-y divide-line border-y border-line">
           {ordered.map((row) => {
             const label = COMPONENT_LABELS[row.componentKey] ?? row.componentKey;
@@ -262,9 +260,7 @@ export function ValuationSection({
       {/* ---------------------------- History ---------------------------- */}
       {showHistory ? (
         <div className="rounded-lg border border-line bg-deep p-5">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">
-            Valuation History
-          </h3>
+          <h3 className="text-sm font-semibold text-ink-900">Valuation history</h3>
           <p className="mt-1 text-xs text-faint">
             Model-estimated midpoints over time. Not a traded price.
           </p>
@@ -274,7 +270,7 @@ export function ValuationSection({
           <div className="mt-4 overflow-x-auto">
             <table className="w-full min-w-64 text-left text-sm">
               <thead>
-                <tr className="border-b border-line text-xs uppercase tracking-wider text-faint">
+                <tr className="border-b border-line text-xs font-medium text-faint">
                   <th scope="col" className="py-2 pr-4 font-medium">
                     Date
                   </th>

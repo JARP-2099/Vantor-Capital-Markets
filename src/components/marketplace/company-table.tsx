@@ -68,7 +68,7 @@ export function CompanyTable({ items }: { items: CompanyListItem[] }) {
       <div className="hidden md:block">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-line text-left text-xs uppercase tracking-wider text-faint">
+            <tr className="border-b border-line text-left text-xs font-medium text-faint">
               <th scope="col" className="px-5 py-3 font-medium">Company</th>
               <th scope="col" className="px-5 py-3 font-medium">Industry / Stage</th>
               <th scope="col" className="px-5 py-3 text-right font-medium">Revenue</th>
@@ -89,9 +89,9 @@ export function CompanyTable({ items }: { items: CompanyListItem[] }) {
                     {row.company.name}
                   </Link>
                 </td>
-                <td className="px-5 py-3.5 text-slate-650">{row.industryStage || "—"}</td>
+                <td className="px-5 py-3.5 text-slate-650">{row.industryStage || "–"}</td>
                 <td className="px-5 py-3.5 text-right font-medium text-ink-900 tabular-nums">
-                  {row.revenue?.value ?? <span className="font-normal text-faint">—</span>}
+                  {row.revenue?.value ?? <span className="font-normal text-faint">–</span>}
                 </td>
                 <td
                   className={cn(
@@ -99,20 +99,20 @@ export function CompanyTable({ items }: { items: CompanyListItem[] }) {
                     row.growth ? growthClass(row.growth.tone) : undefined,
                   )}
                 >
-                  {row.growth?.value ?? <span className="font-normal text-faint">—</span>}
+                  {row.growth?.value ?? <span className="font-normal text-faint">–</span>}
                 </td>
-                <td className="px-5 py-3.5 text-right font-medium text-brand-soft tabular-nums">
-                  {row.valuation ?? <span className="font-normal text-faint">—</span>}
+                <td className="px-5 py-3.5 text-right font-medium text-ink-900 tabular-nums">
+                  {row.valuation ?? <span className="font-normal text-faint">–</span>}
                 </td>
                 <td className="px-5 py-3.5 text-right font-medium text-ink-900 tabular-nums">
                   {row.verificationPct !== null ? (
                     `${row.verificationPct}%`
                   ) : (
-                    <span className="font-normal text-faint">—</span>
+                    <span className="font-normal text-faint">–</span>
                   )}
                 </td>
                 <td className="px-5 py-3.5">
-                  {row.status ? <StatusChip label={row.status.label} /> : <span className="text-faint">—</span>}
+                  {row.status ? <StatusChip label={row.status.label} /> : <span className="text-faint">–</span>}
                 </td>
               </tr>
             ))}
@@ -137,23 +137,21 @@ export function CompanyTable({ items }: { items: CompanyListItem[] }) {
               </div>
               <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <div>
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">
-                    Est. Valuation
-                  </dt>
-                  <dd className="mt-0.5 font-medium text-brand-soft tabular-nums">
-                    {row.valuation ?? <span className="font-normal text-faint">—</span>}
+                  <dt className="text-[10px] font-medium text-faint">Est. valuation</dt>
+                  <dd className="mt-0.5 font-medium text-ink-900 tabular-nums">
+                    {row.valuation ?? <span className="font-normal text-faint">–</span>}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">
+                  <dt className="text-[10px] font-medium text-faint">
                     Revenue
                   </dt>
                   <dd className="mt-0.5 font-medium text-ink-900 tabular-nums">
-                    {row.revenue?.value ?? <span className="font-normal text-faint">—</span>}
+                    {row.revenue?.value ?? <span className="font-normal text-faint">–</span>}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">
+                  <dt className="text-[10px] font-medium text-faint">
                     Growth
                   </dt>
                   <dd
@@ -162,18 +160,18 @@ export function CompanyTable({ items }: { items: CompanyListItem[] }) {
                       row.growth ? growthClass(row.growth.tone) : "font-normal text-faint",
                     )}
                   >
-                    {row.growth?.value ?? "—"}
+                    {row.growth?.value ?? "–"}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-[10px] font-medium uppercase tracking-wider text-faint">
+                  <dt className="text-[10px] font-medium text-faint">
                     Verification
                   </dt>
                   <dd className="mt-0.5 font-medium text-ink-900 tabular-nums">
                     {row.verificationPct !== null ? (
                       `${row.verificationPct}%`
                     ) : (
-                      <span className="font-normal text-faint">—</span>
+                      <span className="font-normal text-faint">–</span>
                     )}
                   </dd>
                 </div>

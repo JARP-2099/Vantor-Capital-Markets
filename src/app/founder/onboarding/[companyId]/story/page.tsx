@@ -17,7 +17,7 @@ export default async function OnboardingStoryPage({
       companyId={companyId}
       step={4}
       title="Tell your story"
-      description="Structured sections that make your company legible to investors. All optional — write what matters, skip what doesn't."
+      description="Structured sections that make your company legible to investors. All sections are optional. Write what matters and skip the rest."
     >
       <StoryForm action={action} initial={company} submitLabel="Save & continue" />
     </WizardShell>

@@ -97,7 +97,7 @@ export function computeCompletion(input: CompletionInput): ProfileCompletion {
       detail:
         metricsCount > 0
           ? `${metricsCount} ${metricsCount === 1 ? "entry" : "entries"} reported`
-          : "Optional — pre-revenue companies can skip this",
+          : "Optional. Pre-revenue companies can skip this",
     },
     {
       key: "story",
