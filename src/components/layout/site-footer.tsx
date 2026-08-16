@@ -19,12 +19,12 @@ const columns: { heading: string; links: { href: string; label: string }[] }[] =
 
 export function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-line bg-paper">
-      <Container className="py-12">
+    <footer className="mt-auto border-t border-white/10 bg-night-950 text-white">
+      <Container className="py-14">
         <div className="flex flex-col gap-10 md:flex-row md:justify-between">
           <div className="max-w-sm">
-            <Logo />
-            <p className="mt-3 text-sm leading-relaxed text-muted">
+            <Logo variant="dark" full />
+            <p className="mt-4 text-sm leading-relaxed text-white/55">
               Private-company discovery, standardized startup intelligence, valuation, and
               verification — in one platform.
             </p>
@@ -32,7 +32,7 @@ export function SiteFooter() {
           <div className="flex gap-16">
             {columns.map((col) => (
               <nav key={col.heading} aria-label={col.heading}>
-                <p className="text-xs font-medium uppercase tracking-wider text-muted">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">
                   {col.heading}
                 </p>
                 <ul className="mt-2">
@@ -40,7 +40,7 @@ export function SiteFooter() {
                     <li key={l.href + l.label}>
                       <Link
                         href={l.href}
-                        className="inline-block py-2 text-sm text-slate-650 transition-colors hover:text-ink-900"
+                        className="inline-block py-2 text-sm text-white/65 transition-colors hover:text-white"
                       >
                         {l.label}
                       </Link>
@@ -51,8 +51,8 @@ export function SiteFooter() {
             ))}
           </div>
         </div>
-        <div className="mt-10 border-t border-line pt-6">
-          <p className="max-w-3xl text-xs leading-relaxed text-muted">
+        <div className="mt-10 border-t border-white/10 pt-6">
+          <p className="max-w-3xl text-xs leading-relaxed text-white/45">
             Vantor Capital Markets is not a registered broker-dealer, funding portal, securities
             exchange, alternative trading system, investment adviser, or custodian, and does not
             offer, sell, or facilitate transactions in securities. Company information on this
@@ -60,7 +60,7 @@ export function SiteFooter() {
             verified unless expressly stated. Nothing on this platform is investment advice or a
             recommendation.
           </p>
-          <p className="mt-4 text-xs text-muted">
+          <p className="mt-4 text-xs text-white/45">
             © {new Date().getFullYear()} Vantor Capital Markets
           </p>
         </div>

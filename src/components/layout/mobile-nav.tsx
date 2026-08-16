@@ -8,7 +8,7 @@ import { cn } from "@/lib/cn";
 
 type NavLink = { href: string; label: string };
 
-/** Disclosure-based mobile menu; closes when a link is chosen. */
+/** Disclosure-based mobile menu on the dark public header; closes on select. */
 export function MobileNav({ links, signedIn }: { links: NavLink[]; signedIn: boolean }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -17,7 +17,7 @@ export function MobileNav({ links, signedIn }: { links: NavLink[]; signedIn: boo
   const close = () => setOpen(false);
 
   const itemClass =
-    "rounded-md px-3 py-2.5 text-sm font-medium text-ink-900 hover:bg-mist";
+    "rounded-md px-3 py-3 text-sm font-medium text-white/80 hover:bg-white/10 hover:text-white";
 
   return (
     <div className="md:hidden">
@@ -27,20 +27,20 @@ export function MobileNav({ links, signedIn }: { links: NavLink[]; signedIn: boo
         aria-controls={menuId}
         aria-label={open ? "Close menu" : "Open menu"}
         onClick={() => setOpen((v) => !v)}
-        className="flex h-10 w-10 items-center justify-center rounded-md text-ink-900 hover:bg-mist"
+        className="flex h-11 w-11 items-center justify-center rounded-md text-white hover:bg-white/10"
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           {open ? (
-            <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            <path d="M5 5l10 10M15 5L5 15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
           ) : (
-            <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
           )}
         </svg>
       </button>
       <div
         id={menuId}
         className={cn(
-          "absolute inset-x-0 top-16 border-b border-line bg-paper shadow-raised",
+          "absolute inset-x-0 top-16 border-b border-white/10 bg-night-950 shadow-raised",
           open ? "block" : "hidden",
         )}
       >
@@ -61,7 +61,7 @@ export function MobileNav({ links, signedIn }: { links: NavLink[]; signedIn: boo
                 router.push("/");
                 router.refresh();
               }}
-              className={cn(itemClass, "text-left text-muted disabled:opacity-50")}
+              className={cn(itemClass, "text-left text-white/60 disabled:opacity-50")}
             >
               Sign out
             </button>
@@ -70,11 +70,7 @@ export function MobileNav({ links, signedIn }: { links: NavLink[]; signedIn: boo
               <Link href="/login" onClick={close} className={itemClass}>
                 Sign in
               </Link>
-              <Link
-                href="/signup"
-                onClick={close}
-                className={cn(itemClass, "text-accent-700")}
-              >
+              <Link href="/signup" onClick={close} className={cn(itemClass, "text-accent-300")}>
                 List Your Company
               </Link>
             </>
