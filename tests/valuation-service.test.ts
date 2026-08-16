@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { db } from "@/db";
-import { companyMetrics, valuationRuns } from "@/db/schema";
+import { companyMetrics } from "@/db/schema";
 import { getLatestCompletedValuationRun, getValuationComponents, getValuationHistory } from "@/db/queries/valuations";
 import { findManageableCompany } from "@/lib/authz";
 import {

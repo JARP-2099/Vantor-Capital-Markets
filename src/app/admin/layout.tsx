@@ -48,6 +48,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link href="/admin/users" className={`${navLinkClass} hidden sm:inline`}>
               Users
             </Link>
+            <Link href="/admin/verifications" className={`${navLinkClass} hidden sm:inline`}>
+              Verifications
+            </Link>
             <Link href="/" className={navLinkClass}>
               Back to site
             </Link>
