@@ -28,31 +28,27 @@ run from a dev machine, never at serverless boot.
   caveat below), 85/85 tests passing, production build passing.
 - **Vercel Preview:** auto-deployed from the branch, READY at
   `https://vantor-capital-markets-git-claude-vantor-2ad306-jarpholdingsllc.vercel.app`
-  (behind Vercel SSO). Auth on the preview will error until migration 0003
-  is applied to the production DB, because Preview currently shares it.
-- **Verdict from the audit:** READY FOR PHASE 3, contingent on the three
-  manual provider-side steps below.
+  (behind Vercel SSO), redeployed after the manual steps below were done.
+- **Verdict from the audit:** READY FOR PHASE 3. The three manual
+  provider-side steps the audit required have been completed by Jack
+  (2026-08-16) — see below.
 
-## Outstanding manual steps (Jack's, dashboard/DB access required)
+## Manual provider-side steps — COMPLETED by Jack (2026-08-16)
 
-1. **Apply migration 0003 to the Railway production DB.** From a local
-   clone of this branch:
-   ```bash
-   read -s DBURL     # paste Railway DATABASE_PUBLIC_URL (no echo)
-   DATABASE_URL="${DBURL}?sslmode=require" pnpm db:migrate
-   unset DBURL
-   ```
-   Only `0003_rare_marten_broadcloak.sql` will apply (0000–0002 are already
-   recorded). It is non-destructive: creates `rate_limit`, adds one index
-   on `companies`, adds one CHECK on `valuation_runs`. If the URL already
-   has a query string, use `&sslmode=require` instead of `?sslmode=require`.
-2. **Grant production admin** (after signing up through the app):
-   `DATABASE_URL="${DBURL}?sslmode=require" pnpm admin:grant <email>` —
-   this is the only production admin path; `ADMIN_EMAILS` is ignored in
-   production by design.
-3. **Separate Preview and Production databases** — HIGH-priority infra
-   risk. Exact ~15-minute steps are in `docs/DEPLOYMENT.md` under
-   "Preview vs Production databases (required separation)".
+These were the audit's preconditions; Jack reports they are done. Do not
+re-prescribe them. If something looks inconsistent (e.g. auth errors,
+missing `rate_limit` table), verify before assuming they were missed.
+
+1. ~~Apply migration 0003 to the Railway production DB~~ — applied
+   (`0003_rare_marten_broadcloak.sql`: `rate_limit` table, `companies`
+   index, `valuation_runs` CHECK).
+2. ~~Grant production admin via `pnpm admin:grant`~~ — done. Reminder:
+   this remains the only production admin path; `ADMIN_EMAILS` is ignored
+   in production by design.
+3. ~~Separate Preview and Production databases~~ — done per
+   `docs/DEPLOYMENT.md` "Preview vs Production databases". Future schema
+   changes must now be migrated to BOTH the staging and production Railway
+   databases (`pnpm db:migrate` against each).
 
 ## What the stabilization pass changed (summary)
 
@@ -93,8 +89,9 @@ Full detail in `VANTOR_HANDOFF.md`. Highlights:
   bump; never replace it with an AI-generated valuation.
 - Do not regress the better-auth trusted-origin handling for Vercel
   Preview URLs (`src/lib/auth-origins.ts` — exact origins, no wildcards).
-- No Phase 3+ features (watchlists, portfolios, trading, messaging, etc.);
-  regulatory boundary: Vantor is not a broker-dealer.
+- Regulatory boundary: Vantor is not a broker-dealer. (The "no Phase 3
+  features" restriction applied to the stabilization pass only — Phase 3
+  implementation is the next planned work.)
 - Never print or commit secrets (`DATABASE_URL`, `BETTER_AUTH_SECRET`,
   etc.). Never destroy or migrate infrastructure automatically — give Jack
   minimal manual steps instead.
