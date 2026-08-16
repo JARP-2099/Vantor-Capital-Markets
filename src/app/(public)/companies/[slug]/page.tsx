@@ -265,7 +265,12 @@ export default async function CompanyProfilePage({ params }: { params: Params })
                     value={tile.value}
                     tone={tile.tone}
                     size="lg"
-                    className="tabular-nums"
+                    // Range values are wide — give them the full row on mobile.
+                    className={
+                      tile.label === "Est. Valuation"
+                        ? "col-span-2 tabular-nums sm:col-auto"
+                        : "tabular-nums"
+                    }
                   />
                 ))}
               </dl>
@@ -358,7 +363,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
                   </div>
                 </div>
               ) : null}
-              <Table className="min-w-[26rem]">
+              <Table>
                 <THead>
                   <tr>
                     <TH>Metric</TH>
@@ -368,15 +373,21 @@ export default async function CompanyProfilePage({ params }: { params: Params })
                   </tr>
                 </THead>
                 <TBody>
-                  {metricRows.map((row) => {
+                  {metricRows.map((row, i) => {
                     const n = metricNumber(row);
+                    // History groups repeat the metric type; quiet repeats so
+                    // the table reads as grouped history, not duplicate data.
+                    const repeated = i > 0 && metricRows[i - 1].metricType === row.metricType;
                     return (
                       <tr key={row.id}>
                         <th
                           scope="row"
-                          className="whitespace-nowrap px-4 py-3 text-left text-sm font-medium text-ink-900"
+                          className={`px-4 py-3 text-left text-sm sm:whitespace-nowrap ${
+                            repeated ? "font-normal text-faint" : "font-medium text-ink-900"
+                          }`}
                         >
                           {METRIC_LABELS[row.metricType]}
+                          {repeated ? <span className="sr-only"> (earlier value)</span> : null}
                         </th>
                         <TD numeric className="font-semibold text-ink-900">
                           {n === null

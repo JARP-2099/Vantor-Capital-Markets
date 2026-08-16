@@ -47,7 +47,9 @@ export function FeaturedCompanies() {
                   <p className="truncate text-[15px] font-semibold tracking-tight text-ink-900 group-hover:text-accent-700">
                     {c.name}
                   </p>
-                  <p className="mt-0.5 truncate text-sm text-slate-650">{c.oneLiner}</p>
+                  <p className="mt-0.5 line-clamp-2 text-sm text-slate-650 lg:line-clamp-1">
+                    {c.oneLiner}
+                  </p>
                 </div>
               </div>
               <div className="mt-1.5 min-w-0 pl-[3.375rem] lg:mt-0 lg:pl-0">

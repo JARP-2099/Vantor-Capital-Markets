@@ -89,7 +89,9 @@ export function CompanyListRow({ company, metrics, intents, valuation }: Company
               {company.name}
             </h2>
             {company.shortDescription ? (
-              <p className="mt-0.5 truncate text-sm text-slate-650">{company.shortDescription}</p>
+              <p className="mt-0.5 line-clamp-2 text-sm text-slate-650 lg:line-clamp-1">
+                {company.shortDescription}
+              </p>
             ) : null}
             {/* Mobile-only classification line (its own column on desktop). */}
             {(classification || location) && (
@@ -143,14 +145,14 @@ export function CompanyListRow({ company, metrics, intents, valuation }: Company
         </div>
         <div className="hidden min-w-0 lg:block">
           {status ? (
-            <p className="flex items-center gap-1.5 text-xs font-medium text-slate-650">
+            <p className="flex items-start gap-1.5 text-xs font-medium leading-snug text-slate-650">
               <span
                 className={cn(
-                  "size-1.5 shrink-0 rounded-full",
+                  "mt-1 size-1.5 shrink-0 rounded-full",
                   raising ? "bg-accent-600" : "bg-faint",
                 )}
               />
-              <span className="truncate">{status.label}</span>
+              <span>{status.label}</span>
             </p>
           ) : null}
         </div>
