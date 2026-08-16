@@ -39,7 +39,7 @@ export function LoginForm() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold tracking-tight text-ink-900">Sign in</h1>
+      <h1 className="text-2xl font-extrabold tracking-tight text-ink-900">Sign in</h1>
       <p className="mt-1.5 text-sm text-muted">Welcome back to Vantor.</p>
       <form onSubmit={onSubmit} className="mt-7 space-y-4" noValidate>
         {error ? <Alert tone="error">{error}</Alert> : null}

@@ -49,7 +49,7 @@ export function SignupForm() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold tracking-tight text-ink-900">Create your account</h1>
+      <h1 className="text-2xl font-extrabold tracking-tight text-ink-900">Create your account</h1>
       <p className="mt-1.5 text-sm text-muted">
         List your company or discover private companies on Vantor.
       </p>
