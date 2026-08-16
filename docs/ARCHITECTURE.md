@@ -134,13 +134,48 @@ implements transactions, money movement, order books, or valuation display.
 Wording across the product describes *openness to conversations*, never
 offerings. The footer carries an explicit not-a-broker-dealer disclosure.
 
+## Valuation engine (Phase 2 — live)
+
+`src/lib/valuation/` implements `vantor-valuation-v1`: a pure, deterministic
+engine (no I/O, injected clock) fed by a persisted input snapshot assembled
+from company facts + historical metrics. Components: revenue multiple,
+profitability, stage baseline (pre-revenue), and an honest comparables stub
+that always reports insufficient data (no fabricated comps). Versioned
+assumptions live only in `assumptions.ts` (`vantor-assumptions-v1`). Runs
+persist append-only to `valuation_runs` + `valuation_components` with
+engine/assumptions versions, risk flags, confidence, and explainability
+payloads. Access: company managers/admins trigger runs (10-min cooldown,
+admin bypass); public display requires company published +
+`showPublicValuation`. Full methodology: `docs/VALUATION_METHODOLOGY.md`.
+
+## Verification foundation (Phase 3 — live)
+
+`verification_requests` (8 categories, 7 statuses, legal transitions in
+`src/lib/verification/constants.ts`, admin-only `internalNotes` vs
+founder-visible `founderNote`) + `verification_evidence` (references only —
+raw documents are deferred to the future secure document store). Founders
+submit claims per category; admins decide via guarded transitions; every
+action is audited. Public surfaces get status-only summaries
+(`getPublicVerificationSummary`): "% verified" always means "share of
+submitted information verified", never an endorsement. Verified financial
+categories raise valuation *confidence* only — never the estimated value.
+
+## Production data layer
+
+Local dev uses the documented Postgres 16 workflow (README). Production
+targets Railway PostgreSQL + Vercel: per-instance pool sized by
+`DB_POOL_MAX` (default 5, idle timeout 20s), TLS via `?sslmode=require` on
+the connection string, migrations applied from a developer machine/CI —
+never at serverless boot. See `docs/DEPLOYMENT.md`.
+
 ## Extension points (do not rebuild — attach)
 
-- **Valuations (Phase 2)** — new tables keyed by `companyId` with range,
-  midpoint, confidence, methodology, versions; render behind
-  `valuationsEnabled`; historical metrics already provide inputs.
-- **Verification (Phase 3)** — verification records referencing
-  `company_metrics.id` / company fields; `source` column already reserved.
+- **Comparables dataset** — `valuation_components` and the engine's
+  comparables interface are ready; activating the model requires only a
+  legitimate transaction dataset, no schema change.
+- **Verification providers** — evidence `kind = provider_integration` is
+  the seam for accounting/payments/banking integrations; no vendor coupling
+  exists in the domain model.
 - **Watchlists (Phase 4)** — table exists; add UI + investor dashboard.
 - **Data rooms (Phase 5)** — new document tables + per-company access grants;
   never store documents in the public profile model.
