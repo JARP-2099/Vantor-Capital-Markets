@@ -26,7 +26,7 @@ function FormSection({
   return (
     <section className="grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-10">
       <div className="lg:sticky lg:top-6 lg:self-start">
-        <h2 className="text-lg font-semibold tracking-tight text-ink-900">{title}</h2>
+        <h2 className="text-lg font-bold tracking-tight text-ink-900">{title}</h2>
         <p className="mt-1.5 text-sm leading-relaxed text-muted">{description}</p>
         <p className="mt-3 text-xs leading-relaxed text-faint">{saveNote}</p>
       </div>

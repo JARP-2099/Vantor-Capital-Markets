@@ -1,16 +1,12 @@
 import { StatusBadge } from "@/components/founder/status-badge";
 import type { ProfileCompletion } from "@/components/founder/profile-completion";
 import { ButtonLink } from "@/components/ui/button";
-import { Card, CardBody } from "@/components/ui/card";
 import type { CompanyRow } from "@/db/queries/companies";
 import type { CompanyStatus } from "@/lib/constants";
-import { cn } from "@/lib/cn";
 
 type CompanyCardProps = {
   company: CompanyRow;
   completion: ProfileCompletion;
-  /** Single-company layout: spread the card horizontally so the page doesn't look empty. */
-  wide?: boolean;
 };
 
 /** Wizard step that resumes onboarding for a draft. */
@@ -41,87 +37,78 @@ function nextAttention(status: CompanyStatus, completion: ProfileCompletion): st
     : "Profile complete — keep your metrics current.";
 }
 
-export function CompanyCard({ company, completion, wide = false }: CompanyCardProps) {
+/**
+ * Wide row-panel for the founder dashboard: identity + status on the left,
+ * completion and primary actions in a fixed right rail. One panel per
+ * company, always full width — the dashboard is a worklist, not a gallery.
+ */
+export function CompanyCard({ company, completion }: CompanyCardProps) {
   const status = company.status as CompanyStatus;
   const percent = completion.percent;
   const attention = nextAttention(status, completion);
 
-  const completionBlock = (
-    <div>
-      <div className="flex items-center justify-between text-xs">
-        <span className="font-medium text-muted">Profile completion</span>
-        <span className="font-semibold text-ink-900 tabular-nums">{percent}%</span>
-      </div>
-      <div
-        role="progressbar"
-        aria-valuenow={percent}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label={`Profile completion for ${company.name}`}
-        className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-mist"
-      >
-        <div className="h-full rounded-full bg-accent-600" style={{ width: `${percent}%` }} />
-      </div>
-    </div>
-  );
-
-  const actions = (
-    <div className="flex flex-wrap gap-2">
-      {status === "draft" ? (
-        <>
-          <ButtonLink
-            href={`/founder/onboarding/${company.id}/${draftResumeSegment(completion)}`}
-            size="sm"
-          >
-            Continue onboarding
-          </ButtonLink>
-          <ButtonLink href={`/founder/companies/${company.id}`} size="sm" variant="secondary">
-            Manage
-          </ButtonLink>
-        </>
-      ) : (
-        <ButtonLink href={`/founder/companies/${company.id}`} size="sm">
-          Manage
-        </ButtonLink>
-      )}
-    </div>
-  );
-
   return (
-    <Card>
-      <CardBody
-        className={cn("pt-5", wide && "sm:grid sm:grid-cols-[minmax(0,1fr)_15rem] sm:gap-8")}
-      >
+    <article className="rounded-lg border border-line bg-paper shadow-card">
+      <div className="p-5 sm:grid sm:grid-cols-[minmax(0,1fr)_16rem] sm:gap-8 sm:p-6">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-            <h3 className="text-base font-semibold tracking-tight text-ink-900">{company.name}</h3>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <h3 className="text-lg font-bold tracking-tight text-ink-900">{company.name}</h3>
             <StatusBadge status={status} dot />
           </div>
-          <p
-            className={cn(
-              "mt-1.5 text-sm leading-relaxed text-muted",
-              !wide && "line-clamp-2 min-h-10",
-            )}
-          >
+          <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted">
             {company.shortDescription ?? "No description yet."}
           </p>
-          <p className="mt-3 border-t border-line pt-3 text-xs leading-relaxed text-slate-650">
+          <p className="mt-4 flex items-start gap-2 border-t border-line pt-3.5 text-sm leading-relaxed text-slate-650">
+            <span aria-hidden="true" className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent-600" />
             {attention}
           </p>
-          {!wide ? (
-            <>
-              <div className="mt-4">{completionBlock}</div>
-              <div className="mt-5">{actions}</div>
-            </>
-          ) : null}
         </div>
-        {wide ? (
-          <div className="mt-5 flex flex-col justify-between gap-5 border-t border-line pt-4 sm:mt-0 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-8">
-            {completionBlock}
-            {actions}
+
+        <div className="mt-5 flex flex-col justify-between gap-5 border-t border-line pt-4 sm:mt-0 sm:border-t-0 sm:border-l sm:pt-0 sm:pl-8">
+          <div>
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                Completion
+              </span>
+              <span
+                data-metric-value
+                className="text-lg font-bold tracking-tight text-ink-900 tabular-nums"
+              >
+                {percent}%
+              </span>
+            </div>
+            <div
+              role="progressbar"
+              aria-valuenow={percent}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`Profile completion for ${company.name}`}
+              className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-mist"
+            >
+              <div className="h-full rounded-full bg-accent-600" style={{ width: `${percent}%` }} />
+            </div>
           </div>
-        ) : null}
-      </CardBody>
-    </Card>
+          <div className="flex flex-wrap gap-2">
+            {status === "draft" ? (
+              <>
+                <ButtonLink
+                  href={`/founder/onboarding/${company.id}/${draftResumeSegment(completion)}`}
+                  size="sm"
+                >
+                  Continue onboarding
+                </ButtonLink>
+                <ButtonLink href={`/founder/companies/${company.id}`} size="sm" variant="secondary">
+                  Manage
+                </ButtonLink>
+              </>
+            ) : (
+              <ButtonLink href={`/founder/companies/${company.id}`} size="sm">
+                Manage
+              </ButtonLink>
+            )}
+          </div>
+        </div>
+      </div>
+    </article>
   );
 }

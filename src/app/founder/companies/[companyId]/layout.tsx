@@ -24,19 +24,21 @@ export default async function ManageCompanyLayout({
   return (
     <>
       <div className="border-b border-line bg-paper">
-        <Container className="pt-6 sm:pt-8">
+        <Container wide className="pt-5 sm:pt-7">
           <Link
             href="/founder"
             className="text-xs font-medium text-muted transition-colors hover:text-ink-900"
           >
-            &larr; Your companies
+            &larr; My Companies
           </Link>
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            <h1 className="text-2xl font-semibold tracking-tight text-ink-900">{company.name}</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight text-ink-900 sm:text-3xl">
+              {company.name}
+            </h1>
             <StatusBadge status={company.status as CompanyStatus} dot />
           </div>
           {meta.length > 0 ? (
-            <p className="mt-1 text-xs text-muted">
+            <p className="mt-1.5 text-xs font-medium text-muted">
               {meta.map((m, i) => (
                 <span key={m}>
                   {i > 0 ? <span className="mx-1.5 text-line-strong">&middot;</span> : null}
@@ -55,7 +57,7 @@ export default async function ManageCompanyLayout({
           </div>
         </Container>
       </div>
-      <Container className="py-8">{children}</Container>
+      <Container wide className="py-8">{children}</Container>
     </>
   );
 }

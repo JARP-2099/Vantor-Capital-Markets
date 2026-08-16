@@ -6,6 +6,7 @@ import { SubmitRequestForm } from "@/components/founder/verification/submit-requ
 import { VerificationStatusBadge } from "@/components/founder/verification/verification-status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
+import { SegmentedBar } from "@/components/ui/charts";
 import { SectionHeading } from "@/components/ui/section-heading";
 import {
   getCompanyVerificationRequests,
@@ -21,6 +22,29 @@ import {
 } from "@/lib/verification/constants";
 
 export const metadata: Metadata = { title: "Verification" };
+
+type SegmentTone = "positive" | "warn" | "negative" | "neutral";
+
+/**
+ * Category status → completeness-bar tone. Verified is the only "done"
+ * state; partial and in-review read as progress; rejected/needs-update
+ * need attention; everything else (not submitted, pending, expired) is
+ * neutral.
+ */
+function segmentTone(status: VerificationStatus | undefined): SegmentTone {
+  switch (status) {
+    case "verified":
+      return "positive";
+    case "partially_verified":
+    case "under_review":
+      return "warn";
+    case "rejected":
+    case "needs_update":
+      return "negative";
+    default:
+      return "neutral";
+  }
+}
 
 export default async function VerificationPage({
   params,
@@ -47,12 +71,41 @@ export default async function VerificationPage({
   const blocked = new Set(blockedCategories);
   const defaultCategory = VERIFICATION_CATEGORIES.find((c) => c === requestedCategory);
 
+  const segments = VERIFICATION_CATEGORIES.map((category) => ({
+    tone: segmentTone(latestByCategory.get(category)?.status as VerificationStatus | undefined),
+  }));
+  const verifiedCount = segments.filter((s) => s.tone === "positive").length;
+  const verifiedPercent = Math.round((verifiedCount / VERIFICATION_CATEGORIES.length) * 100);
+
   return (
     <div className="space-y-6">
       <SectionHeading
         title="Data verification"
         description="Verification means Vantor has reviewed evidence supporting a specific claim about your company — for example your revenue or ownership structure. It never scores or endorses your company as an investment; it only confirms what the evidence shows."
       />
+
+      {/* --------------------------------------------- Completeness summary */}
+      <section className="rounded-lg border border-line bg-paper p-5 shadow-card sm:p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+            Categories verified
+          </p>
+          <p className="text-sm text-muted">
+            {verifiedCount} of {VERIFICATION_CATEGORIES.length} categories
+          </p>
+        </div>
+        <p
+          data-metric-value
+          className="mt-1 text-3xl font-extrabold tracking-tight text-ink-900 tabular-nums"
+        >
+          {verifiedPercent}%
+        </p>
+        <SegmentedBar className="mt-4" segments={segments} />
+        <p className="mt-2 text-xs text-muted">
+          One segment per category — green verified, amber partial or under review, red needs
+          attention, grey not submitted. Details below.
+        </p>
+      </section>
 
       {/* ------------------------------------------------- Category status */}
       <Card>
@@ -68,8 +121,8 @@ export default async function VerificationPage({
               return (
                 <li key={category} className="py-3 first:pt-0 last:pb-0">
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-ink-900">
+                    <div className="w-full min-w-0 sm:w-auto sm:flex-1">
+                      <p className="text-sm font-semibold text-ink-900">
                         {VERIFICATION_CATEGORY_LABELS[category]}
                       </p>
                       {latest ? (

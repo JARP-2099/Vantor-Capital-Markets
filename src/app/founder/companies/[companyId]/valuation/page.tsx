@@ -7,6 +7,7 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfidenceBand, RangeBar, type BandPoint } from "@/components/ui/charts";
 import { MetricStat } from "@/components/ui/metric-stat";
 import { Table, TBody, TD, TH, THead } from "@/components/ui/table";
 import {
@@ -17,7 +18,7 @@ import {
   type ValuationRunRow,
 } from "@/db/queries/valuations";
 import { requestValuation, setValuationVisibility } from "@/lib/actions/valuation";
-import { formatCompactCurrency, formatDate, formatDateTime } from "@/lib/format";
+import { formatCompactCurrency, formatDateTime } from "@/lib/format";
 import { RUN_COOLDOWN_MS } from "@/lib/valuation/service";
 
 /**
@@ -105,58 +106,57 @@ function joinLabels(labels: string[]): string {
 }
 
 /**
- * Horizontal range visual for the headline estimate: quiet track, cobalt
- * low–high band, ink midpoint marker. Purely decorative — every number it
- * encodes is also rendered as text.
+ * Normalized 0–1 positions for the headline range bar: the domain pads the
+ * low–high band by ~22% each side so the band reads as a slice of a wider
+ * scale, never wall-to-wall.
  */
-function RangeBar({
-  low,
-  high,
-  mid,
-  currency,
-}: {
-  low: number;
-  high: number;
-  mid: number | null;
-  currency: string;
-}) {
+function headlineRangePositions(
+  low: number,
+  high: number,
+  mid: number | null,
+): { bandStart: number; bandEnd: number; mid?: number } {
   const span = high - low;
   const pad = span > 0 ? span * 0.22 : Math.abs(high) * 0.2 || 1;
   const domainLow = Math.max(0, low - pad);
   const domainHigh = high + pad;
-  const pct = (v: number) =>
-    Math.min(100, Math.max(0, ((v - domainLow) / (domainHigh - domainLow)) * 100));
-  const lowPct = pct(low);
-  const highPct = pct(high);
-
-  return (
-    <div aria-hidden="true" className="mt-5 max-w-2xl select-none">
-      <div className="relative h-3">
-        <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-mist" />
-        <div
-          className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-accent-600"
-          style={{ left: `${lowPct}%`, width: `${Math.max(highPct - lowPct, 1)}%` }}
-        />
-        {mid !== null ? (
-          <div
-            className="absolute top-1/2 h-3 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink-900"
-            style={{ left: `${pct(mid)}%` }}
-          />
-        ) : null}
-      </div>
-      <div className="relative mt-1.5 h-4 text-xs text-muted tabular-nums">
-        <span className="absolute -translate-x-1/2" style={{ left: `${lowPct}%` }}>
-          {formatCompactCurrency(low, currency)}
-        </span>
-        <span className="absolute -translate-x-1/2" style={{ left: `${highPct}%` }}>
-          {formatCompactCurrency(high, currency)}
-        </span>
-      </div>
-    </div>
-  );
+  const pos = (v: number) =>
+    Math.min(1, Math.max(0, (v - domainLow) / (domainHigh - domainLow)));
+  return {
+    bandStart: pos(low),
+    bandEnd: pos(high),
+    mid: mid !== null ? pos(mid) : undefined,
+  };
 }
 
-function BreakdownRow({ row, currency }: { row: ValuationComponentRow; currency: string }) {
+/** Shared 0–1 domain across applied model ranges (widest range = full width). */
+type ModelDomain = { min: number; max: number };
+
+function modelDomain(rows: ValuationComponentRow[]): ModelDomain | null {
+  const lows: number[] = [];
+  const highs: number[] = [];
+  for (const row of rows) {
+    if (row.status !== "applied") continue;
+    const low = num(row.valuationLow);
+    const high = num(row.valuationHigh);
+    if (low === null || high === null) continue;
+    lows.push(low);
+    highs.push(high);
+  }
+  if (lows.length === 0) return null;
+  const min = Math.min(...lows);
+  const max = Math.max(...highs);
+  return max > min ? { min, max } : null;
+}
+
+function BreakdownRow({
+  row,
+  currency,
+  domain,
+}: {
+  row: ValuationComponentRow;
+  currency: string;
+  domain: ModelDomain | null;
+}) {
   const label = COMPONENT_LABELS[row.componentKey] ?? row.componentKey;
   const reason = detailReason(row);
 
@@ -164,28 +164,42 @@ function BreakdownRow({ row, currency }: { row: ValuationComponentRow; currency:
     const low = num(row.valuationLow);
     const high = num(row.valuationHigh);
     const weight = num(row.weight);
+    const pos =
+      domain && low !== null && high !== null
+        ? (v: number) => Math.min(1, Math.max(0, (v - domain.min) / (domain.max - domain.min)))
+        : null;
     return (
-      <div className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <p className="text-sm font-medium text-ink-900">{label}</p>
-          <Badge tone="accent" dot>
-            Applied
-          </Badge>
+      <div className="py-4">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-sm font-semibold text-ink-900">{label}</p>
+            <Badge tone="accent" dot>
+              Applied
+            </Badge>
+          </div>
+          <p className="text-sm font-semibold text-ink-900 tabular-nums">
+            {low !== null && high !== null
+              ? `${formatCompactCurrency(low, currency)} – ${formatCompactCurrency(high, currency)}`
+              : null}
+            {weight !== null ? (
+              <span className="ml-2 font-normal text-muted">{Math.round(weight * 100)}% weight</span>
+            ) : null}
+          </p>
         </div>
-        <p className="text-sm font-semibold text-ink-900 tabular-nums">
-          {low !== null && high !== null
-            ? `${formatCompactCurrency(low, currency)} – ${formatCompactCurrency(high, currency)}`
-            : null}
-          {weight !== null ? (
-            <span className="ml-2 font-normal text-muted">{Math.round(weight * 100)}% weight</span>
-          ) : null}
-        </p>
+        {pos && low !== null && high !== null ? (
+          <RangeBar
+            className="mt-2.5 max-w-2xl"
+            bandStart={pos(low)}
+            bandEnd={pos(high)}
+          />
+        ) : null}
+        {reason ? <p className="mt-2 text-xs leading-relaxed text-muted">{reason}</p> : null}
       </div>
     );
   }
 
   return (
-    <div className="py-3">
+    <div className="py-4">
       <div className="flex flex-wrap items-center gap-3">
         <p className="text-sm font-medium text-muted">{label}</p>
         <Badge dot>{row.status === "not_applicable" ? "Not applicable" : "Insufficient data"}</Badge>
@@ -374,6 +388,23 @@ export default async function ManageValuationPage({
   const mid = num(latest.valuationMid);
   const range = rangeDisplay(low, high, mid, currency);
   const ordered = orderedComponents(components);
+  const domain = modelDomain(ordered);
+
+  // History band: completed runs with a full low/mid/high, oldest → newest,
+  // x spaced by run index (runs are not evenly spaced in time).
+  const bandRuns = history.filter(
+    (run) =>
+      num(run.valuationLow) !== null &&
+      num(run.valuationMid) !== null &&
+      num(run.valuationHigh) !== null,
+  );
+  const bandPoints: BandPoint[] = bandRuns.map((run, i) => ({
+    x: bandRuns.length > 1 ? i / (bandRuns.length - 1) : 0,
+    low: num(run.valuationLow) as number,
+    mid: num(run.valuationMid) as number,
+    high: num(run.valuationHigh) as number,
+  }));
+
   const appliedLabels = ordered
     .filter((c) => c.status === "applied")
     .map((c) => COMPONENT_LABELS[c.componentKey] ?? c.componentKey);
@@ -388,12 +419,21 @@ export default async function ManageValuationPage({
         </CardHeader>
         <CardBody>
           {range ? (
-            <p className="text-3xl font-semibold tracking-tight text-ink-900 tabular-nums sm:text-4xl">
+            <p
+              data-metric-value
+              className="text-3xl font-extrabold tracking-tight text-ink-900 tabular-nums sm:text-4xl"
+            >
               {range}
             </p>
           ) : null}
           {low !== null && high !== null ? (
-            <RangeBar low={low} high={high} mid={mid} currency={currency} />
+            <RangeBar
+              className="mt-6 max-w-2xl"
+              {...headlineRangePositions(low, high, mid)}
+              lowLabel={formatCompactCurrency(low, currency)}
+              midLabel={mid !== null ? formatCompactCurrency(mid, currency) : undefined}
+              highLabel={formatCompactCurrency(high, currency)}
+            />
           ) : null}
           <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-line pt-5 sm:grid-cols-4">
             <MetricStat
@@ -406,14 +446,15 @@ export default async function ManageValuationPage({
               hint="In the estimate, not your company"
             />
             <MetricStat
-              label="Data Quality"
+              label="Data sufficiency"
               value={SUFFICIENCY_LABELS[latest.dataSufficiency] ?? null}
               hint="Completeness of reported data"
             />
             <MetricStat
               label="Last updated"
-              value={formatDate(latest.createdAt)}
+              value={formatDateTime(latest.createdAt)}
               hint={`Engine ${latest.engineVersion}`}
+              className="col-span-2 sm:col-span-1"
             />
           </dl>
         </CardBody>
@@ -430,9 +471,15 @@ export default async function ManageValuationPage({
         <CardBody>
           <div className="divide-y divide-line">
             {ordered.map((row) => (
-              <BreakdownRow key={row.id} row={row} currency={currency} />
+              <BreakdownRow key={row.id} row={row} currency={currency} domain={domain} />
             ))}
           </div>
+          {domain ? (
+            <p className="mt-1 text-xs text-muted">
+              Model bands share one scale — {formatCompactCurrency(domain.min, currency)} to{" "}
+              {formatCompactCurrency(domain.max, currency)} — so ranges compare directly.
+            </p>
+          ) : null}
         </CardBody>
       </Card>
 
@@ -505,7 +552,27 @@ export default async function ManageValuationPage({
               range moves as your data changes.
             </p>
           ) : (
-            <HistoryTable runs={historyNewestFirst} />
+            <>
+              {bandPoints.length >= 2 ? (
+                <div className="mb-5">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                      Estimate range by run
+                    </p>
+                    <p className="text-xs text-muted">
+                      {bandRuns.length} runs, oldest to newest · {currency} · band = low–high, line
+                      = midpoint
+                    </p>
+                  </div>
+                  <ConfidenceBand
+                    className="mt-3"
+                    points={bandPoints}
+                    label={`Estimated valuation range across ${bandRuns.length} runs, oldest to newest. Latest run: ${formatCompactCurrency(bandPoints[bandPoints.length - 1].low, currency)} to ${formatCompactCurrency(bandPoints[bandPoints.length - 1].high, currency)}, midpoint ${formatCompactCurrency(bandPoints[bandPoints.length - 1].mid, currency)}. Exact values in the table below.`}
+                  />
+                </div>
+              ) : null}
+              <HistoryTable runs={historyNewestFirst} />
+            </>
           )}
         </CardBody>
       </Card>

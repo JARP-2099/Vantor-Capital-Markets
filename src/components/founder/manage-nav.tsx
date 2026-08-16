@@ -45,7 +45,7 @@ export function ManageNav({ companyId }: ManageNavProps) {
                   className={cn(
                     "inline-block border-b-2 px-3 py-2.5 text-sm font-medium transition-colors",
                     active
-                      ? "border-ink-900 text-ink-900"
+                      ? "border-accent-600 font-semibold text-ink-900"
                       : "border-transparent text-muted hover:border-line-strong hover:text-ink-900",
                   )}
                 >

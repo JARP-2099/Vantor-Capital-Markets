@@ -16,8 +16,8 @@ export function WizardShell({ companyId, step, title, description, children }: W
   return (
     <Container className="max-w-3xl py-8 sm:py-12">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">
-          List your company
+        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+          List a Company
         </p>
         <Link
           href="/founder"
@@ -29,7 +29,7 @@ export function WizardShell({ companyId, step, title, description, children }: W
       <div className="mt-5 border-b border-line pb-5">
         <WizardProgress companyId={companyId} current={step} />
       </div>
-      <h1 className="mt-7 text-2xl font-semibold tracking-tight text-ink-900">{title}</h1>
+      <h1 className="mt-7 text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">{title}</h1>
       <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">{description}</p>
       <div className="mt-8">{children}</div>
     </Container>

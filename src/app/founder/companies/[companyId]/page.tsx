@@ -123,9 +123,11 @@ export default async function CompanyOverviewPage({
       <StatusExplanation status={status} />
 
       {/* ------------------------------------------------- Latest metrics */}
-      <Card>
-        <CardHeader className="flex flex-wrap items-center justify-between gap-2">
-          <CardTitle>Latest reported metrics</CardTitle>
+      <section className="rounded-lg border border-line bg-paper p-5 shadow-card sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-bold tracking-tight text-ink-900">
+            Latest reported metrics
+          </h2>
           <ButtonLink
             href={`/founder/companies/${companyId}/metrics`}
             variant="ghost"
@@ -134,30 +136,29 @@ export default async function CompanyOverviewPage({
           >
             {tiles.length > 0 ? "Update" : "Add metrics"}
           </ButtonLink>
-        </CardHeader>
-        <CardBody>
-          {tiles.length === 0 ? (
-            <p className="text-sm text-faint">
-              No metrics reported yet — fine for pre-revenue companies.
-            </p>
-          ) : (
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-4">
-              {tiles.map((type) => {
-                const row = latestByType.get(type);
-                if (!row) return null;
-                return (
-                  <MetricStat
-                    key={type}
-                    label={METRIC_LABELS[type]}
-                    value={formatMetricValue(type, Number(row.value), row.currency)}
-                    hint={`as of ${formatDate(row.asOf)}`}
-                  />
-                );
-              })}
-            </dl>
-          )}
-        </CardBody>
-      </Card>
+        </div>
+        {tiles.length === 0 ? (
+          <p className="mt-3 text-sm text-faint">
+            No metrics reported yet — fine for pre-revenue companies.
+          </p>
+        ) : (
+          <dl className="mt-5 grid grid-cols-2 gap-x-8 gap-y-6 border-t border-line pt-5 sm:grid-cols-3 lg:grid-cols-4">
+            {tiles.map((type) => {
+              const row = latestByType.get(type);
+              if (!row) return null;
+              return (
+                <MetricStat
+                  key={type}
+                  size="lg"
+                  label={METRIC_LABELS[type]}
+                  value={formatMetricValue(type, Number(row.value), row.currency)}
+                  hint={`as of ${formatDate(row.asOf)}`}
+                />
+              );
+            })}
+          </dl>
+        )}
+      </section>
 
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <Card>
@@ -165,9 +166,14 @@ export default async function CompanyOverviewPage({
             <CardTitle>Profile checklist</CardTitle>
           </CardHeader>
           <CardBody>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted">Overall completion</span>
-              <span className="font-semibold text-ink-900 tabular-nums">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                Overall completion
+              </span>
+              <span
+                data-metric-value
+                className="text-xl font-bold tracking-tight text-ink-900 tabular-nums"
+              >
                 {completion.percent}%
               </span>
             </div>
