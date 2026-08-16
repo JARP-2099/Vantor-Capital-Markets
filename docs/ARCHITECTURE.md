@@ -30,6 +30,33 @@ Browser ──► Next.js (App Router, server components + server actions)
 | Validation  | Zod (shared client/server)        | One schema per onboarding step, revalidated server-side         |
 | Tests       | Vitest (+ real Postgres test DB)  | Authorization and visibility are integration-tested             |
 
+## Design system (visual overhaul phase)
+
+Design direction is documented in `docs/VANTOR_UI_UX_REFERENCE_BRIEF.md`
+(permanent). Implementation:
+
+- **Tokens** live only in `src/app/globals.css` `@theme`: warm ivory
+  neutrals (`canvas`/`paper`/`mist`/`line`), navy-black ink scale, a single
+  cobalt accent scale, reserved semantic colors, radii, shadows, and motion
+  tokens/keyframes. Feature code never hardcodes colors.
+- **Typography**: Instrument Sans (UI + marketing, tabular numerals via the
+  `tabular-nums` utility) and Instrument Serif (marketing display only),
+  loaded with `next/font` in `src/app/layout.tsx` and exposed as
+  `font-sans` / `font-serif`.
+- **Primitives** in `src/components/ui/`: Button (primary/secondary/ghost/
+  danger/ink/inverse), Badge (filled + `dot` status style), Card, Field,
+  Input/Textarea/Select, Alert, MetricStat, EmptyState, SectionHeading,
+  shared data-table primitives (`table.tsx`), Spinner, and `Reveal` — a
+  reduced-motion-safe scroll-reveal used only on marketing surfaces.
+- **Brand**: V mark (two converging wedges) + wordmark in
+  `src/components/layout/logo.tsx`; favicon/app icons in `src/app/`
+  (`icon.svg`, `apple-icon.png`, `favicon.ico`).
+- **Motion policy**: marketing may use entrance reveals and CSS keyframes;
+  the authenticated product is limited to 150–220ms state transitions.
+  Everything collapses under `prefers-reduced-motion`.
+- `cn()` (`src/lib/cn.ts`) merges Tailwind classes via `tailwind-merge`,
+  so later classes deterministically override earlier ones.
+
 ## Repository layout
 
 ```
@@ -42,8 +69,10 @@ src/
     admin/               # admin review area (noindex, admin-only)
     api/auth/[...all]/   # better-auth handler
   components/
-    ui/                  # design-system primitives (Button, Field, Card, …)
-    layout/              # header, footer, container, logo
+    ui/                  # design-system primitives (Button, Field, Card, Table,
+                         #   Badge, MetricStat, SectionHeading, Reveal, …)
+    layout/              # header, footer, container, logo (V mark + wordmark)
+    landing/             # marketing-only compositions (hero/valuation demos)
     founder/ marketplace/ admin/   # feature components
   db/
     schema/              # drizzle schema (auth, companies, platform)

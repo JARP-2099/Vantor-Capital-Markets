@@ -1,8 +1,103 @@
-# VANTOR — Handoff (through Phase 2)
+# VANTOR — Handoff (through the Visual Overhaul phase)
 
 Written for the next session (or engineer) with zero prior context. Read
-this, then `docs/ARCHITECTURE.md`, `docs/VALUATION_METHODOLOGY.md`,
-`docs/DEPLOYMENT.md`, and `docs/DEVELOPMENT_PLAYBOOK.md`.
+this, then `docs/ARCHITECTURE.md`, `docs/VANTOR_UI_UX_REFERENCE_BRIEF.md`,
+`docs/VALUATION_METHODOLOGY.md`, `docs/DEPLOYMENT.md`, and
+`docs/DEVELOPMENT_PLAYBOOK.md`.
+
+## Visual Overhaul phase (this session, branch `claude/vantor-ui-ux-overhaul-e3p7lz`)
+
+A frontend/UX/brand overhaul on top of the Phase 2 codebase. Backend,
+schema, auth, valuation/verification logic, and configs are untouched
+except where explicitly noted below.
+
+### Design system (the law: `docs/VANTOR_UI_UX_REFERENCE_BRIEF.md` + `docs/ARCHITECTURE.md` §Design system)
+
+- **Color**: warm ivory neutrals (canvas `#f7f6f2`, mist, warm lines)
+  replacing the cold starter-slate; navy-black ink scale (`#0a0e1a` family)
+  for text and dark marketing surfaces; ONE accent — Vantor Cobalt
+  (`accent-600 #1441c8` primary actions, `accent-700` links, `accent-300`
+  on dark). Semantic green/red/amber reserved for meaning, never brand.
+  All tokens in `src/app/globals.css` `@theme` (names kept from Phase 1
+  where possible, values re-tuned; added `line-strong`, `accent-300/100`,
+  motion tokens, reveal hooks).
+- **Typography**: Instrument Sans (variable, `next/font`, latin subset has
+  `tnum` — activated by the `tabular-nums` utility on all data) +
+  Instrument Serif (400/italic) for large marketing statements only.
+  Product UI never uses the serif.
+- **Logo**: new V mark — two geometric wedges converging to a point (two
+  sides of a market meeting), right wedge cobalt. `VMark`/`Logo` (light/
+  dark variants, markOnly) in `src/components/layout/logo.tsx`;
+  `src/app/icon.svg` + `apple-icon.png` + rebuilt `favicon.ico`.
+- **Motion**: `Reveal` (`src/components/ui/reveal.tsx`) — IO-based scroll
+  reveal exposing `data-reveal-state` so `.reveal-child` / `.reveal-bar`
+  descendants stagger/grow (CSS in globals). Marketing only; product
+  motion limited to 150–220ms transitions; ALL motion collapses under
+  `prefers-reduced-motion` and renders visible with JS off.
+- **New dependency**: `tailwind-merge` (only new package). `cn()` now
+  resolves conflicting Tailwind classes — this fixed a real bug (hero CTA
+  rendering white-on-white from class collision).
+
+### Surfaces redesigned (all functionality preserved)
+
+- **Landing** (`src/app/(public)/page.tsx` + `src/components/landing/`):
+  9-section narrative — hero ("PRIVATE CAPITAL. REBUILT." / serif
+  "Discover. Value. Own what's next."), opacity problem, marketplace
+  preview, valuation demo, verification demo, founder workflow, ownership
+  vision, final CTA — around a fictional AeroForge composition built from
+  real Vantor UI elements, all figures labeled illustrative.
+- **Auth**: dark brand panel (serif statement, grid, watermark) + calm
+  form column; logic untouched.
+- **Marketplace**: card grid → dense discovery list (column header, row
+  links, aligned tabular revenue/growth with per-row metric sub-labels,
+  dot-badge status, result count + filter summary, slim no-JS filter
+  toolbar, matching skeletons).
+- **Company profile**: research-page header (one stage badge + meta line,
+  no pill stacks), cardless key-metric band, financials on shared table
+  primitives, valuation range bar + midpoint marker + component weights +
+  restyled sparkline, verification completeness bar + dot badges, team
+  list. Disclaimers verbatim.
+- **Founder**: actionable dashboard (status dots, derived next-step lines,
+  resume-draft actions), header band + non-clipping tab strip, settings-
+  style profile forms with scoped saves, metrics editor with trimmed
+  defaults + display-format preview, valuation tab as financial research
+  (range bar, breakdown, risk factors, improve checklist), verification
+  as one category status list with per-category submit (query-param
+  preselect — presentation only), onboarding progress that can't clip on
+  mobile ("Step n of 7" + segmented bar).
+- **Admin**: dark ink operator chrome with always-visible scrollable tab
+  nav (mobile admin nav existed nowhere before), stat band, dense shared
+  tables everywhere, quiet truncated mono ids (no raw-UUID prose), danger-
+  styled destructive disclosures, verification decision panel labeling
+  internal notes as never-founder-visible. Gate logic untouched.
+- **Shell**: header (My Companies label, cobalt CTA), richer footer with
+  readable disclosure (faint→muted), mobile nav gains Sign out.
+
+### Small shared fixes
+
+- `formatCompactCurrency`: killed forced trailing zero ("$580.0K"→"$580K")
+  — currency style was imposing minimumFractionDigits=1.
+- Root metadata/title updated to "Private Capital Markets" positioning.
+
+### Verification results (at HEAD of this phase)
+
+`pnpm lint` 0 problems · `pnpm typecheck` clean · `pnpm test` 76/76 (8
+files) · `pnpm build` succeeds (all routes; next/font downloads fonts at
+build). Dev-server overlay shows a perpetual "1 Issue" badge — it is the
+dev-only React/CSP eval warning (CSP has no `unsafe-eval`; React dev
+tooling wants it). Production is unaffected; do not "fix" by weakening CSP.
+
+### Known visual issues / follow-ups
+
+1. Public profile section nav has no scroll-spy active state (kept no-JS).
+2. Founder dashboard cards show completion/status only — surfacing ARR/
+   valuation there needs new fetches (deliberately not added this phase).
+3. Admin dense-table per-row buttons are 28px tall (dense trade-off).
+4. Admin verification detail validated by code only until seed data
+   includes verification requests.
+5. Semantic positive green (`#0e6b43`) reads slightly dark on ink-800
+   surfaces (hero demo uses a brightness filter — acceptable, marketing
+   only).
 
 ## What Vantor is
 
@@ -20,11 +115,13 @@ now `true` (deliberately — those systems shipped in Phase 2).
   marketplace, standardized profiles, 7-step founder onboarding with drafts,
   founder dashboard, admin review workflow, audit log, roles/capabilities,
   historical metrics model, seeds, 33 tests, security pass.
-- **Phase 2** (Master Prompt #2, this session): production data-layer
-  hardening (Railway/Vercel-ready), Valuation Engine V1, Verification
-  Foundation, expanded seeds, 69 tests total.
-
-Branch: `claude/vantor-platform-foundation-uw0r8u`, pushed to origin.
+- **Phase 2** (Master Prompt #2): production data-layer hardening
+  (Railway/Vercel-ready), Valuation Engine V1, Verification Foundation,
+  expanded seeds, 69 tests total
+  (branch `claude/vantor-platform-foundation-uw0r8u`).
+- **Visual Overhaul** (this session): full frontend/UX/brand redesign —
+  see the section above
+  (branch `claude/vantor-ui-ux-overhaul-e3p7lz`, pushed to origin).
 
 ## Infrastructure
 
