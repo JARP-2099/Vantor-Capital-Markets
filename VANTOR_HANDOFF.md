@@ -1,9 +1,58 @@
-# VANTOR — Handoff (through the Visual Overhaul phase)
+# VANTOR — Handoff (through UI Redesign V2)
 
 Written for the next session (or engineer) with zero prior context. Read
-this, then `docs/ARCHITECTURE.md`, `docs/VANTOR_UI_UX_REFERENCE_BRIEF.md`,
-`docs/VALUATION_METHODOLOGY.md`, `docs/DEPLOYMENT.md`, and
-`docs/DEVELOPMENT_PLAYBOOK.md`.
+this, then `docs/UI_REDESIGN_V2_DECISIONS.md` (CURRENT visual source of
+truth), `docs/ARCHITECTURE.md`, `docs/VALUATION_METHODOLOGY.md`,
+`docs/DEPLOYMENT.md`, and `docs/DEVELOPMENT_PLAYBOOK.md`.
+(`docs/VANTOR_UI_UX_REFERENCE_BRIEF.md` is SUPERSEDED for art direction —
+historical/product context only.)
+
+## UI Redesign V2 (this session, branch `claude/vantor-ui-ux-overhaul-e3p7lz`)
+
+The V1 visual overhaul (warm ivory / serif / editorial, recorded below)
+was REJECTED and replaced by a research-backed V2 driven by the
+`ui-ux-pro-max` v2.13.0 skill's design database. All research queries,
+accepted/rejected recommendations, and locked decisions live in
+`docs/UI_REDESIGN_V2_DECISIONS.md`. Summary:
+
+- **Direction**: modern venture-fintech. Night navy (#020617 family) with
+  an electric **Vantor Cobalt** accent (`accent-600 #1E4FE0`) for
+  marketing/sidebar/admin chrome; light cool data-dense product surfaces
+  (canvas #F4F6FA). Semantic green/red/amber reserved. No serif, no
+  ivory, no glassmorphism.
+- **Typography**: **Plus Jakarta Sans only** (400–800, next/font,
+  tabular numerals verified) — extrabold display scale, bold tabular
+  financial values.
+- **Logo**: text wordmark (VANTOR / CAPITAL MARKETS) only — the real
+  logo asset arrives later and drops into
+  `src/components/layout/logo.tsx` (fixed-height lockup).
+- **App shell**: authenticated founder + admin use a dark left-sidebar
+  shell (`src/components/layout/app-sidebar.tsx`: desktop rail, mobile
+  top bar + slide-over, sign-out in the rail). Public pages use the dark
+  top nav + dark footer. Wide containers (`Container wide` =
+  max-w-screen-2xl) on data surfaces.
+- **Charts** (`src/components/ui/charts.tsx`, dependency-free SVG,
+  each mapped to a skill chart-database recommendation): `RangeBar`
+  (bullet-style valuation range + midpoint), `ConfidenceBand` (valuation
+  history as low–high band + midpoint line), `SegmentedBar`
+  (verification completeness), `TrendLine` (metric history). Used across
+  landing, public profile, founder valuation/verification, metrics.
+- **Landing**: full-viewport split hero ("Private markets, finally
+  legible."), LARGE AeroForge research-panel visualization, populated
+  discovery grid (6 fictional companies), how-it-works, valuation +
+  verification demos on light surfaces, founder section, final CTA.
+- **Motion**: subtle tier — scroll reveals/stagger/bar-grow/band-draw via
+  the existing Reveal + CSS hooks (GSAP presets used as spec only; no new
+  dependency). Reduced-motion renders final state immediately.
+- Old V1 marks removed from chrome (favicon assets from V1 remain in
+  `src/app/` until the final logo lands — not referenced as a brand mark
+  in the UI).
+
+Verification at this phase's HEAD: lint 0 problems · typecheck clean ·
+76/76 tests · production build passes · 4-viewport visual QA (390/768/
+1440/1920) + UI-driven functional regression run by a dedicated agent —
+results recorded in the session log and fixed where material. Deployed
+via Vercel Preview (branch push → deployment must reach Ready).
 
 ## Visual Overhaul phase (this session, branch `claude/vantor-ui-ux-overhaul-e3p7lz`)
 

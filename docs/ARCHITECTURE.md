@@ -30,27 +30,35 @@ Browser ──► Next.js (App Router, server components + server actions)
 | Validation  | Zod (shared client/server)        | One schema per onboarding step, revalidated server-side         |
 | Tests       | Vitest (+ real Postgres test DB)  | Authorization and visibility are integration-tested             |
 
-## Design system (visual overhaul phase)
+## Design system (UI Redesign V2)
 
-Design direction is documented in `docs/VANTOR_UI_UX_REFERENCE_BRIEF.md`
-(permanent). Implementation:
+Design direction is documented in `docs/UI_REDESIGN_V2_DECISIONS.md`
+(current source of truth; the older reference brief is superseded for art
+direction). Implementation:
 
-- **Tokens** live only in `src/app/globals.css` `@theme`: warm ivory
-  neutrals (`canvas`/`paper`/`mist`/`line`), navy-black ink scale, a single
-  cobalt accent scale, reserved semantic colors, radii, shadows, and motion
-  tokens/keyframes. Feature code never hardcodes colors.
-- **Typography**: Instrument Sans (UI + marketing, tabular numerals via the
-  `tabular-nums` utility) and Instrument Serif (marketing display only),
-  loaded with `next/font` in `src/app/layout.tsx` and exposed as
-  `font-sans` / `font-serif`.
+- **Tokens** live only in `src/app/globals.css` `@theme`: cool slate-navy
+  ink scale, dark `night-*` foundation surfaces, light cool product
+  neutrals (`canvas`/`paper`/`mist`/`line`), a single Vantor Cobalt
+  accent scale, reserved semantic colors (+ `-400` dark-surface
+  variants), radii, shadows, and subtle-tier motion tokens/keyframes.
+  Feature code never hardcodes colors.
+- **Typography**: Plus Jakarta Sans only (400–800, `next/font`,
+  `font-sans`); tabular numerals on all data via the `tabular-nums`
+  utility. No serif.
 - **Primitives** in `src/components/ui/`: Button (primary/secondary/ghost/
   danger/ink/inverse), Badge (filled + `dot` status style), Card, Field,
   Input/Textarea/Select, Alert, MetricStat, EmptyState, SectionHeading,
-  shared data-table primitives (`table.tsx`), Spinner, and `Reveal` — a
-  reduced-motion-safe scroll-reveal used only on marketing surfaces.
-- **Brand**: V mark (two converging wedges) + wordmark in
-  `src/components/layout/logo.tsx`; favicon/app icons in `src/app/`
-  (`icon.svg`, `apple-icon.png`, `favicon.ico`).
+  shared data-table primitives (`table.tsx`), Spinner, `Reveal`
+  (reduced-motion-safe scroll reveal, marketing only), and financial
+  chart primitives in `charts.tsx` (`RangeBar`, `ConfidenceBand`,
+  `SegmentedBar`, `TrendLine` — dependency-free SVG).
+- **App shell**: public pages use the dark top nav + dark footer
+  (`site-header.tsx` / `site-footer.tsx`); authenticated founder/admin
+  segments use the dark sidebar shell (`app-sidebar.tsx`: desktop rail,
+  mobile slide-over). `Container` defaults to max-w-7xl; `wide` unlocks
+  max-w-screen-2xl for data surfaces.
+- **Brand**: text wordmark only (`layout/logo.tsx`) pending the final
+  logo asset; app icons in `src/app/`.
 - **Motion policy**: marketing may use entrance reveals and CSS keyframes;
   the authenticated product is limited to 150–220ms state transitions.
   Everything collapses under `prefers-reduced-motion`.
