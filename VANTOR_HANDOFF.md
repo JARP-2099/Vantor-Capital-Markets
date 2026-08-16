@@ -83,9 +83,13 @@ except where explicitly noted below.
 
 `pnpm lint` 0 problems · `pnpm typecheck` clean · `pnpm test` 76/76 (8
 files) · `pnpm build` succeeds (all routes; next/font downloads fonts at
-build). Dev-server overlay shows a perpetual "1 Issue" badge — it is the
-dev-only React/CSP eval warning (CSP has no `unsafe-eval`; React dev
-tooling wants it). Production is unaffected; do not "fix" by weakening CSP.
+build). A final QA agent drove the real UI end-to-end (signup → onboarding
+draft → valuation refresh + visibility toggle → verification submission →
+admin queue/detail → marketplace search/filter/profile): 7/7 flows pass,
+zero 5xx, zero horizontal overflow at 390px, reduced-motion renders
+everything immediately. The dev-only "1 Issue" overlay badge (React dev
+eval vs CSP) is fixed by allowing `unsafe-eval` in DEVELOPMENT only in
+`next.config.ts`; the production CSP string is byte-identical to Phase 2.
 
 ### Known visual issues / follow-ups
 
