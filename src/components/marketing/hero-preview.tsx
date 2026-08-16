@@ -34,7 +34,7 @@ export function HeroPreview() {
     <div className="overflow-hidden rounded-xl border border-line bg-deep shadow-raised">
       {/* Window chrome strip */}
       <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
-        <span className="font-serif text-[12px] font-semibold tracking-[0.18em] text-faint">VANTOR</span>
+        <span className="text-[11px] font-semibold tracking-[0.22em] text-faint">VANTOR</span>
         <span className="text-[11px] text-faint">Discover</span>
       </div>
 

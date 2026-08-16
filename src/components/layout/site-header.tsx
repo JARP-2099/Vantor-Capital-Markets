@@ -30,7 +30,7 @@ export async function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-line bg-canvas/90 backdrop-blur">
       <Container className="flex h-16 items-center justify-between gap-4">
         <div className="flex items-center gap-8">
-          <Logo withLabel />
+          <Logo />
           <nav aria-label="Main" className="hidden items-center gap-5 md:flex">
             {links.map((l) => (
               <Link key={l.href} href={l.href} className={navLinkClass}>

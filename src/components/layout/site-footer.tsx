@@ -7,7 +7,7 @@ export function SiteFooter() {
     <footer className="mt-auto border-t border-line bg-deep">
       <Container className="py-12">
         <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
-          <Logo size="lg" withLabel />
+          <Logo size="lg" />
           <nav aria-label="Footer" className="flex gap-6 pt-1 text-sm text-slate-650">
             <Link href="/companies" className="hover:text-ink-900">
               Discover
