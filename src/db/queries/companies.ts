@@ -1,7 +1,13 @@
 import "server-only";
 import { and, asc, count, desc, eq, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
-import { companies, companyIntents, companyMembers, companyMetrics } from "@/db/schema";
+import {
+  companies,
+  companyIntents,
+  companyMembers,
+  companyMetrics,
+  valuationRuns,
+} from "@/db/schema";
 import type { CompanyIntent, CompanyStage, MetricType } from "@/lib/constants";
 
 /**
@@ -87,18 +93,93 @@ export async function getCompanyMembers(companyId: string): Promise<CompanyMembe
 /* Public marketplace                                                         */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Marketplace sort options. Every option orders by data that legitimately
+ * exists; companies missing the sorted value go last (NULLS LAST), never
+ * ranked by a fabricated zero. This whitelist is the server-side boundary
+ * for the user-controlled sort parameter — anything else falls back to the
+ * default in the page layer.
+ */
+export const MARKETPLACE_SORTS = ["newest", "updated", "revenue", "growth", "valuation"] as const;
+export type MarketplaceSort = (typeof MARKETPLACE_SORTS)[number];
+
+export const MARKETPLACE_SORT_LABELS: Record<MarketplaceSort, string> = {
+  newest: "Newly added",
+  updated: "Recently updated",
+  revenue: "Revenue",
+  growth: "Revenue growth",
+  valuation: "Est. valuation",
+};
+
+export const DEFAULT_MARKETPLACE_SORT: MarketplaceSort = "newest";
+
 export type MarketplaceFilters = {
   q?: string;
   industry?: string;
   stage?: CompanyStage;
   country?: string;
   intent?: CompanyIntent;
+  sort?: MarketplaceSort;
   page?: number;
   pageSize?: number;
 };
 
 const DEFAULT_PAGE_SIZE = 12;
 const MAX_PAGE_SIZE = 48;
+
+/**
+ * Latest revenue figure per company, annualized for comparability: ARR is
+ * preferred over annual revenue over MRR (mirroring pickRevenueMetric), and
+ * MRR is multiplied by 12 so a company reporting monthly revenue is not
+ * ranked an order of magnitude below its peers. Currencies are compared
+ * numerically without FX conversion — a documented platform limitation.
+ */
+const latestRevenueSql = sql`(
+  SELECT cm.value * (CASE WHEN cm.metric_type = 'mrr' THEN 12 ELSE 1 END)
+  FROM ${companyMetrics} cm
+  WHERE cm.company_id = ${companies.id}
+    AND cm.metric_type IN ('arr', 'revenue_annual', 'mrr')
+  ORDER BY CASE cm.metric_type WHEN 'arr' THEN 0 WHEN 'revenue_annual' THEN 1 ELSE 2 END,
+    cm.as_of DESC, cm.created_at DESC
+  LIMIT 1)`;
+
+const latestGrowthSql = sql`(
+  SELECT cm.value
+  FROM ${companyMetrics} cm
+  WHERE cm.company_id = ${companies.id} AND cm.metric_type = 'revenue_growth_yoy'
+  ORDER BY cm.as_of DESC, cm.created_at DESC
+  LIMIT 1)`;
+
+/**
+ * Latest completed valuation midpoint — but only when the founder shows the
+ * valuation publicly. A hidden valuation must not influence public ordering,
+ * or the ordering itself would leak the hidden number's magnitude.
+ */
+const latestPublicValuationSql = sql`(
+  CASE WHEN ${companies.showPublicValuation} THEN (
+    SELECT vr.valuation_mid
+    FROM ${valuationRuns} vr
+    WHERE vr.company_id = ${companies.id} AND vr.status = 'completed'
+    ORDER BY vr.created_at DESC
+    LIMIT 1)
+  END)`;
+
+/** ORDER BY terms per sort; all end in a unique id tiebreak so pagination is stable. */
+function orderTermsFor(sort: MarketplaceSort): SQL[] {
+  const recencyTiebreak = [desc(companies.publishedAt), desc(companies.id)];
+  switch (sort) {
+    case "newest":
+      return recencyTiebreak;
+    case "updated":
+      return [desc(companies.updatedAt), desc(companies.id)];
+    case "revenue":
+      return [sql`${latestRevenueSql} DESC NULLS LAST`, ...recencyTiebreak];
+    case "growth":
+      return [sql`${latestGrowthSql} DESC NULLS LAST`, ...recencyTiebreak];
+    case "valuation":
+      return [sql`${latestPublicValuationSql} DESC NULLS LAST`, ...recencyTiebreak];
+  }
+}
 
 /**
  * Paginated, filtered list of PUBLISHED companies only. Filtering happens in
@@ -143,7 +224,7 @@ export async function getPublishedCompanies(filters: MarketplaceFilters = {}): P
       .select()
       .from(companies)
       .where(where)
-      .orderBy(desc(companies.publishedAt))
+      .orderBy(...orderTermsFor(filters.sort ?? DEFAULT_MARKETPLACE_SORT))
       .limit(pageSize)
       .offset((page - 1) * pageSize),
     db.select({ total: count() }).from(companies).where(where),

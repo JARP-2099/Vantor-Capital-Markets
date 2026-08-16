@@ -24,6 +24,7 @@ const {
   companyMetrics,
   valuationRuns,
   valuationComponents,
+  verificationRequests,
 } = schema;
 
 async function main() {
@@ -440,6 +441,25 @@ async function main() {
     },
   );
 
+  /**
+   * Publication/update recency per slug (days ago), so Discover recency
+   * signals and sorts ("New to Vantor", "Recently updated", newest-first)
+   * have honest variation to work with in development and Preview.
+   * `updated` < `published` means the founder edited after publishing.
+   */
+  const RECENCY: Record<string, { published: number; updated: number }> = {
+    aeroforge: { published: 75, updated: 3 },
+    "atlas-robotics": { published: 60, updated: 60 },
+    "northstar-energy": { published: 45, updated: 10 },
+    "meridian-health-ai": { published: 20, updated: 20 },
+    "quarry-analytics": { published: 90, updated: 40 },
+    "harbor-ledger": { published: 12, updated: 12 },
+    "verdant-materials": { published: 8, updated: 2 },
+    "helios-grid": { published: 35, updated: 35 },
+    "foundry-metrics": { published: 5, updated: 5 },
+  };
+  const daysAgo = (days: number) => new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+
   console.log("Seeding demo companies…");
   for (const demo of demoCompanies) {
     const existing = await db
@@ -468,8 +488,10 @@ async function main() {
         foundedYear: demo.foundedYear,
         ...demo.story,
         status: "published",
-        submittedAt: now,
-        publishedAt: now,
+        submittedAt: daysAgo((RECENCY[demo.slug]?.published ?? 0) + 2),
+        publishedAt: daysAgo(RECENCY[demo.slug]?.published ?? 0),
+        createdAt: daysAgo((RECENCY[demo.slug]?.published ?? 0) + 5),
+        updatedAt: daysAgo(RECENCY[demo.slug]?.updated ?? 0),
         reviewedBy: adminId,
         isDemo: true,
         createdBy: founderId,
@@ -504,6 +526,83 @@ async function main() {
       );
     }
     console.log(`  company: ${demo.name}`);
+  }
+
+  /**
+   * Demo verification requests: varied statuses per company so verification
+   * percentages, the "Highly verified" discovery signal, and the public
+   * verification section are all demonstrable. Statuses only ever reachable
+   * through admin review in the real flow are seeded directly here (isDemo
+   * companies, dev/preview databases only).
+   */
+  type DemoVerification = {
+    category: (typeof schema.verificationCategoryEnum.enumValues)[number];
+    status: (typeof schema.verificationStatusEnum.enumValues)[number];
+  };
+  const VERIFICATIONS: Record<string, DemoVerification[]> = {
+    // 3.5 / 4 submitted = 88%: highly verified.
+    aeroforge: [
+      { category: "founder_identity", status: "verified" },
+      { category: "company_formation", status: "verified" },
+      { category: "revenue", status: "verified" },
+      { category: "financial_statements", status: "partially_verified" },
+    ],
+    // 1 / 2 = 50%: partially reviewed.
+    "atlas-robotics": [
+      { category: "founder_identity", status: "verified" },
+      { category: "revenue", status: "under_review" },
+    ],
+    // 5 / 5 = 100%: highly verified.
+    "northstar-energy": [
+      { category: "founder_identity", status: "verified" },
+      { category: "company_formation", status: "verified" },
+      { category: "revenue", status: "verified" },
+      { category: "financial_statements", status: "verified" },
+      { category: "operating_metrics", status: "verified" },
+    ],
+    // Submitted, nothing decided yet: 0%.
+    "meridian-health-ai": [{ category: "founder_identity", status: "pending" }],
+    // 1 / 1 = 100% but only one category: below the "Highly verified" bar.
+    "harbor-ledger": [{ category: "company_formation", status: "verified" }],
+    // Rejected requests count in the denominator but are not listed publicly.
+    "helios-grid": [
+      { category: "operating_metrics", status: "verified" },
+      { category: "revenue", status: "rejected" },
+    ],
+  };
+  const OPEN_STATUSES = new Set(["pending", "under_review"]);
+
+  console.log("Seeding demo verification requests…");
+  for (const [slug, requests] of Object.entries(VERIFICATIONS)) {
+    const [company] = await db
+      .select({ id: companies.id, isDemo: companies.isDemo })
+      .from(companies)
+      .where(eq(companies.slug, slug))
+      .limit(1);
+    if (!company?.isDemo) continue;
+    const [existing] = await db
+      .select({ id: verificationRequests.id })
+      .from(verificationRequests)
+      .where(eq(verificationRequests.companyId, company.id))
+      .limit(1);
+    if (existing) {
+      console.log(`  skip (has requests): ${slug}`);
+      continue;
+    }
+    await db.insert(verificationRequests).values(
+      requests.map((r) => ({
+        companyId: company.id,
+        category: r.category,
+        status: r.status,
+        claimSummary: `Demo data: ${r.category.replaceAll("_", " ")} information as listed on the profile.`,
+        submittedBy: founderId,
+        reviewedBy: OPEN_STATUSES.has(r.status) ? null : adminId,
+        decidedAt: OPEN_STATUSES.has(r.status) ? null : now,
+        founderNote:
+          r.status === "rejected" ? "Demo data: submitted evidence was insufficient." : null,
+      })),
+    );
+    console.log(`  verifications: ${slug} (${requests.length})`);
   }
 
   // Demo valuation runs: give each demo company one run through the real

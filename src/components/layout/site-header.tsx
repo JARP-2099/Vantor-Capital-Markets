@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { features } from "@/config/features";
 import { Container } from "@/components/layout/container";
 import { Logo } from "@/components/layout/logo";
 import { ButtonLink } from "@/components/ui/button";
@@ -21,6 +22,7 @@ export async function SiteHeader() {
 
   const links = [
     { href: "/companies", label: "Discover" },
+    ...(user && features.watchlistsEnabled ? [{ href: "/watchlist", label: "Watchlist" }] : []),
     { href: "/signup", label: "For Founders" },
     ...(user ? [{ href: "/founder", label: "Founder" }] : []),
     ...(admin ? [{ href: "/admin", label: "Admin" }] : []),

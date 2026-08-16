@@ -1,0 +1,1 @@
+CREATE INDEX "companies_status_updated_at_idx" ON "companies" USING btree ("status","updated_at");

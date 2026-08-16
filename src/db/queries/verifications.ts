@@ -93,16 +93,23 @@ export async function getPublicVerificationSummary(
   };
 }
 
+export type PublicVerificationStats = {
+  /** Percent of submitted categories verified (partial counts as half). */
+  verifiedPct: number;
+  /** Categories with at least one submission — the percentage denominator. */
+  submittedCount: number;
+};
+
 /**
- * Batch verified-percent for marketplace listings (no N+1). Same math as
+ * Batch verification stats for marketplace listings (no N+1). Same math as
  * getPublicVerificationSummary — latest request per category, partial
  * verification counts as half — but returns only the public-safe headline
- * number per company. Companies with no submissions are absent from the map.
+ * numbers per company. Companies with no submissions are absent from the map.
  */
-export async function getPublicVerificationPcts(
+export async function getPublicVerificationStats(
   companyIds: string[],
-): Promise<Map<string, number>> {
-  const result = new Map<string, number>();
+): Promise<Map<string, PublicVerificationStats>> {
+  const result = new Map<string, PublicVerificationStats>();
   if (companyIds.length === 0) return result;
   const rows = await db
     .select()
@@ -129,9 +136,20 @@ export async function getPublicVerificationPcts(
       if (status === "partially_verified") return s + 0.5;
       return s;
     }, 0);
-    result.set(companyId, Math.round((verifiedWeight / statuses.length) * 100));
+    result.set(companyId, {
+      verifiedPct: Math.round((verifiedWeight / statuses.length) * 100),
+      submittedCount: statuses.length,
+    });
   }
   return result;
+}
+
+/** Headline percent only — thin wrapper over getPublicVerificationStats. */
+export async function getPublicVerificationPcts(
+  companyIds: string[],
+): Promise<Map<string, number>> {
+  const stats = await getPublicVerificationStats(companyIds);
+  return new Map([...stats].map(([companyId, s]) => [companyId, s.verifiedPct]));
 }
 
 /** Founder view: full requests for a company (no internalNotes — strip!). */

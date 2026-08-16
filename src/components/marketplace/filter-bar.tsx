@@ -14,13 +14,18 @@ export type MarketplaceFilterValues = {
   stage?: string;
   country?: string;
   intent?: string;
+  sort?: string;
 };
+
+export type SortOption = { value: string; label: string };
 
 type FilterFieldsProps = {
   idPrefix: string;
   values: MarketplaceFilterValues;
   industries: string[];
   countries: string[];
+  /** Whitelisted sort options; the first entry is the default. */
+  sorts: SortOption[];
   activeCount: number;
   /** compact = one-line desktop bar; stacked = mobile sheet layout */
   layout: "compact" | "stacked";
@@ -31,7 +36,7 @@ type FilterFieldsProps = {
  * shareable and the whole bar works without JavaScript. Submitting resets
  * pagination because no `page` field is included.
  */
-function FilterFields({ idPrefix, values, industries, countries, activeCount, layout }: FilterFieldsProps) {
+function FilterFields({ idPrefix, values, industries, countries, sorts, activeCount, layout }: FilterFieldsProps) {
   const compact = layout === "compact";
   // Field widths are set on wrapper divs: the controls themselves are w-full,
   // so the wrappers decide layout (one flexible search + fixed-width selects
@@ -134,6 +139,24 @@ function FilterFields({ idPrefix, values, industries, countries, activeCount, la
         </Select>
       </div>
 
+      <div className={selectWrap}>
+        <label htmlFor={`${idPrefix}-sort`} className="sr-only">
+          Sort by
+        </label>
+        <Select
+          id={`${idPrefix}-sort`}
+          name="sort"
+          defaultValue={values.sort ?? ""}
+          className={compact ? "h-9" : undefined}
+        >
+          {sorts.map((sort, i) => (
+            <option key={sort.value} value={i === 0 ? "" : sort.value}>
+              Sort: {sort.label}
+            </option>
+          ))}
+        </Select>
+      </div>
+
       <div className="flex items-center gap-2">
         <Button type="submit" variant="secondary" size="sm">
           Apply
@@ -152,6 +175,7 @@ type FilterBarProps = {
   values: MarketplaceFilterValues;
   industries: string[];
   countries: string[];
+  sorts: SortOption[];
   activeCount: number;
 };
 
@@ -160,7 +184,7 @@ type FilterBarProps = {
  * collapses into a native <details> sheet on mobile (no client JS). The two
  * renders are separate forms with distinct field ids, so labels stay valid.
  */
-export function FilterBar({ values, industries, countries, activeCount }: FilterBarProps) {
+export function FilterBar({ values, industries, countries, sorts, activeCount }: FilterBarProps) {
   return (
     <section aria-label="Filter companies">
       {/* Desktop: always expanded */}
@@ -170,6 +194,7 @@ export function FilterBar({ values, industries, countries, activeCount }: Filter
           values={values}
           industries={industries}
           countries={countries}
+          sorts={sorts}
           activeCount={activeCount}
           layout="compact"
         />
@@ -178,7 +203,7 @@ export function FilterBar({ values, industries, countries, activeCount }: Filter
       {/* Mobile: native disclosure; open by default when filters are active */}
       <details
         className="rounded-lg border border-line bg-paper md:hidden"
-        open={activeCount > 0}
+        open={activeCount > 0 || Boolean(values.sort)}
       >
         <summary className="cursor-pointer select-none rounded-lg px-4 py-3 text-sm font-medium text-ink-900">
           Filters{activeCount > 0 ? ` (${activeCount} active)` : ""}
@@ -189,6 +214,7 @@ export function FilterBar({ values, industries, countries, activeCount }: Filter
             values={values}
             industries={industries}
             countries={countries}
+            sorts={sorts}
             activeCount={activeCount}
             layout="stacked"
           />

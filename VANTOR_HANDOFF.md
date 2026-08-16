@@ -1,6 +1,105 @@
-# VANTOR — Handoff (through Pre-Phase-3 Stabilization)
+# VANTOR — Handoff (through Phase 3: Investor Experience)
 
-## Latest session: Pre-Phase-3 stabilization & QA pass
+## Latest session: Phase 3 — Investor Experience, Watchlists, Discovery Intelligence
+
+Branch: `claude/vantor-phase-3-investor-2mpd9m` (based on the stabilization
+branch tip `4a94263`, which was never merged to the default branch — this
+branch carries it). At session end: lint 0 problems, typecheck clean,
+**107/107 tests** (85 baseline + 22 new), production build passing.
+
+### What shipped
+
+- **Watchlist (persisted, private).** The Phase-1 `watchlist_items` table is
+  now live (`watchlistsEnabled: true` in `src/config/features.ts`).
+  - Query layer `src/db/queries/watchlists.ts`: every function takes a
+    server-derived userId and scopes all reads/mutations to it. Only
+    published companies are saveable; drafts/archived/nonexistent ids are
+    indistinguishable (`not_available`) so saves can't probe private rows.
+    `getWatchlistItems` structurally nulls the company for saves whose
+    listing later unpublished — the Watchlist page shows an "Unlisted
+    company" row with a Remove action, leaking nothing.
+  - Server action `src/lib/actions/watchlist.ts` (`setWatchlistState`):
+    zod-validated companyId/op, `requireUser`, duplicate saves absorbed by
+    the composite PK, audit events `watchlist.saved` / `watchlist.removed`.
+  - UI: star toggles on Discover rows (aria-pressed, pending-disabled,
+    settles on the server answer — no optimistic lies), a labeled
+    Save/Saved button on company profiles, `/watchlist` page reusing the
+    marketplace table plus a saved-date column and empty state. Signed-out
+    users see a sign-in link in the same footprint; `/login?next=` (new,
+    validated server-side to same-site paths) returns them to where they
+    were. "Watchlist" appears in the header nav for signed-in users.
+- **Discover sorting** (`sort` URL param, whitelisted in
+  `src/db/queries/companies.ts` `MARKETPLACE_SORTS`): Newly added
+  (default), Recently updated, Revenue, Revenue growth, Est. valuation.
+  Metric sorts use correlated subqueries (latest value; ARR preferred over
+  annual over MRR with MRR annualized ×12), `NULLS LAST`, and a unique-id
+  tiebreak so pagination never duplicates rows. The valuation sort ranks
+  only public valuations — hidden ones sort with the "no valuation" group
+  so ordering can't leak their magnitude. New index
+  `companies_status_updated_at_idx` (migration
+  `0004_luxuriant_monster_badoon.sql`) backs the Recently-updated sort.
+- **Discovery signals** (`src/lib/discovery/signals.ts`, pure + injected
+  clock): "New to Vantor" (published ≤30 days), "Recently updated"
+  (meaningful post-publish edit ≤14 days; publish-time touches excluded by
+  a 1-hour gap rule; suppressed while "New"), "Highly verified" (≥80%
+  verified of ≥3 submitted categories). Rendered as quiet chips with
+  plain-English explanations (title + sr-only). Factual only — no scores,
+  no recommendations.
+- **Verification stats batch query** now returns `{verifiedPct,
+  submittedCount}` (`getPublicVerificationStats`); the old pct-only
+  function remains as a wrapper.
+- **Seeds**: demo companies get varied publish/update recency and seeded
+  verification requests (verified/partial/pending/rejected mixes) so
+  signals, sorts, and verification surfaces are honestly demonstrable.
+
+### Security review (Phase 3 surface)
+
+- Watchlist IDOR: userId scoping is the WHERE clause, tested (cross-user
+  read/delete attempts, forged ids).
+- Draft probing via save: rejected identically to nonexistent ids (tested).
+- Sort parameter: whitelist + typed switch; user input never reaches SQL.
+- Hidden-valuation ordering leak: excluded and tested.
+- `next` redirect: same-site absolute paths only (no `//`, no `\`).
+- Watchlist mutations are not rate-limited (bounded: max one row per
+  published company per user; duplicates impossible) — accepted at current
+  scale, revisit with public beta.
+
+### Migration status
+
+`0004_luxuriant_monster_badoon.sql` (one index) applied locally only.
+**Manual step: run `pnpm db:migrate` against BOTH the Preview and
+Production Railway databases** (see docs/DEPLOYMENT.md). Safe/additive.
+
+### QA performed
+
+Full investor loop on dev + production builds via scripted browser
+(signup → browse → search → filter+sort → save ×2 → profile → watchlist →
+remove → refresh → sign out/in → persistence verified), responsive sweep
+at 1920/1440/1024/768/390 with zero horizontal overflow, empty states
+(no results, empty watchlist), invalid param fuzzing (`sort`, `stage`,
+`intent`, `page`, SQLi strings) all 200 + safe fallback, production-build
+console clean. Keyboard: global `:focus-visible` covers the new controls;
+stars carry aria-pressed + per-company labels.
+
+### Deferred from Phase 3 (documented decisions)
+
+- Filters were NOT expanded (revenue/valuation-range filters would imply
+  precision the sparse data doesn't support yet); existing
+  industry/stage/country/status filters + search retained.
+- Verification-level sort omitted (SQL for latest-per-category weighted
+  percent is heavy; signal + column cover the need).
+- No investor role added — any authenticated user can save (matches the
+  capability model; founders can be investors).
+- Analytics beyond audit events (`watchlist.saved/removed`): a proper
+  product-events pipeline is future work; search/filter events not
+  recorded (audit log is the wrong home for high-volume telemetry).
+- Sub-day "Recently updated" precision (updated_at is bumped by any
+  founder content edit and by admin review; visibility toggles also bump
+  it — accepted coarseness, documented in signals.ts).
+
+---
+
+## Previous session: Pre-Phase-3 stabilization & QA pass
 
 Branch: `claude/vantor-stabilization-qa-m4kne0`. Full audit (code review by
 subsystem + hands-on browser QA of all four personas + infra review), then

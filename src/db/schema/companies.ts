@@ -148,6 +148,8 @@ export const companies = pgTable(
     index("companies_status_idx").on(t.status),
     // Marketplace listing: WHERE status='published' ORDER BY published_at DESC.
     index("companies_status_published_at_idx").on(t.status, t.publishedAt),
+    // Marketplace "Recently updated" sort: WHERE status='published' ORDER BY updated_at DESC.
+    index("companies_status_updated_at_idx").on(t.status, t.updatedAt),
     index("companies_industry_idx").on(t.industry),
     index("companies_stage_idx").on(t.stage),
     index("companies_created_by_idx").on(t.createdBy),

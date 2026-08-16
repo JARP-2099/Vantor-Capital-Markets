@@ -20,8 +20,8 @@ export const features = {
   valuationsEnabled: true,
   /** Data verification foundation (Phase 3): categories, evidence, admin review. */
   verificationEnabled: true,
-  /** Investor watchlists. Schema exists; UI ships in Phase 4. */
-  watchlistsEnabled: false,
+  /** Investor watchlists (Phase 3): save/remove published companies, Watchlist page. */
+  watchlistsEnabled: true,
 } as const;
 
 export type FeatureFlag = keyof typeof features;

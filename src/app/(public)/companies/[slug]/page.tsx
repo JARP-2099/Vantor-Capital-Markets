@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ValuationSection } from "@/components/marketplace/valuation-section";
 import { VerificationSection } from "@/components/marketplace/verification-section";
+import { SignInToSaveLink, WatchButton } from "@/components/marketplace/watch-button";
 import {
   getCompanyIntents,
   getCompanyMembers,
@@ -25,7 +26,9 @@ import {
   getValuationHistory,
 } from "@/db/queries/valuations";
 import { getPublicVerificationSummary } from "@/db/queries/verifications";
+import { isCompanyWatched } from "@/db/queries/watchlists";
 import { features } from "@/config/features";
+import { getSessionUser } from "@/lib/authz";
 import { METRIC_LABELS, METRIC_TYPES, STAGE_LABELS } from "@/lib/constants";
 import { cn } from "@/lib/cn";
 import { formatCompactCurrency, formatDate, formatMetricValue } from "@/lib/format";
@@ -86,7 +89,8 @@ export default async function CompanyProfilePage({ params }: { params: Params })
   const company = await getCompany(slug);
   if (!company) notFound();
 
-  const [metricsByCompany, intentsByCompany, members, metricHistory, valuationRun, verificationSummary] =
+  const sessionUser = features.watchlistsEnabled ? await getSessionUser() : null;
+  const [metricsByCompany, intentsByCompany, members, metricHistory, valuationRun, verificationSummary, watched] =
     await Promise.all([
       getLatestMetrics([company.id]),
       getCompanyIntents([company.id]),
@@ -98,6 +102,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
       features.verificationEnabled
         ? getPublicVerificationSummary(company.id)
         : Promise.resolve(null),
+      sessionUser ? isCompanyWatched(sessionUser.id, company.id) : Promise.resolve(false),
     ]);
   const [valuationComponents, valuationHistory] = valuationRun
     ? await Promise.all([getValuationComponents(valuationRun.id), getValuationHistory(company.id)])
@@ -198,10 +203,28 @@ export default async function CompanyProfilePage({ params }: { params: Params })
       <div className="border-b border-line">
         <Container className="py-10 sm:py-12">
           <header>
-            <h1 className="text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
-              {company.name}
-            </h1>
-            {industryLine ? <p className="mt-1 text-sm text-muted">{industryLine}</p> : null}
+            <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+              <div className="min-w-0">
+                <h1 className="text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
+                  {company.name}
+                </h1>
+                {industryLine ? <p className="mt-1 text-sm text-muted">{industryLine}</p> : null}
+              </div>
+              {features.watchlistsEnabled ? (
+                <div className="shrink-0 sm:pt-1">
+                  {sessionUser ? (
+                    <WatchButton
+                      companyId={company.id}
+                      companyName={company.name}
+                      saved={watched}
+                      variant="labeled"
+                    />
+                  ) : (
+                    <SignInToSaveLink next={`/companies/${company.slug}`} variant="labeled" />
+                  )}
+                </div>
+              ) : null}
+            </div>
 
             {(stageLabel || hq || company.foundedYear) && (
               <div className="mt-3 flex flex-wrap items-center gap-1.5">

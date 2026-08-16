@@ -29,6 +29,13 @@
       "when": 1786908349689,
       "tag": "0003_rare_marten_broadcloak",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786913011129,
+      "tag": "0004_luxuriant_monster_badoon",
+      "breakpoints": true
     }
   ]
 }

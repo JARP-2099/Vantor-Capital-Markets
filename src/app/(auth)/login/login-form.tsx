@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 
-export function LoginForm() {
+export function LoginForm({ next }: { next?: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -34,7 +34,8 @@ export function LoginForm() {
       );
       return;
     }
-    router.push("/founder");
+    // `next` is validated server-side in the page (same-site paths only).
+    router.push(next ?? "/founder");
     router.refresh();
   }
 
