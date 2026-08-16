@@ -71,6 +71,8 @@
     BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "SFMono-Regular", ui-monospace, "Cascadia Mono", "Roboto Mono",
     Menlo, monospace;
+  /* Brand serif — the VANTOR wordmark face only; never body copy. */
+  --font-serif: var(--font-vantor-serif), "Playfair Display", Georgia, serif;
 
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
