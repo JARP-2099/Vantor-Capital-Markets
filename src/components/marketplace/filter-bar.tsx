@@ -46,8 +46,8 @@ function FilterFields({
   const toolbar = layout === "toolbar";
   const labelClass = toolbar
     ? "sr-only"
-    : "block text-xs font-medium uppercase tracking-wider text-muted";
-  const fieldClass = toolbar ? "h-9" : undefined;
+    : "block text-xs font-semibold uppercase tracking-[0.12em] text-muted";
+  const fieldClass = toolbar ? "h-10" : undefined;
 
   return (
     <form
@@ -148,16 +148,11 @@ function FilterFields({
       </div>
 
       <div className="flex items-center gap-2">
-        <Button type="submit" variant="secondary" size="sm" className={toolbar ? "h-9" : undefined}>
+        <Button type="submit" variant="primary" size="md">
           Apply
         </Button>
         {activeCount > 0 ? (
-          <ButtonLink
-            href="/companies"
-            variant="ghost"
-            size="sm"
-            className={toolbar ? "h-9" : undefined}
-          >
+          <ButtonLink href="/companies" variant="ghost" size="md">
             Clear
           </ButtonLink>
         ) : null}
@@ -182,7 +177,7 @@ export function FilterBar({ values, industries, countries, activeCount }: Filter
   return (
     <section aria-label="Filter companies">
       {/* Desktop: always expanded, single slim row */}
-      <div className="hidden rounded-lg border border-line bg-paper p-2 shadow-card md:block">
+      <div className="hidden rounded-lg border border-line bg-paper p-2.5 shadow-card md:block">
         <FilterFields
           idPrefix="filters"
           values={values}

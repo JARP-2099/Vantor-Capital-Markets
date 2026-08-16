@@ -1,4 +1,5 @@
 import { cn } from "@/lib/cn";
+import { ROW_GRID } from "./company-card";
 
 /** Neutral pulsing block used to compose loading skeletons. */
 export function SkeletonBlock({ className }: { className?: string }) {
@@ -8,12 +9,13 @@ export function SkeletonBlock({ className }: { className?: string }) {
 /** Placeholder matching one CompanyListRow while the list loads. */
 export function CompanyRowSkeleton() {
   return (
-    <li className="px-4 py-3.5 sm:px-5 md:grid md:grid-cols-[minmax(0,1fr)_7.5rem_7rem_12rem] md:items-center md:gap-x-6 md:py-3">
+    <li className={cn("px-4 py-3.5 sm:px-5", ROW_GRID)}>
       <div className="min-w-0">
         <SkeletonBlock className="h-4 w-40" />
         <SkeletonBlock className="mt-1.5 h-3.5 w-4/5 max-w-96" />
-        <SkeletonBlock className="mt-1.5 h-3 w-56" />
+        <SkeletonBlock className="mt-1.5 h-3 w-56 md:hidden" />
       </div>
+      <SkeletonBlock className="hidden h-3.5 w-32 md:block" />
       <SkeletonBlock className="ml-auto hidden h-4 w-16 md:block" />
       <SkeletonBlock className="ml-auto hidden h-4 w-12 md:block" />
       <SkeletonBlock className="hidden h-3.5 w-28 md:block" />

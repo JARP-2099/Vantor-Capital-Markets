@@ -6,17 +6,19 @@ import { STAGE_LABELS, type CompanyIntent, type MetricType } from "@/lib/constan
 import { pickGrowthMetric, pickPublicIntent, pickRevenueMetric } from "./metrics";
 
 /**
- * Marketplace result list: one company per row, terminal-style. Desktop rows
- * align identity on the left with right-aligned tabular Revenue / Growth
- * columns and a quiet dot-badge status column; mobile rows collapse into a
+ * Marketplace result list — a list/table hybrid: a discovery terminal
+ * simplified for normal investors. Desktop rows align identity on the left
+ * with an Industry · Stage column, right-aligned tabular Revenue / Growth
+ * columns, and a quiet dot-badge status column; mobile rows collapse into a
  * compact stacked entry. Unknown values render as an em dash, never a
  * fabricated zero.
  */
 
-/** Shared desktop column template so the header and every row stay aligned. */
-const ROW_GRID = "md:grid md:grid-cols-[minmax(0,1fr)_7.5rem_7rem_12rem] md:items-center md:gap-x-6";
+/** Shared desktop column template so the header, rows, and skeletons stay aligned. */
+export const ROW_GRID =
+  "md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,3fr)_6.5rem_6rem_11.5rem] md:items-center md:gap-x-6";
 
-const HEADER_CELL = "text-xs font-medium uppercase tracking-wider text-muted";
+const HEADER_CELL = "text-[11px] font-semibold uppercase tracking-[0.12em] text-muted";
 
 /** Desktop-only column header for the result list (rows are self-labelled). */
 export function CompanyListHeader() {
@@ -26,8 +28,9 @@ export function CompanyListHeader() {
       className={cn("hidden border-b border-line-strong bg-mist/60 px-5 py-2.5", ROW_GRID)}
     >
       <span className={HEADER_CELL}>Company</span>
+      <span className={HEADER_CELL}>Industry · Stage</span>
       <span className={cn(HEADER_CELL, "text-right")}>Revenue</span>
-      <span className={cn(HEADER_CELL, "text-right")}>Growth (YoY)</span>
+      <span className={cn(HEADER_CELL, "text-right")}>Growth</span>
       <span className={HEADER_CELL}>Status</span>
     </div>
   );
@@ -50,7 +53,7 @@ const toneClass = {
 export function CompanyListRow({ company, metrics, intents }: CompanyListRowProps) {
   const stageLabel = company.stage ? STAGE_LABELS[company.stage] : null;
   const location = [company.hqCity, company.hqCountry].filter(Boolean).join(", ");
-  const meta = [company.industry, stageLabel, location || null].filter(Boolean).join(" · ");
+  const classification = [company.industry, stageLabel].filter(Boolean).join(" · ");
   const revenue = pickRevenueMetric(metrics);
   const growth = pickGrowthMetric(metrics);
   const status = pickPublicIntent(intents);
@@ -61,28 +64,44 @@ export function CompanyListRow({ company, metrics, intents }: CompanyListRowProp
         href={`/companies/${company.slug}`}
         aria-label={`View ${company.name}`}
         className={cn(
-          "group block px-4 py-3.5 transition-colors hover:bg-mist/50 sm:px-5 md:py-3",
+          "group block px-4 py-3.5 transition-colors hover:bg-mist/60 sm:px-5",
           ROW_GRID,
         )}
       >
         {/* ------------------------------ Identity ------------------------------ */}
         <div className="min-w-0">
-          <h2 className="truncate text-sm font-semibold text-ink-900 group-hover:text-accent-700">
+          <h2 className="truncate text-[15px] font-bold tracking-tight text-ink-900 group-hover:text-accent-700">
             {company.name}
           </h2>
           {company.shortDescription ? (
             <p className="mt-0.5 truncate text-sm text-slate-650">{company.shortDescription}</p>
           ) : null}
-          {meta ? <p className="mt-0.5 truncate text-xs text-muted">{meta}</p> : null}
+          {/* Mobile-only classification line (its own column on desktop). */}
+          {(classification || location) && (
+            <p className="mt-0.5 truncate text-xs text-muted md:hidden">
+              {[classification || null, location || null].filter(Boolean).join(" · ")}
+            </p>
+          )}
         </div>
 
         {/* --------------------------- Desktop columns --------------------------- */}
+        <div className="hidden min-w-0 md:block">
+          <span className="sr-only">Industry and stage: </span>
+          {classification ? (
+            <p className="truncate text-sm text-slate-650">{classification}</p>
+          ) : (
+            <p className="text-sm text-faint">—</p>
+          )}
+          {location ? <p className="mt-0.5 truncate text-xs text-muted">{location}</p> : null}
+        </div>
         <div className="hidden text-right md:block">
           <span className="sr-only">Revenue: </span>
           {revenue ? (
             <>
               <p className="text-sm font-semibold text-ink-900 tabular-nums">{revenue.value}</p>
-              <p className="text-[11px] uppercase tracking-wider text-muted">{revenue.label}</p>
+              <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-muted">
+                {revenue.label}
+              </p>
             </>
           ) : (
             <p className="text-sm text-faint">—</p>

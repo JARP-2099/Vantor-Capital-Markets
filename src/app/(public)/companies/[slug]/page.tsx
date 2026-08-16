@@ -9,7 +9,7 @@ import {
   pickSimpleMetric,
 } from "@/components/marketplace/metrics";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { TrendLine } from "@/components/ui/charts";
 import { MetricStat } from "@/components/ui/metric-stat";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Table, TBody, TD, TH, THead, TableWrap } from "@/components/ui/table";
@@ -131,12 +131,9 @@ export default async function CompanyProfilePage({ params }: { params: Params })
     label: string;
     value: string;
     tone?: "default" | "positive" | "negative";
-    size?: "md" | "lg";
   }[] = [];
-  if (revenue) tiles.push({ label: revenue.label, value: revenue.value, size: "lg" });
-  if (growth) {
-    tiles.push({ label: "Growth (YoY)", value: growth.value, tone: growth.tone, size: "lg" });
-  }
+  if (revenue) tiles.push({ label: revenue.label, value: revenue.value });
+  if (growth) tiles.push({ label: "Growth (YoY)", value: growth.value, tone: growth.tone });
   if (customers) tiles.push({ label: customers.label, value: customers.value });
   if (employees) tiles.push({ label: employees.label, value: employees.value });
   if (capitalRaised) tiles.push({ label: capitalRaised.label, value: capitalRaised.value });
@@ -166,6 +163,20 @@ export default async function CompanyProfilePage({ params }: { params: Params })
   const metricRows = METRIC_TYPES.flatMap((type) => historyByType.get(type) ?? []);
   const showPeriodColumn = metricRows.some((row) => row.periodStart || row.periodEnd);
 
+  // Compact trend for the primary revenue metric — drawn only when the
+  // already-fetched history holds ≥2 parseable points of one monetary type.
+  let trend: { type: CompanyMetricRow["metricType"]; rows: CompanyMetricRow[] } | null = null;
+  for (const type of ["arr", "revenue_annual", "mrr"] as const) {
+    const rows = (historyByType.get(type) ?? []).filter((row) => metricNumber(row) !== null);
+    if (rows.length >= 2) {
+      trend = { type, rows: [...rows].reverse() }; // newest-first → oldest-first
+      break;
+    }
+  }
+  const trendValues = trend ? trend.rows.map((row) => metricNumber(row) as number) : [];
+  const trendFirst = trend ? trend.rows[0] : null;
+  const trendLast = trend ? trend.rows[trend.rows.length - 1] : null;
+
   const hasTeam = members.length > 0;
 
   const showVerification = Boolean(
@@ -183,15 +194,19 @@ export default async function CompanyProfilePage({ params }: { params: Params })
     <>
       {/* ------------------------------ Header ------------------------------ */}
       <div className="border-b border-line bg-paper">
-        <Container className="py-10 sm:py-12">
+        <Container wide className="py-10 sm:py-12">
           <header>
-            <h1 className="text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl">
+            <h1 className="text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">
               {company.name}
             </h1>
 
             {(stageLabel || metaLine.length > 0) && (
-              <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                {stageLabel ? <Badge tone="ink">{stageLabel}</Badge> : null}
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5">
+                {stageLabel ? (
+                  <Badge dot tone="ink" className="font-semibold text-ink-900">
+                    {stageLabel}
+                  </Badge>
+                ) : null}
                 {metaLine.length > 0 ? (
                   <p className="text-sm text-muted">{metaLine.join(" · ")}</p>
                 ) : null}
@@ -232,7 +247,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
                     label={tile.label}
                     value={tile.value}
                     tone={tile.tone}
-                    size={tile.size}
+                    size="lg"
                     className="tabular-nums"
                   />
                 ))}
@@ -247,13 +262,13 @@ export default async function CompanyProfilePage({ params }: { params: Params })
         aria-label="Profile sections"
         className="sticky top-16 z-30 border-b border-line bg-canvas/95 backdrop-blur"
       >
-        <Container>
+        <Container wide>
           <div className="flex gap-6 overflow-x-auto">
             {navItems.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="whitespace-nowrap border-b-2 border-transparent py-3 text-sm font-medium text-muted transition-colors hover:border-line-strong hover:text-ink-900"
+                className="whitespace-nowrap border-b-2 border-transparent py-3 text-sm font-medium text-muted transition-colors hover:border-accent-600 hover:text-ink-900 focus-visible:border-accent-600 focus-visible:text-ink-900"
               >
                 {item.label}
               </a>
@@ -262,11 +277,11 @@ export default async function CompanyProfilePage({ params }: { params: Params })
         </Container>
       </nav>
 
-      <Container className="pb-16">
+      <Container wide className="pb-16">
         {/* ----------------------------- Overview ----------------------------- */}
         {hasOverview ? (
           <section id="overview" aria-labelledby="overview-heading" className="scroll-mt-32 pt-10">
-            <h2 id="overview-heading" className="text-lg font-semibold tracking-tight text-ink-900">
+            <h2 id="overview-heading" className="text-lg font-bold tracking-tight text-ink-900">
               Overview
             </h2>
             <div className="mt-5 space-y-7">
@@ -284,7 +299,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
 
         {/* ---------------------------- Financials ---------------------------- */}
         <section id="financials" aria-labelledby="financials-heading" className="scroll-mt-32 pt-10">
-          <h2 id="financials-heading" className="text-lg font-semibold tracking-tight text-ink-900">
+          <h2 id="financials-heading" className="text-lg font-bold tracking-tight text-ink-900">
             Financials
           </h2>
           <p className="mt-1 text-xs text-muted">
@@ -292,6 +307,36 @@ export default async function CompanyProfilePage({ params }: { params: Params })
           </p>
           {metricRows.length > 0 ? (
             <TableWrap className="mt-5">
+              {trend && trendFirst && trendLast ? (
+                <div className="border-b border-line p-5 sm:p-6">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+                    <p className="text-sm font-semibold text-ink-900">
+                      {METRIC_LABELS[trend.type]}
+                    </p>
+                    <p className="text-xs text-muted tabular-nums">
+                      {formatDate(trendFirst.asOf)} – {formatDate(trendLast.asOf)}
+                    </p>
+                  </div>
+                  <TrendLine
+                    values={trendValues}
+                    label={`${METRIC_LABELS[trend.type]} moved from ${formatMetricValue(trend.type, trendValues[0], trendFirst.currency)} on ${formatDate(trendFirst.asOf)} to ${formatMetricValue(trend.type, trendValues[trendValues.length - 1], trendLast.currency)} on ${formatDate(trendLast.asOf)}, across ${trendValues.length} reported values.`}
+                    height={72}
+                    className="mt-3"
+                  />
+                  <div className="mt-2 flex items-baseline justify-between gap-4 text-xs tabular-nums">
+                    <span className="text-muted">
+                      {formatMetricValue(trend.type, trendValues[0], trendFirst.currency)}
+                    </span>
+                    <span className="font-semibold text-ink-900">
+                      {formatMetricValue(
+                        trend.type,
+                        trendValues[trendValues.length - 1],
+                        trendLast.currency,
+                      )}
+                    </span>
+                  </div>
+                </div>
+              ) : null}
               <Table className="min-w-[30rem]">
                 <THead>
                   <tr>
@@ -344,7 +389,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
         {/* ----------------------------- Valuation ----------------------------- */}
         {valuationRun ? (
           <section id="valuation" aria-labelledby="valuation-heading" className="scroll-mt-32 pt-10">
-            <h2 id="valuation-heading" className="text-lg font-semibold tracking-tight text-ink-900">
+            <h2 id="valuation-heading" className="text-lg font-bold tracking-tight text-ink-900">
               Estimated Private Market Valuation
             </h2>
             <ValuationSection
@@ -364,7 +409,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
           >
             <h2
               id="verification-heading"
-              className="text-lg font-semibold tracking-tight text-ink-900"
+              className="text-lg font-bold tracking-tight text-ink-900"
             >
               Data Verification
             </h2>
@@ -375,33 +420,29 @@ export default async function CompanyProfilePage({ params }: { params: Params })
         {/* ------------------------------- Team ------------------------------- */}
         {hasTeam ? (
           <section id="team" aria-labelledby="team-heading" className="scroll-mt-32 pt-10">
-            <h2 id="team-heading" className="text-lg font-semibold tracking-tight text-ink-900">
+            <h2 id="team-heading" className="text-lg font-bold tracking-tight text-ink-900">
               Team
             </h2>
-            <Card className="mt-5 overflow-hidden">
-              <ul className="divide-y divide-line">
-                {members.map((member) => (
-                  <li key={member.id} className="px-5 py-4">
-                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
-                      <h3 className="text-sm font-semibold text-ink-900">{member.name}</h3>
-                      {member.title ? (
-                        <p className="text-sm text-muted">{member.title}</p>
-                      ) : null}
-                      {member.role === "founder" ? (
-                        <Badge dot tone="accent">
-                          Founder
-                        </Badge>
-                      ) : null}
-                    </div>
-                    {member.bio ? (
-                      <p className="mt-1.5 max-w-3xl whitespace-pre-line text-sm leading-relaxed text-slate-650">
-                        {member.bio}
-                      </p>
+            <ul className="mt-4 divide-y divide-line border-t border-line">
+              {members.map((member) => (
+                <li key={member.id} className="py-4">
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+                    <h3 className="text-sm font-semibold text-ink-900">{member.name}</h3>
+                    {member.title ? <p className="text-sm text-muted">{member.title}</p> : null}
+                    {member.role === "founder" ? (
+                      <Badge dot tone="accent">
+                        Founder
+                      </Badge>
                     ) : null}
-                  </li>
-                ))}
-              </ul>
-            </Card>
+                  </div>
+                  {member.bio ? (
+                    <p className="mt-1.5 max-w-3xl whitespace-pre-line text-sm leading-relaxed text-slate-650">
+                      {member.bio}
+                    </p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
           </section>
         ) : null}
       </Container>

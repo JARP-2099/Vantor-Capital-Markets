@@ -100,14 +100,22 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Se
   ].filter((part): part is string => Boolean(part));
 
   return (
-    <Container className="py-10 sm:py-12">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight text-ink-900 sm:text-3xl">
-          Discover Private Companies
-        </h1>
-        <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted">
-          Company information is provided by the companies themselves and has not been
-          independently verified by Vantor.
+    <Container wide className="py-10 sm:py-12">
+      <header className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
+            Discover Private Companies
+          </h1>
+          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted">
+            Company information is provided by the companies themselves and has not been
+            independently verified by Vantor.
+          </p>
+        </div>
+        <p className="text-sm text-slate-650">
+          <span className="text-lg font-bold tracking-tight text-ink-900 tabular-nums">
+            {total.toLocaleString("en-US")}
+          </span>{" "}
+          {total === 1 ? "company" : "companies"}
         </p>
       </header>
 
@@ -120,28 +128,20 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Se
         />
       </div>
 
-      {/* Result count + active filter summary */}
-      <div className="mt-5 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-        <p className="text-sm text-slate-650">
-          <span className="font-semibold text-ink-900 tabular-nums">
-            {total.toLocaleString("en-US")}
-          </span>{" "}
-          {total === 1 ? "company" : "companies"}
+      {/* Active filter summary */}
+      {activeFilterParts.length > 0 ? (
+        <p className="mt-3 text-xs text-muted">
+          Filtered by {activeFilterParts.join(" · ")} ·{" "}
+          <Link
+            href="/companies"
+            className="font-medium text-accent-700 underline-offset-2 hover:underline"
+          >
+            Clear
+          </Link>
         </p>
-        {activeFilterParts.length > 0 ? (
-          <p className="text-xs text-muted">
-            Filtered by {activeFilterParts.join(" · ")} ·{" "}
-            <Link
-              href="/companies"
-              className="font-medium text-accent-700 underline-offset-2 hover:underline"
-            >
-              Clear
-            </Link>
-          </p>
-        ) : null}
-      </div>
+      ) : null}
 
-      <div className="mt-3 space-y-4">
+      <div className="mt-4 space-y-4">
         {companies.length > 0 ? (
           <>
             <div className="overflow-hidden rounded-lg border border-line bg-paper shadow-card">

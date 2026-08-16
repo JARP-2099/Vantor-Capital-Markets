@@ -1,14 +1,15 @@
-import { Card } from "@/components/ui/card";
+import { ConfidenceBand, RangeBar, type BandPoint } from "@/components/ui/charts";
 import { MetricStat } from "@/components/ui/metric-stat";
-import { Table, TBody, TD, TH, THead } from "@/components/ui/table";
+import { Table, TBody, TD, TH, THead, TableWrap } from "@/components/ui/table";
 import type { ValuationComponentRow, ValuationRunRow } from "@/db/queries/valuations";
 import { formatCompactCurrency, formatDate } from "@/lib/format";
 
 /**
- * Public profile valuation section. Server-safe presentation only — callers
- * pass a completed run (visibility already enforced upstream). Deliberately
- * unlike stock-price UI: neutral ink, no gain/loss coloring, no change
- * badges — this is a model estimate, not a traded price.
+ * Public profile valuation section — V2, built on the shared chart
+ * primitives (bullet-style RangeBar, line-with-ConfidenceBand). Server-safe
+ * presentation only — callers pass a completed run (visibility already
+ * enforced upstream). Deliberately unlike stock-price UI: no gain/loss
+ * coloring, no change badges — this is a model estimate, not a traded price.
  */
 
 const COMPONENT_ORDER: string[] = [
@@ -44,111 +45,30 @@ function detailReason(row: ValuationComponentRow): string | null {
   return typeof detail?.reason === "string" ? detail.reason : null;
 }
 
-/** Inset (as a % of track width) the low→high segment sits from either edge. */
-const RANGE_INSET_PCT = 4;
-
 /**
- * Horizontal low–high range bar with a midpoint marker. Pure CSS, neutral
- * ink on a mist track with a single cobalt marker — a model range, not a
- * price chart. Decorative: the surrounding text carries every value.
+ * Padded display domain around a low–high band so the band never touches
+ * the track edges. Returns 0–1 positions for low/high/mid on that domain.
  */
-function RangeBar({ low, high, mid }: { low: number; high: number; mid: number | null }) {
+function bandPositions(low: number, high: number, mid: number | null) {
   const span = high - low;
-  const midFrac = mid !== null && span > 0 ? Math.min(1, Math.max(0, (mid - low) / span)) : null;
-  return (
-    <div aria-hidden="true" className="relative h-1.5 rounded-full bg-mist">
-      <div
-        className="absolute inset-y-0 rounded-full bg-ink-900"
-        style={{ left: `${RANGE_INSET_PCT}%`, right: `${RANGE_INSET_PCT}%` }}
-      />
-      {midFrac !== null ? (
-        <span
-          className="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-paper bg-accent-600"
-          style={{ left: `${RANGE_INSET_PCT + midFrac * (100 - 2 * RANGE_INSET_PCT)}%` }}
-        />
-      ) : null}
-    </div>
-  );
+  const pad = span > 0 ? span * 0.18 : Math.max(Math.abs(high) * 0.1, 1);
+  const domainLow = low - pad;
+  const domainSpan = high + pad - domainLow;
+  const pos = (v: number) => (v - domainLow) / domainSpan;
+  return {
+    bandStart: pos(low),
+    bandEnd: pos(high),
+    mid: mid !== null ? pos(mid) : undefined,
+  };
 }
 
-type HistoryPoint = { date: Date; mid: number; currency: string };
-
-/**
- * Inline midpoint history line. Pure SVG, axis-free, neutral ink with a
- * single accent dot on the latest estimate; the adjacent table is the
- * accessible/data view, and the aria-label narrates first and latest values.
- */
-function MidpointSparkline({ points }: { points: HistoryPoint[] }) {
-  const width = 480;
-  const height = 64;
-  const pad = 8;
-  const first = points[0];
-  const last = points[points.length - 1];
-  const mids = points.map((p) => p.mid);
-  const min = Math.min(...mids);
-  const max = Math.max(...mids);
-  const span = max - min || 1;
-  const x = (i: number) => pad + (i * (width - 2 * pad)) / (points.length - 1);
-  const y = (v: number) => height - pad - ((v - min) / span) * (height - 2 * pad);
-  const d = points
-    .map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)} ${y(p.mid).toFixed(1)}`)
-    .join(" ");
-  const lastLeftPct = (x(points.length - 1) / width) * 100;
-  const lastTopPct = (y(last.mid) / height) * 100;
-
-  return (
-    <div className="relative">
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        preserveAspectRatio="none"
-        role="img"
-        aria-label={`Vantor estimated midpoint moved from ${formatCompactCurrency(first.mid, first.currency)} on ${formatDate(first.date)} to ${formatCompactCurrency(last.mid, last.currency)} on ${formatDate(last.date)}, across ${points.length} estimates.`}
-        className="h-16 w-full text-ink-900"
-      >
-        <path
-          d={d}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={1.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
-        />
-      </svg>
-      {/* Latest-estimate marker, positioned over the scaled SVG. */}
-      <span
-        aria-hidden="true"
-        className="absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-paper bg-accent-600"
-        style={{ left: `${lastLeftPct}%`, top: `${lastTopPct}%` }}
-      />
-    </div>
-  );
-}
-
-function QuietStat({
-  label,
-  value,
-  marker = false,
-}: {
-  label: string;
-  value: string | null;
-  marker?: boolean;
-}) {
-  return (
-    <div className="min-w-0">
-      <dt className="text-xs font-medium uppercase tracking-wider text-muted">{label}</dt>
-      <dd className="mt-0.5 text-sm font-semibold text-ink-900 tabular-nums">
-        {marker && value !== null ? (
-          <span
-            aria-hidden="true"
-            className="mr-1.5 inline-block size-1.5 rounded-full bg-accent-600 align-middle"
-          />
-        ) : null}
-        {value ?? "—"}
-      </dd>
-    </div>
-  );
-}
+type HistoryEntry = {
+  date: Date;
+  low: number | null;
+  mid: number;
+  high: number | null;
+  currency: string;
+};
 
 export function ValuationSection({
   run,
@@ -169,102 +89,148 @@ export function ValuationSection({
     (a, b) => COMPONENT_ORDER.indexOf(a.componentKey) - COMPONENT_ORDER.indexOf(b.componentKey),
   );
 
-  // Oldest first from the query layer; keep only chart-safe points.
-  const points: HistoryPoint[] = history.flatMap((r) => {
-    const m = num(r.valuationMid);
-    return m !== null ? [{ date: r.createdAt, mid: m, currency: r.currency }] : [];
+  // Widest applied-model range — the shared domain every mini bar is drawn
+  // against, so per-model bands are visually comparable.
+  const appliedRanges = ordered.flatMap((row) => {
+    if (row.status !== "applied") return [];
+    const cLow = num(row.valuationLow);
+    const cHigh = num(row.valuationHigh);
+    return cLow !== null && cHigh !== null ? [{ low: cLow, high: cHigh }] : [];
   });
-  const showHistory = points.length >= 2;
+  const modelDomain =
+    appliedRanges.length > 0
+      ? {
+          low: Math.min(...appliedRanges.map((r) => r.low)),
+          high: Math.max(...appliedRanges.map((r) => r.high)),
+        }
+      : null;
+  const modelSpan = modelDomain ? modelDomain.high - modelDomain.low || 1 : 1;
+
+  // Oldest first from the query layer; keep only points with a midpoint.
+  const entries: HistoryEntry[] = history.flatMap((r) => {
+    const m = num(r.valuationMid);
+    return m !== null
+      ? [
+          {
+            date: r.createdAt,
+            low: num(r.valuationLow),
+            mid: m,
+            high: num(r.valuationHigh),
+            currency: r.currency,
+          },
+        ]
+      : [];
+  });
+  const showHistory = entries.length >= 2;
+  const bandPoints: BandPoint[] = entries.map((e, i) => ({
+    x: entries.length > 1 ? i / (entries.length - 1) : 0,
+    low: e.low ?? e.mid,
+    mid: e.mid,
+    high: e.high ?? e.mid,
+  }));
+  const firstEntry = entries[0];
+  const lastEntry = entries[entries.length - 1];
 
   return (
-    <div className="mt-5 space-y-5">
+    <div className="mt-6 space-y-10">
       {/* ---------------------------- Headline band ---------------------------- */}
-      <Card className="p-5 sm:p-6">
+      <div className="rounded-lg border border-line bg-paper p-5 shadow-card sm:p-7">
         {hasRange ? (
           <>
-            <div className="flex items-end justify-between gap-6">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-muted">
-                  Low estimate
-                </p>
-                <p className="mt-1 text-2xl font-semibold tracking-tight text-ink-900 tabular-nums sm:text-3xl">
-                  {formatCompactCurrency(low, currency)}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-xs font-medium uppercase tracking-wider text-muted">
-                  High estimate
-                </p>
-                <p className="mt-1 text-2xl font-semibold tracking-tight text-ink-900 tabular-nums sm:text-3xl">
-                  {formatCompactCurrency(high, currency)}
-                </p>
-              </div>
-            </div>
-            <div className="mt-4">
-              <RangeBar low={low} high={high} mid={mid} />
-            </div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+              Estimated range
+            </p>
+            <p className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 tabular-nums sm:text-4xl">
+              {formatCompactCurrency(low, currency)}
+              <span className="mx-2 font-semibold text-faint">–</span>
+              {formatCompactCurrency(high, currency)}
+            </p>
+            <RangeBar
+              {...bandPositions(low, high, mid)}
+              lowLabel={formatCompactCurrency(low, currency)}
+              midLabel={mid !== null ? formatCompactCurrency(mid, currency) : undefined}
+              highLabel={formatCompactCurrency(high, currency)}
+              className="mt-6 max-w-2xl"
+            />
           </>
         ) : mid !== null ? (
-          <MetricStat
-            label="Estimated midpoint"
-            value={formatCompactCurrency(mid, currency)}
-            size="lg"
-            className="tabular-nums"
-          />
+          <>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+              Estimated midpoint
+            </p>
+            <p className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 tabular-nums sm:text-4xl">
+              {formatCompactCurrency(mid, currency)}
+            </p>
+          </>
         ) : null}
 
-        <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-line pt-4 sm:grid-cols-4">
-          <QuietStat
+        <dl className="mt-7 grid grid-cols-2 gap-x-8 gap-y-5 border-t border-line pt-5 sm:grid-cols-4">
+          <MetricStat
             label="Midpoint"
             value={mid !== null ? formatCompactCurrency(mid, currency) : null}
-            marker={hasRange}
+            className="tabular-nums"
           />
-          <QuietStat
+          <MetricStat
             label="Confidence"
             value={run.confidence !== null ? `${run.confidence}%` : null}
+            className="tabular-nums"
           />
-          <QuietStat
+          <MetricStat
             label="Data Quality"
             value={SUFFICIENCY_LABELS[run.dataSufficiency] ?? null}
           />
-          <QuietStat label="Last updated" value={formatDate(run.createdAt)} />
+          <MetricStat label="Last updated" value={formatDate(run.createdAt)} className="tabular-nums" />
         </dl>
-      </Card>
+      </div>
 
       {/* -------------------------- Estimate Breakdown ------------------------- */}
-      <Card className="p-5 sm:p-6">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
+      <div>
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
           Estimate Breakdown
         </h3>
-        <div className="mt-1 divide-y divide-line">
+        <div className="mt-2 divide-y divide-line border-t border-line">
           {ordered.map((row) => {
             const label = COMPONENT_LABELS[row.componentKey] ?? row.componentKey;
             const reason = detailReason(row);
             if (row.status === "applied") {
               const cLow = num(row.valuationLow);
               const cHigh = num(row.valuationHigh);
+              const cMid = num(row.valuationMid);
               const weight = num(row.weight);
+              const hasBar = modelDomain !== null && cLow !== null && cHigh !== null;
               return (
                 <div
                   key={row.id}
-                  className="flex flex-col gap-1 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6"
+                  className="grid gap-x-8 gap-y-2 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center"
                 >
-                  <p className="text-sm font-medium text-ink-900">{label}</p>
-                  <p className="flex items-baseline gap-3 text-sm font-semibold text-ink-900 tabular-nums sm:justify-end">
-                    {cLow !== null && cHigh !== null
-                      ? `${formatCompactCurrency(cLow, currency)} – ${formatCompactCurrency(cHigh, currency)}`
-                      : null}
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-ink-900">{label}</p>
                     {weight !== null ? (
-                      <span className="font-normal text-muted">
+                      <p className="mt-0.5 text-xs text-muted tabular-nums">
                         {Math.round(weight * 100)}% weight
-                      </span>
+                      </p>
                     ) : null}
-                  </p>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-ink-900 tabular-nums sm:text-right">
+                      {cLow !== null && cHigh !== null
+                        ? `${formatCompactCurrency(cLow, currency)} – ${formatCompactCurrency(cHigh, currency)}`
+                        : "—"}
+                    </p>
+                    {hasBar ? (
+                      <RangeBar
+                        bandStart={(cLow - modelDomain.low) / modelSpan}
+                        bandEnd={(cHigh - modelDomain.low) / modelSpan}
+                        mid={cMid !== null ? (cMid - modelDomain.low) / modelSpan : undefined}
+                        className="mt-2"
+                      />
+                    ) : null}
+                  </div>
                 </div>
               );
             }
             return (
-              <div key={row.id} className="py-3">
+              <div key={row.id} className="py-3.5">
                 <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                   <p className="text-sm text-muted">{label}</p>
                   <p className="text-xs text-muted">
@@ -276,47 +242,56 @@ export function ValuationSection({
             );
           })}
         </div>
-      </Card>
+      </div>
 
-      {/* ---------------------------- History ---------------------------- */}
+      {/* ------------------------------- History ------------------------------- */}
       {showHistory ? (
-        <Card className="overflow-hidden">
-          <div className="p-5 pb-0 sm:p-6 sm:pb-0">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">
-              Estimate History
-            </h3>
-            <p className="mt-1 text-xs text-muted">
-              Model-estimated midpoints over time — not a traded price.
-            </p>
-            <div className="mt-4">
-              <MidpointSparkline points={points} />
-            </div>
-          </div>
-          <div className="mt-4 overflow-x-auto">
-            <Table className="min-w-64">
+        <div>
+          <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+            Estimate History
+          </h3>
+          <p className="mt-1 text-xs text-muted">
+            Model-estimated midpoints over time — not a traded price.
+          </p>
+          <ConfidenceBand
+            points={bandPoints}
+            label={`Vantor estimated midpoint moved from ${formatCompactCurrency(firstEntry.mid, firstEntry.currency)} on ${formatDate(firstEntry.date)} to ${formatCompactCurrency(lastEntry.mid, lastEntry.currency)} on ${formatDate(lastEntry.date)}, across ${entries.length} estimates. The shaded band spans each estimate's low to high value.`}
+            height={140}
+            className="mt-4"
+          />
+          <TableWrap className="mt-5">
+            <Table className="min-w-[26rem]">
               <THead>
                 <tr>
-                  <TH className="pl-5 sm:pl-6">Date</TH>
-                  <TH numeric className="pr-5 sm:pr-6">
-                    Estimated midpoint
-                  </TH>
+                  <TH>Date</TH>
+                  <TH numeric>Low estimate</TH>
+                  <TH numeric>Midpoint</TH>
+                  <TH numeric>High estimate</TH>
                 </tr>
               </THead>
               <TBody>
-                {[...points].reverse().map((point) => (
-                  <tr key={point.date.toISOString()}>
-                    <TD className="whitespace-nowrap pl-5 text-muted tabular-nums sm:pl-6">
-                      {formatDate(point.date)}
+                {[...entries].reverse().map((entry) => (
+                  <tr key={entry.date.toISOString()}>
+                    <TD className="whitespace-nowrap text-muted tabular-nums">
+                      {formatDate(entry.date)}
                     </TD>
-                    <TD numeric className="pr-5 font-medium text-ink-900 sm:pr-6">
-                      {formatCompactCurrency(point.mid, point.currency)}
+                    <TD numeric className="text-slate-650">
+                      {entry.low !== null ? formatCompactCurrency(entry.low, entry.currency) : "—"}
+                    </TD>
+                    <TD numeric className="font-semibold text-ink-900">
+                      {formatCompactCurrency(entry.mid, entry.currency)}
+                    </TD>
+                    <TD numeric className="text-slate-650">
+                      {entry.high !== null
+                        ? formatCompactCurrency(entry.high, entry.currency)
+                        : "—"}
                     </TD>
                   </tr>
                 ))}
               </TBody>
             </Table>
-          </div>
-        </Card>
+          </TableWrap>
+        </div>
       ) : null}
 
       <p className="text-xs leading-relaxed text-muted">
