@@ -130,6 +130,32 @@ declining + concentrated archetypes).
 3. No custom domain work — everything is environment-driven; adding one
    later only changes `BETTER_AUTH_URL`.
 
+## Phase 2 QA / security review results
+
+An adversarial QA agent probed a running build with real sessions and
+forged server-action replays. **No critical/high findings.** Passed:
+cross-founder valuation manipulation (denied; engine inputs are DB-only),
+cooldown enforcement, valuation privacy (draft 404, `showPublicValuation`
+respected, no query when off), verification privacy (internalNotes/claims/
+evidence never on public or founder surfaces; admin-only), self-verification
+impossible (no founder path to `verified`; zod strips unknown keys; guarded
+transition UPDATEs), malformed-input handling, admin gating, language audit
+(no "worth"/endorsement/advice framing anywhere).
+
+**Fixed from findings** (commit `f568ed9`): founder-segment soft-404s
+(loading boundary removed → real 404s), NaN persistence guard + DB CHECKs,
+percent/growth/date bounds on metrics, partial unique index for one open
+verification request per category, 20-evidence cap, archived-company guards,
+and public verification display no longer lists rejected/needs_update/
+expired categories (they still count in the percent denominator, so hiding
+them can never inflate the number).
+
+**Accepted as-is**: valuation cooldown remains check-then-insert (worst
+case: one extra run inside the window; harmless); founder verification page
+doesn't yet list previously attached evidence; small presentation-helper
+duplication between founder/public valuation surfaces and the triplicated
+verification status-badge tone map — cleanup candidates for next touch.
+
 ## Known issues / limitations
 
 1. Evidence upload = references/descriptions only (no file storage yet —
