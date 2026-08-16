@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { AdminNav } from "@/components/admin/admin-nav";
 import { Container } from "@/components/layout/container";
 import { Logo } from "@/components/layout/logo";
 import { ForbiddenError, requireAdmin, UnauthorizedError } from "@/lib/authz";
@@ -9,9 +10,6 @@ export const metadata: Metadata = {
   title: "Admin",
   robots: { index: false },
 };
-
-const navLinkClass =
-  "text-sm font-medium text-slate-650 hover:text-ink-900 transition-colors";
 
 /**
  * Admin chrome. The layout gates the whole segment — signed-out users go to
@@ -30,32 +28,22 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
-        <Container className="flex h-14 items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Logo href="/admin" />
-            <span className="rounded-sm bg-ink-900 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-widest text-white">
+      <header className="sticky top-0 z-40 bg-ink-900 text-white">
+        <Container className="flex h-12 items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <Logo href="/admin" variant="dark" />
+            <span className="rounded-sm border border-white/25 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-white/80">
               Admin
             </span>
           </div>
-          <nav aria-label="Admin" className="flex items-center gap-4 sm:gap-6">
-            <Link href="/admin" className={`${navLinkClass} hidden sm:inline`}>
-              Queue
-            </Link>
-            <Link href="/admin/companies" className={`${navLinkClass} hidden sm:inline`}>
-              Companies
-            </Link>
-            <Link href="/admin/users" className={`${navLinkClass} hidden sm:inline`}>
-              Users
-            </Link>
-            <Link href="/admin/verifications" className={`${navLinkClass} hidden sm:inline`}>
-              Verifications
-            </Link>
-            <Link href="/" className={navLinkClass}>
-              Back to site
-            </Link>
-          </nav>
+          <Link
+            href="/"
+            className="shrink-0 text-sm font-medium text-white/60 transition-colors hover:text-white"
+          >
+            Back to site
+          </Link>
         </Container>
+        <AdminNav />
       </header>
       <main className="flex-1 bg-canvas">{children}</main>
     </>

@@ -12,7 +12,15 @@ const STATUS_TONES: Record<
   archived: "ink",
 };
 
-/** Consistent lifecycle badge across all admin tables and detail pages. */
+/**
+ * Consistent lifecycle status across all admin tables and detail pages.
+ * Rendered as a quiet dot badge — status columns stay scannable without
+ * filling the screen with colored pills.
+ */
 export function StatusBadge({ status }: { status: CompanyStatus }) {
-  return <Badge tone={STATUS_TONES[status]}>{STATUS_LABELS[status]}</Badge>;
+  return (
+    <Badge tone={STATUS_TONES[status]} dot>
+      {STATUS_LABELS[status]}
+    </Badge>
+  );
 }

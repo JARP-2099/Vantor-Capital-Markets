@@ -29,10 +29,10 @@ function FilterLink({
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "rounded-full border px-3 py-1 text-sm font-medium transition-colors",
+        "inline-flex h-10 items-center rounded-md border px-3 text-sm font-medium transition-colors sm:h-8",
         active
           ? "border-ink-900 bg-ink-900 text-white"
-          : "border-line bg-paper text-slate-650 hover:border-faint hover:text-ink-900",
+          : "border-line-strong bg-paper text-slate-650 hover:border-faint hover:text-ink-900",
       )}
     >
       {children}
@@ -58,7 +58,7 @@ export default async function AdminCompaniesPage({
   return (
     <Container className="space-y-6 py-8">
       <div>
-        <h1 className="text-2xl font-bold text-ink-900">All companies</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-ink-900">All companies</h1>
         <p className="mt-1 text-sm text-muted">
           Every company on the platform, in any lifecycle state.
         </p>
@@ -78,7 +78,7 @@ export default async function AdminCompaniesPage({
       <CompanyTable
         companies={rows}
         emptyTitle={
-          status ? `No ${STATUS_LABELS[status].toLowerCase()} companies.` : "No companies yet."
+          status ? `No ${STATUS_LABELS[status].toLowerCase()} companies` : "No companies yet"
         }
         emptyDescription={
           status

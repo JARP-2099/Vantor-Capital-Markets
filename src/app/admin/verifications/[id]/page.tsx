@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getCompanyByIdUnscoped } from "@/db/queries/companies";
 import { getEvidenceForRequest, getVerificationRequestById } from "@/db/queries/verifications";
 import { requireAdminPage } from "@/components/admin/admin-guard";
+import { MonoId } from "@/components/admin/mono-id";
 import { DecisionPanel } from "@/components/admin/verification/decision-panel";
 import { VerificationStatusBadge } from "@/components/admin/verification/verification-status-badge";
 import { Container } from "@/components/layout/container";
@@ -23,12 +24,12 @@ export const metadata: Metadata = { title: "Admin — Review Verification" };
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Label/value row for the lifecycle definition list. */
+/** Dense label/value row for the lifecycle definition list. */
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex justify-between gap-4 py-1.5">
-      <dt className="shrink-0 text-sm text-muted">{label}</dt>
-      <dd className="min-w-0 text-right text-sm font-medium text-ink-900 break-words">
+    <div className="grid grid-cols-[7.5rem_1fr] gap-x-4 py-2 sm:grid-cols-[8.5rem_1fr]">
+      <dt className="text-sm text-muted">{label}</dt>
+      <dd className="min-w-0 text-sm font-medium text-ink-900 [overflow-wrap:anywhere]">
         {children}
       </dd>
     </div>
@@ -36,7 +37,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 }
 
 function TextValue({ value }: { value: string | null | undefined }) {
-  if (!value) return <span className="font-normal text-faint">Not provided</span>;
+  if (!value) return <span className="font-normal text-faint">—</span>;
   return <>{value}</>;
 }
 
@@ -64,69 +65,73 @@ export default async function AdminVerificationDetailPage({
 
   return (
     <Container className="space-y-6 py-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold text-ink-900">{categoryLabel}</h1>
-            <VerificationStatusBadge status={status} />
-          </div>
-          <p className="mt-1.5 text-sm text-muted">
-            Verification request for{" "}
-            <Link
-              href={`/admin/companies/${company.id}`}
-              className="font-medium text-accent-600 hover:underline"
-            >
-              {company.name}
-            </Link>
-          </p>
-          <p className="mt-1 font-mono text-xs text-faint">{request.id}</p>
-        </div>
+      <div>
         <Link
           href="/admin/verifications"
-          className="text-sm font-medium text-slate-650 transition-colors hover:text-ink-900"
+          className="text-sm font-medium text-muted transition-colors hover:text-ink-900"
         >
           ← Back to queue
         </Link>
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-ink-900">{categoryLabel}</h1>
+          <VerificationStatusBadge status={status} />
+        </div>
+        <p className="mt-1.5 text-sm text-muted">
+          Verification request for{" "}
+          <Link
+            href={`/admin/companies/${company.id}`}
+            className="font-medium text-accent-700 hover:underline"
+          >
+            {company.name}
+          </Link>
+        </p>
+        <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted">
+          <MonoId value={request.id} className="text-faint" />
+          <span aria-hidden="true" className="text-faint">
+            ·
+          </span>
+          <span>Submitted {formatDate(request.createdAt)}</span>
+        </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* -------------------------------------------------- Request content */}
-        <div className="space-y-6 lg:col-span-2">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-3">
               <CardTitle>Claim</CardTitle>
             </CardHeader>
             <CardBody>
-              <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-650">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-650">
                 {request.claimSummary}
               </p>
             </CardBody>
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-1">
               <CardTitle>Evidence</CardTitle>
             </CardHeader>
             <CardBody>
               {evidence.length === 0 ? (
-                <p className="text-sm text-faint">No evidence attached yet.</p>
+                <p className="pt-2 text-sm text-faint">No evidence attached yet.</p>
               ) : (
                 <ul className="divide-y divide-line">
                   {evidence.map((item) => (
-                    <li key={item.id} className="py-3 first:pt-0 last:pb-0">
+                    <li key={item.id} className="py-3 last:pb-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge tone="neutral">
                           {EVIDENCE_KIND_LABELS[item.kind as EvidenceKind]}
                         </Badge>
                         <span className="text-xs text-faint">{formatDate(item.createdAt)}</span>
                       </div>
-                      <p className="mt-1.5 text-sm leading-relaxed whitespace-pre-wrap text-slate-650">
+                      <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-slate-650">
                         {item.description}
                       </p>
                       {item.reference ? (
                         // Deliberately plain text, never a hyperlink — the
                         // reference is founder-supplied and untrusted.
-                        <p className="mt-1 font-mono text-xs break-all text-muted">
+                        <p className="mt-1 break-all font-mono text-xs text-muted">
                           {item.reference}
                         </p>
                       ) : null}
@@ -145,14 +150,17 @@ export default async function AdminVerificationDetailPage({
 
           {request.internalNotes ? (
             <Card>
-              <CardHeader>
-                <CardTitle>Internal notes</CardTitle>
+              <CardHeader className="pb-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <CardTitle>Internal notes</CardTitle>
+                  <Badge tone="ink">Admin-only</Badge>
+                </div>
                 <p className="mt-1 text-xs text-muted">
-                  Visible to admins only — never shown to the founder or the public.
+                  Internal — never shown to founders or the public.
                 </p>
               </CardHeader>
               <CardBody>
-                <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-650">
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-650">
                   {request.internalNotes}
                 </p>
               </CardBody>
@@ -160,10 +168,11 @@ export default async function AdminVerificationDetailPage({
           ) : null}
         </div>
 
-        {/* ---------------------------------------------------- Decision panel */}
-        <div className="space-y-6">
+        {/* Decision panel — ordered first on mobile so the decision actions
+            are reachable without scrolling past the whole request. */}
+        <div className="order-first min-w-0 space-y-6 lg:order-none">
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-3">
               <CardTitle>Decision</CardTitle>
             </CardHeader>
             <CardBody>
@@ -172,7 +181,7 @@ export default async function AdminVerificationDetailPage({
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-1">
               <CardTitle>Lifecycle</CardTitle>
             </CardHeader>
             <CardBody>
@@ -186,11 +195,11 @@ export default async function AdminVerificationDetailPage({
                   <TextValue value={request.expiresAt ? formatDate(request.expiresAt) : null} />
                 </Row>
                 <Row label="Submitted by">
-                  <span className="font-mono text-xs">{request.submittedBy}</span>
+                  <MonoId value={request.submittedBy} chars={12} />
                 </Row>
                 <Row label="Reviewed by">
                   {request.reviewedBy ? (
-                    <span className="font-mono text-xs">{request.reviewedBy}</span>
+                    <MonoId value={request.reviewedBy} chars={12} />
                   ) : (
                     <TextValue value={null} />
                   )}

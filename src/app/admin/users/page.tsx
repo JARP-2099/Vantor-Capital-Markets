@@ -3,17 +3,15 @@ import { asc, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { user, userRoles } from "@/db/schema";
 import { requireAdminPage } from "@/components/admin/admin-guard";
+import { MonoId } from "@/components/admin/mono-id";
 import { Container } from "@/components/layout/container";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Table, TableWrap, TBody, TD, TH, THead } from "@/components/ui/table";
 import { formatDate } from "@/lib/format";
 import type { PlatformRole } from "@/lib/authz";
 
 export const metadata: Metadata = { title: "Admin — Users" };
-
-const thClass =
-  "px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-muted whitespace-nowrap";
-const tdClass = "px-4 py-3 text-sm text-slate-650 whitespace-nowrap";
 
 const ROLE_TONES: Record<PlatformRole, "neutral" | "accent" | "positive" | "ink"> = {
   founder: "accent",
@@ -60,65 +58,67 @@ export default async function AdminUsersPage() {
   return (
     <Container className="space-y-6 py-8">
       <div>
-        <h1 className="text-2xl font-bold text-ink-900">Users</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-ink-900">Users</h1>
         <p className="mt-1 text-sm text-muted">
-          Read-only account records. Roles come from user_roles; admins bootstrapped via
-          ADMIN_EMAILS may not carry a stored role row.
+          Read-only directory of every account on the platform. Some administrator accounts are
+          provisioned at the platform level and may not show a stored role.
         </p>
       </div>
 
       {listing.length === 0 ? (
         <EmptyState
-          title="No users yet."
+          title="No users yet"
           description="Accounts appear here as people sign up."
         />
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-line bg-paper shadow-card">
-          <table className="w-full min-w-176 border-collapse">
-            <thead className="border-b border-line bg-canvas">
+        <TableWrap>
+          <Table className="min-w-176">
+            <THead>
               <tr>
-                <th scope="col" className={thClass}>
-                  Name
-                </th>
-                <th scope="col" className={thClass}>
-                  Email
-                </th>
-                <th scope="col" className={thClass}>
-                  Roles
-                </th>
-                <th scope="col" className={thClass}>
+                <TH dense>Name</TH>
+                <TH dense>Email</TH>
+                <TH dense>Roles</TH>
+                <TH dense numeric>
                   Joined
-                </th>
-                <th scope="col" className={thClass}>
+                </TH>
+                <TH dense numeric>
                   User ID
-                </th>
+                </TH>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
+            </THead>
+            <TBody>
               {listing.map((account) => (
-                <tr key={account.id}>
-                  <td className={`${tdClass} font-medium text-ink-900`}>{account.name}</td>
-                  <td className={tdClass}>{account.email}</td>
-                  <td className={tdClass}>
+                <tr key={account.id} className="transition-colors hover:bg-mist/40">
+                  <TD dense className="whitespace-nowrap font-medium text-ink-900">
+                    {account.name}
+                  </TD>
+                  <TD dense className="whitespace-nowrap">
+                    {account.email}
+                  </TD>
+                  <TD dense className="whitespace-nowrap">
                     {account.roles.length === 0 ? (
                       <span className="text-faint">—</span>
                     ) : (
-                      <span className="flex flex-wrap gap-1.5">
+                      <span className="flex flex-wrap gap-x-3 gap-y-1">
                         {account.roles.map((role) => (
-                          <Badge key={role} tone={ROLE_TONES[role]}>
+                          <Badge key={role} tone={ROLE_TONES[role]} dot className="capitalize">
                             {role}
                           </Badge>
                         ))}
                       </span>
                     )}
-                  </td>
-                  <td className={tdClass}>{formatDate(account.createdAt)}</td>
-                  <td className={`${tdClass} font-mono text-xs text-faint`}>{account.id}</td>
+                  </TD>
+                  <TD dense numeric className="whitespace-nowrap">
+                    {formatDate(account.createdAt)}
+                  </TD>
+                  <TD dense numeric className="whitespace-nowrap">
+                    <MonoId value={account.id} className="text-faint" />
+                  </TD>
                 </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TBody>
+          </Table>
+        </TableWrap>
       )}
     </Container>
   );

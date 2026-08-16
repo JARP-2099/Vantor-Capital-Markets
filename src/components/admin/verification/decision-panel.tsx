@@ -17,7 +17,10 @@ type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 /** Maps each legal target status to the decision value the action expects. */
 const DECISION_BY_TARGET: Partial<
-  Record<VerificationStatus, { decision: string; label: string; variant: ButtonVariant }>
+  Record<
+    VerificationStatus,
+    { decision: string; label: string; variant: ButtonVariant; className?: string }
+  >
 > = {
   under_review: { decision: "start_review", label: "Start review", variant: "secondary" },
   verified: { decision: "verify", label: "Mark verified", variant: "primary" },
@@ -27,7 +30,13 @@ const DECISION_BY_TARGET: Partial<
     variant: "secondary",
   },
   rejected: { decision: "reject", label: "Reject", variant: "danger" },
-  needs_update: { decision: "needs_update", label: "Request updates", variant: "secondary" },
+  needs_update: {
+    decision: "needs_update",
+    label: "Request updates",
+    variant: "secondary",
+    // Caution styling: corrective, not destructive — amber, not red.
+    className: "border-warn-700/40 text-warn-700 hover:border-warn-700/60 hover:bg-warn-50",
+  },
   expired: { decision: "expire", label: "Mark expired", variant: "secondary" },
 };
 
@@ -75,29 +84,31 @@ export function DecisionPanel({
 
       <input type="hidden" name="requestId" value={requestId} />
 
-      <Field
-        label="Internal notes"
-        htmlFor="decision-internal-notes"
-        hint="Visible to admins only — never shown to the founder or the public."
-        error={internalNotesError}
-      >
-        <Textarea
-          id="decision-internal-notes"
-          name="internalNotes"
-          rows={3}
-          maxLength={2000}
-          className="min-h-20"
-          aria-invalid={Boolean(internalNotesError)}
-          aria-describedby={internalNotesError ? "decision-internal-notes-error" : undefined}
-        />
-      </Field>
+      <div className="rounded-md border border-line bg-mist/40 p-3">
+        <Field
+          label="Internal notes"
+          htmlFor="decision-internal-notes"
+          hint="Internal — never shown to founders or the public."
+          error={internalNotesError}
+        >
+          <Textarea
+            id="decision-internal-notes"
+            name="internalNotes"
+            rows={3}
+            maxLength={2000}
+            className="min-h-20"
+            aria-invalid={Boolean(internalNotesError)}
+            aria-describedby={internalNotesError ? "decision-internal-notes-error" : undefined}
+          />
+        </Field>
+      </div>
 
       <Field
         label="Note to the founder"
         htmlFor="decision-founder-note"
         hint={
           needsFounderNote
-            ? "Shown to the founder. Required when rejecting or requesting updates."
+            ? "Shown to the founder. Required for Reject and Request updates."
             : "Shown to the founder. Optional."
         }
         error={founderNoteError}
@@ -125,7 +136,7 @@ export function DecisionPanel({
               value={spec.decision}
               variant={spec.variant}
               disabled={pending}
-              className="w-full"
+              className={spec.className ? `w-full ${spec.className}` : "w-full"}
             >
               {pending ? <Spinner className={spinnerClass(spec.variant)} /> : null}
               {spec.label}

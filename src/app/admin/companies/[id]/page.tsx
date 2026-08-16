@@ -8,12 +8,14 @@ import {
   getLatestMetrics,
 } from "@/db/queries/companies";
 import { requireAdminPage } from "@/components/admin/admin-guard";
+import { MonoId } from "@/components/admin/mono-id";
 import { ReviewActions } from "@/components/admin/review-actions";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { Container } from "@/components/layout/container";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TBody, TD, TH, THead } from "@/components/ui/table";
 import {
   BUSINESS_MODEL_LABELS,
   INTENT_LABELS,
@@ -28,12 +30,12 @@ export const metadata: Metadata = { title: "Admin — Review Company" };
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** Label/value row for identity + lifecycle definition lists. */
+/** Dense label/value row for identity + lifecycle definition lists. */
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex justify-between gap-4 py-1.5">
-      <dt className="shrink-0 text-sm text-muted">{label}</dt>
-      <dd className="min-w-0 text-right text-sm font-medium text-ink-900 break-words">
+    <div className="grid grid-cols-[7.5rem_1fr] gap-x-4 py-2 sm:grid-cols-[8.5rem_1fr]">
+      <dt className="text-sm text-muted">{label}</dt>
+      <dd className="min-w-0 text-sm font-medium text-ink-900 [overflow-wrap:anywhere]">
         {children}
       </dd>
     </div>
@@ -41,7 +43,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 }
 
 function TextValue({ value }: { value: string | null | undefined }) {
-  if (!value) return <span className="font-normal text-faint">Not provided</span>;
+  if (!value) return <span className="font-normal text-faint">—</span>;
   return <>{value}</>;
 }
 
@@ -85,33 +87,47 @@ export default async function AdminCompanyReviewPage({
 
   return (
     <Container className="space-y-6 py-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-bold text-ink-900">{company.name}</h1>
-            <StatusBadge status={company.status as CompanyStatus} />
-            {company.isDemo ? <Badge tone="neutral">Demo data</Badge> : null}
-          </div>
-          {company.shortDescription ? (
-            <p className="mt-1.5 max-w-2xl text-sm text-muted">{company.shortDescription}</p>
-          ) : null}
-          <p className="mt-1 font-mono text-xs text-faint">
-            {company.slug} · {company.id}
-          </p>
-        </div>
+      <div>
         <Link
           href="/admin"
-          className="text-sm font-medium text-slate-650 transition-colors hover:text-ink-900"
+          className="text-sm font-medium text-muted transition-colors hover:text-ink-900"
         >
           ← Back to queue
         </Link>
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <h1 className="text-2xl font-semibold tracking-tight text-ink-900">{company.name}</h1>
+          <StatusBadge status={company.status as CompanyStatus} />
+          {company.isDemo ? (
+            <span className="rounded-sm border border-line px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-faint">
+              Demo data
+            </span>
+          ) : null}
+        </div>
+        {company.shortDescription ? (
+          <p className="mt-1.5 max-w-2xl text-sm text-muted">{company.shortDescription}</p>
+        ) : null}
+        <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted">
+          <span className="font-mono">{company.slug}</span>
+          <span aria-hidden="true" className="text-faint">
+            ·
+          </span>
+          <MonoId value={company.id} className="text-faint" />
+          {company.submittedAt ? (
+            <>
+              <span aria-hidden="true" className="text-faint">
+                ·
+              </span>
+              <span>Submitted {formatDate(company.submittedAt)}</span>
+            </>
+          ) : null}
+        </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* ------------------------------------------------ Profile content */}
-        <div className="space-y-6 lg:col-span-2">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-1">
               <CardTitle>Identity</CardTitle>
             </CardHeader>
             <CardBody>
@@ -122,7 +138,7 @@ export default async function AdminCompanyReviewPage({
                       href={company.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-accent-600 hover:underline"
+                      className="text-accent-700 hover:underline"
                     >
                       {company.website}
                     </a>
@@ -157,14 +173,14 @@ export default async function AdminCompanyReviewPage({
                   <TextValue value={company.foundedYear ? String(company.foundedYear) : null} />
                 </Row>
                 <Row label="Created by">
-                  <span className="font-mono text-xs">{company.createdBy}</span>
+                  <MonoId value={company.createdBy} chars={12} />
                 </Row>
               </dl>
             </CardBody>
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-3">
               <CardTitle>Intents</CardTitle>
             </CardHeader>
             <CardBody>
@@ -183,70 +199,66 @@ export default async function AdminCompanyReviewPage({
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-3">
               <CardTitle>Metrics</CardTitle>
             </CardHeader>
             <CardBody>
               {providedMetrics.length === 0 ? (
                 <p className="text-sm text-faint">No metrics provided.</p>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-120 border-collapse">
-                    <thead className="border-b border-line">
+                <div className="overflow-x-auto rounded-md border border-line">
+                  <Table className="min-w-120">
+                    <THead>
                       <tr>
-                        <th scope="col" className="py-2 pr-4 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                          Metric
-                        </th>
-                        <th scope="col" className="py-2 pr-4 text-left text-xs font-semibold uppercase tracking-wider text-muted">
+                        <TH dense>Metric</TH>
+                        <TH dense numeric>
                           Latest value
-                        </th>
-                        <th scope="col" className="py-2 pr-4 text-left text-xs font-semibold uppercase tracking-wider text-muted">
+                        </TH>
+                        <TH dense numeric>
                           As of
-                        </th>
-                        <th scope="col" className="py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">
-                          Source
-                        </th>
+                        </TH>
+                        <TH dense>Source</TH>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-line">
+                    </THead>
+                    <TBody>
                       {providedMetrics.map(({ type, row }) => (
                         <tr key={type}>
-                          <td className="py-2.5 pr-4 text-sm text-muted whitespace-nowrap">
+                          <TD dense className="whitespace-nowrap">
                             {METRIC_LABELS[type]}
-                          </td>
-                          <td className="py-2.5 pr-4 text-sm font-semibold text-ink-900 whitespace-nowrap">
+                          </TD>
+                          <TD dense numeric className="whitespace-nowrap font-semibold text-ink-900">
                             {formatMetricValue(type, Number(row.value), row.currency)}
-                          </td>
-                          <td className="py-2.5 pr-4 text-sm text-slate-650 whitespace-nowrap">
+                          </TD>
+                          <TD dense numeric className="whitespace-nowrap">
                             {formatDate(row.asOf)}
-                          </td>
-                          <td className="py-2.5 text-sm text-slate-650">
+                          </TD>
+                          <TD dense className="whitespace-nowrap">
                             {row.source ?? <span className="text-faint">Founder-declared</span>}
-                          </td>
+                          </TD>
                         </tr>
                       ))}
-                    </tbody>
-                  </table>
+                    </TBody>
+                  </Table>
                 </div>
               )}
             </CardBody>
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-3">
               <CardTitle>Story</CardTitle>
             </CardHeader>
-            <CardBody className="space-y-5">
+            <CardBody className="space-y-4">
               {!hasStory ? (
                 <p className="text-sm text-faint">No story sections provided.</p>
               ) : (
                 storySections.map((section) =>
                   section.value ? (
                     <section key={section.label}>
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted">
+                      <h4 className="text-xs font-medium uppercase tracking-wider text-muted">
                         {section.label}
                       </h4>
-                      <p className="mt-1.5 text-sm leading-relaxed whitespace-pre-wrap text-slate-650">
+                      <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-650">
                         {section.value}
                       </p>
                     </section>
@@ -257,16 +269,16 @@ export default async function AdminCompanyReviewPage({
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-1">
               <CardTitle>Team</CardTitle>
             </CardHeader>
             <CardBody>
               {members.length === 0 ? (
-                <p className="text-sm text-faint">No team members listed.</p>
+                <p className="pt-2 text-sm text-faint">No team members listed.</p>
               ) : (
                 <ul className="divide-y divide-line">
                   {members.map((member) => (
-                    <li key={member.id} className="py-3 first:pt-0 last:pb-0">
+                    <li key={member.id} className="py-3 last:pb-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-sm font-semibold text-ink-900">{member.name}</span>
                         <Badge tone={member.role === "founder" ? "ink" : "neutral"}>
@@ -277,7 +289,7 @@ export default async function AdminCompanyReviewPage({
                         ) : null}
                       </div>
                       {member.bio ? (
-                        <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap text-slate-650">
+                        <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-650">
                           {member.bio}
                         </p>
                       ) : null}
@@ -289,10 +301,11 @@ export default async function AdminCompanyReviewPage({
           </Card>
         </div>
 
-        {/* ------------------------------------------------ Review sidebar */}
-        <div className="space-y-6">
+        {/* Review sidebar — ordered first on mobile so review actions are
+            reachable without scrolling past the whole profile. */}
+        <div className="order-first min-w-0 space-y-6 lg:order-none">
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-3">
               <CardTitle>Review actions</CardTitle>
             </CardHeader>
             <CardBody>
@@ -307,7 +320,7 @@ export default async function AdminCompanyReviewPage({
           ) : null}
 
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-1">
               <CardTitle>Lifecycle</CardTitle>
             </CardHeader>
             <CardBody>
@@ -331,7 +344,7 @@ export default async function AdminCompanyReviewPage({
                 </Row>
                 <Row label="Reviewed by">
                   {company.reviewedBy ? (
-                    <span className="font-mono text-xs">{company.reviewedBy}</span>
+                    <MonoId value={company.reviewedBy} chars={12} />
                   ) : (
                     <TextValue value={null} />
                   )}

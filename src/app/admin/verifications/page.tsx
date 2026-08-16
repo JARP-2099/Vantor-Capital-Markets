@@ -5,9 +5,11 @@ import { db } from "@/db";
 import { getPendingVerificationRequests } from "@/db/queries/verifications";
 import { companies } from "@/db/schema";
 import { requireAdminPage } from "@/components/admin/admin-guard";
+import { MonoId } from "@/components/admin/mono-id";
 import { VerificationStatusBadge } from "@/components/admin/verification/verification-status-badge";
 import { Container } from "@/components/layout/container";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Table, TableWrap, TBody, TD, TH, THead } from "@/components/ui/table";
 import { formatDate } from "@/lib/format";
 import {
   VERIFICATION_CATEGORY_LABELS,
@@ -16,10 +18,6 @@ import {
 } from "@/lib/verification/constants";
 
 export const metadata: Metadata = { title: "Admin — Verifications" };
-
-const thClass =
-  "px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-muted whitespace-nowrap";
-const tdClass = "px-4 py-2.5 text-sm text-slate-650 whitespace-nowrap";
 
 export default async function AdminVerificationsPage() {
   await requireAdminPage();
@@ -39,7 +37,9 @@ export default async function AdminVerificationsPage() {
   return (
     <Container className="space-y-6 py-8">
       <div>
-        <h1 className="text-2xl font-bold text-ink-900">Verification queue</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-ink-900">
+          Verification queue
+        </h1>
         <p className="mt-1 text-sm text-muted">
           Verification requests that are pending or under review, oldest first.
         </p>
@@ -47,61 +47,55 @@ export default async function AdminVerificationsPage() {
 
       {requests.length === 0 ? (
         <EmptyState
-          title="No verification requests waiting for review."
-          description="New requests will appear here as founders submit claims for verification."
+          title="The verification queue is clear"
+          description="Founder-submitted verification requests land here, oldest first. Each request carries a claim, its evidence, and the decisions available for it."
         />
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-line bg-paper shadow-card">
-          <table className="w-full min-w-160 border-collapse">
-            <thead className="border-b border-line bg-canvas">
+        <TableWrap className="relative">
+          <Table className="min-w-160">
+            <THead>
               <tr>
-                <th scope="col" className={thClass}>
-                  Company
-                </th>
-                <th scope="col" className={thClass}>
-                  Category
-                </th>
-                <th scope="col" className={thClass}>
-                  Status
-                </th>
-                <th scope="col" className={thClass}>
+                <TH dense>Company</TH>
+                <TH dense>Category</TH>
+                <TH dense>Status</TH>
+                <TH dense numeric>
                   Submitted
-                </th>
-                <th scope="col" className={thClass}>
+                </TH>
+                <TH dense>
                   <span className="sr-only">Actions</span>
-                </th>
+                </TH>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
+            </THead>
+            <TBody>
               {requests.map((request) => (
-                <tr key={request.id}>
-                  <td className={`${tdClass} font-medium text-ink-900`}>
+                <tr key={request.id} className="transition-colors hover:bg-mist/40">
+                  <TD dense className="whitespace-nowrap font-medium text-ink-900">
                     {companyNameById.get(request.companyId) ?? (
-                      <span className="font-mono text-xs text-faint">
-                        {request.companyId.slice(0, 8)}…
-                      </span>
+                      <MonoId value={request.companyId} className="text-faint" />
                     )}
-                  </td>
-                  <td className={tdClass}>
+                  </TD>
+                  <TD dense className="whitespace-nowrap">
                     {VERIFICATION_CATEGORY_LABELS[request.category as VerificationCategory]}
-                  </td>
-                  <td className={tdClass}>
+                  </TD>
+                  <TD dense className="whitespace-nowrap">
                     <VerificationStatusBadge status={request.status as VerificationStatus} />
-                  </td>
-                  <td className={tdClass}>{formatDate(request.createdAt)}</td>
-                  <td className={`${tdClass} text-right`}>
+                  </TD>
+                  <TD dense numeric className="whitespace-nowrap">
+                    {formatDate(request.createdAt)}
+                  </TD>
+                  <TD dense numeric className="whitespace-nowrap">
                     <Link
                       href={`/admin/verifications/${request.id}`}
-                      className="text-sm font-medium text-accent-600 hover:underline"
+                      className="inline-flex h-7 items-center rounded-md border border-line-strong bg-paper px-2.5 text-xs font-medium text-ink-900 transition-colors hover:border-faint hover:bg-canvas"
                     >
                       Review
                     </Link>
-                  </td>
+                  </TD>
                 </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TBody>
+          </Table>
+        </TableWrap>
       )}
     </Container>
   );

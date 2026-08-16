@@ -1,91 +1,93 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import type { CompanyRow } from "@/db/queries/companies";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Table, TableWrap, TBody, TD, TH, THead } from "@/components/ui/table";
 import { STAGE_LABELS, type CompanyStatus } from "@/lib/constants";
 import { formatDate } from "@/lib/format";
 import { StatusBadge } from "./status-badge";
-
-const thClass =
-  "px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-muted whitespace-nowrap";
-const tdClass = "px-4 py-3 text-sm text-slate-650 whitespace-nowrap";
 
 type CompanyTableProps = {
   companies: CompanyRow[];
   emptyTitle: string;
   emptyDescription?: string;
+  emptyAction?: ReactNode;
 };
 
 /**
- * Shared admin companies table (review queue + all-companies list).
- * Rendered inside overflow-x-auto so wide rows scroll instead of breaking
- * the page on small screens.
+ * Shared admin companies table (review queue + all-companies list). TableWrap
+ * scrolls wide rows inside the card so the page itself never scrolls
+ * horizontally on small screens.
  */
-export function CompanyTable({ companies, emptyTitle, emptyDescription }: CompanyTableProps) {
+export function CompanyTable({
+  companies,
+  emptyTitle,
+  emptyDescription,
+  emptyAction,
+}: CompanyTableProps) {
   if (companies.length === 0) {
-    return <EmptyState title={emptyTitle} description={emptyDescription} />;
+    return <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} />;
   }
 
+  // `relative` keeps the absolutely-positioned sr-only header text inside
+  // the scroll container instead of widening the page.
   return (
-    <div className="overflow-x-auto rounded-lg border border-line bg-paper shadow-card">
-      <table className="w-full min-w-176 border-collapse">
-        <thead className="border-b border-line bg-canvas">
+    <TableWrap className="relative">
+      <Table className="min-w-176">
+        <THead>
           <tr>
-            <th scope="col" className={thClass}>
-              Name
-            </th>
-            <th scope="col" className={thClass}>
-              Industry
-            </th>
-            <th scope="col" className={thClass}>
-              Stage
-            </th>
-            <th scope="col" className={thClass}>
+            <TH dense>Name</TH>
+            <TH dense>Industry</TH>
+            <TH dense>Stage</TH>
+            <TH dense>Status</TH>
+            <TH dense numeric>
               Submitted
-            </th>
-            <th scope="col" className={thClass}>
-              Status
-            </th>
-            <th scope="col" className={thClass}>
+            </TH>
+            <TH dense>
               <span className="sr-only">Actions</span>
-            </th>
+            </TH>
           </tr>
-        </thead>
-        <tbody className="divide-y divide-line">
+        </THead>
+        <TBody>
           {companies.map((company) => (
-            <tr key={company.id} className="hover:bg-canvas/60 transition-colors">
-              <td className={tdClass}>
+            <tr key={company.id} className="transition-colors hover:bg-mist/40">
+              <TD dense className="whitespace-nowrap">
                 <Link
                   href={`/admin/companies/${company.id}`}
-                  className="font-medium text-ink-900 hover:text-accent-600"
+                  className="font-medium text-ink-900 hover:text-accent-700"
                 >
                   {company.name}
                 </Link>
                 {company.isDemo ? (
-                  <span className="ml-2 rounded-sm bg-mist px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted">
+                  <span className="ml-2 rounded-sm border border-line px-1 py-px text-[10px] font-medium uppercase tracking-wide text-faint">
                     Demo
                   </span>
                 ) : null}
-              </td>
-              <td className={tdClass}>{company.industry ?? "—"}</td>
-              <td className={tdClass}>{company.stage ? STAGE_LABELS[company.stage] : "—"}</td>
-              <td className={tdClass}>
-                {company.submittedAt ? formatDate(company.submittedAt) : "—"}
-              </td>
-              <td className={tdClass}>
+              </TD>
+              <TD dense className="whitespace-nowrap">
+                {company.industry ?? "—"}
+              </TD>
+              <TD dense className="whitespace-nowrap">
+                {company.stage ? STAGE_LABELS[company.stage] : "—"}
+              </TD>
+              <TD dense className="whitespace-nowrap">
                 <StatusBadge status={company.status as CompanyStatus} />
-              </td>
-              <td className={`${tdClass} text-right`}>
+              </TD>
+              <TD dense numeric className="whitespace-nowrap">
+                {company.submittedAt ? formatDate(company.submittedAt) : "—"}
+              </TD>
+              <TD dense numeric className="whitespace-nowrap">
                 <Link
                   href={`/admin/companies/${company.id}`}
-                  className="inline-flex h-8 items-center rounded-md border border-line bg-paper px-3 text-sm font-medium text-ink-900 transition-colors hover:border-faint hover:bg-canvas"
+                  className="inline-flex h-7 items-center rounded-md border border-line-strong bg-paper px-2.5 text-xs font-medium text-ink-900 transition-colors hover:border-faint hover:bg-canvas"
                 >
                   Review
                 </Link>
-              </td>
+              </TD>
             </tr>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </TBody>
+      </Table>
+    </TableWrap>
   );
 }

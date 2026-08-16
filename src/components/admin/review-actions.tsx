@@ -128,11 +128,23 @@ function ConfirmDisclosure({
   children: React.ReactNode;
 }) {
   return (
-    <details className="rounded-md border border-line">
-      <summary className="cursor-pointer select-none rounded-md px-3 py-2 text-sm font-medium text-negative-700 transition-colors hover:bg-negative-50 [&::-webkit-details-marker]:hidden">
+    <details className="group rounded-md border border-negative-700/30">
+      <summary className="flex cursor-pointer select-none list-none items-center justify-between gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-negative-700 transition-colors hover:bg-negative-50 [&::-webkit-details-marker]:hidden">
         {summary}
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 16 16"
+          className="size-3.5 shrink-0 transition-transform group-open:rotate-90"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M6 4l4 4-4 4" />
+        </svg>
       </summary>
-      <div className="space-y-3 border-t border-line p-3">
+      <div className="space-y-3 border-t border-negative-700/30 p-3">
         <p className="text-xs text-muted">{description}</p>
         {children}
       </div>
