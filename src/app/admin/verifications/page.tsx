@@ -35,9 +35,9 @@ export default async function AdminVerificationsPage() {
   const companyNameById = new Map(companyRows.map((c) => [c.id, c.name]));
 
   return (
-    <Container className="space-y-6 py-8">
+    <Container wide className="space-y-6 py-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-ink-900">
+        <h1 className="text-2xl font-bold tracking-tight text-ink-900">
           Verification queue
         </h1>
         <p className="mt-1 text-sm text-muted">

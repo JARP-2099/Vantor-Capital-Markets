@@ -33,9 +33,9 @@ export default async function AdminDashboardPage() {
   ];
 
   return (
-    <Container className="space-y-8 py-8">
+    <Container wide className="space-y-8 py-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-ink-900">Review queue</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-ink-900">Review queue</h1>
         <p className="mt-1 text-sm text-muted">
           Company submissions awaiting review, oldest first.
         </p>
@@ -54,7 +54,7 @@ export default async function AdminDashboardPage() {
 
       <section aria-labelledby="queue-heading" className="space-y-3">
         <div>
-          <h2 id="queue-heading" className="text-lg font-semibold tracking-tight text-ink-900">
+          <h2 id="queue-heading" className="text-lg font-bold tracking-tight text-ink-900">
             Awaiting review
           </h2>
           <p className="mt-0.5 text-xs text-muted">
@@ -74,7 +74,7 @@ export default async function AdminDashboardPage() {
       </section>
 
       <section aria-labelledby="audit-heading" className="space-y-3">
-        <h2 id="audit-heading" className="text-lg font-semibold tracking-tight text-ink-900">
+        <h2 id="audit-heading" className="text-lg font-bold tracking-tight text-ink-900">
           Recent activity
         </h2>
         {recentAudit.length === 0 ? (

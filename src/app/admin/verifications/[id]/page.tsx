@@ -64,7 +64,7 @@ export default async function AdminVerificationDetailPage({
   const categoryLabel = VERIFICATION_CATEGORY_LABELS[request.category as VerificationCategory];
 
   return (
-    <Container className="space-y-6 py-8">
+    <Container wide className="space-y-6 py-8">
       <div>
         <Link
           href="/admin/verifications"
@@ -73,7 +73,7 @@ export default async function AdminVerificationDetailPage({
           ← Back to queue
         </Link>
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-ink-900">{categoryLabel}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-ink-900">{categoryLabel}</h1>
           <VerificationStatusBadge status={status} />
         </div>
         <p className="mt-1.5 text-sm text-muted">

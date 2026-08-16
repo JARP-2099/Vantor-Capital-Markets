@@ -86,7 +86,7 @@ export default async function AdminCompanyReviewPage({
   const hasStory = storySections.some((s) => Boolean(s.value));
 
   return (
-    <Container className="space-y-6 py-8">
+    <Container wide className="space-y-6 py-8">
       <div>
         <Link
           href="/admin"
@@ -95,7 +95,7 @@ export default async function AdminCompanyReviewPage({
           ← Back to queue
         </Link>
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-ink-900">{company.name}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-ink-900">{company.name}</h1>
           <StatusBadge status={company.status as CompanyStatus} />
           {company.isDemo ? (
             <span className="rounded-sm border border-line px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-faint">

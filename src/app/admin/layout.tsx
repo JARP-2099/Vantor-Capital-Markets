@@ -1,25 +1,42 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { AdminNav } from "@/components/admin/admin-nav";
-import { Container } from "@/components/layout/container";
-import { Logo } from "@/components/layout/logo";
-import { ForbiddenError, requireAdmin, UnauthorizedError } from "@/lib/authz";
+import { AppSidebar, type SidebarNavSection } from "@/components/layout/app-sidebar";
+import { ForbiddenError, requireAdmin, UnauthorizedError, type AuthedUser } from "@/lib/authz";
 
 export const metadata: Metadata = {
   title: "Admin",
   robots: { index: false },
 };
 
+const NAV_SECTIONS: SidebarNavSection[] = [
+  {
+    title: "Review",
+    items: [
+      { href: "/admin", label: "Queue", exact: true },
+      { href: "/admin/verifications", label: "Verifications" },
+    ],
+  },
+  {
+    title: "Registry",
+    items: [
+      { href: "/admin/companies", label: "Companies" },
+      { href: "/admin/users", label: "Users" },
+    ],
+  },
+];
+
+const FOOTER_LINKS = [{ href: "/", label: "Back to site" }];
+
 /**
- * Admin chrome. The layout gates the whole segment — signed-out users go to
+ * Admin chrome (V2 sidebar shell). The layout gates the whole segment — signed-out users go to
  * login, signed-in non-admins get a 404 (no hint that /admin exists) — but
  * this is defense in depth only: every admin page and every server action
  * calls requireAdmin() itself. Layouts are not a security boundary.
  */
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  let admin: AuthedUser;
   try {
-    await requireAdmin();
+    admin = await requireAdmin();
   } catch (err) {
     if (err instanceof UnauthorizedError) redirect("/login");
     if (err instanceof ForbiddenError) notFound();
@@ -27,25 +44,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <>
-      <header className="sticky top-0 z-40 bg-ink-900 text-white">
-        <Container className="flex h-12 items-center justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <Logo href="/admin" variant="dark" />
-            <span className="rounded-sm border border-white/25 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-white/80">
-              Admin
-            </span>
-          </div>
-          <Link
-            href="/"
-            className="shrink-0 text-sm font-medium text-white/60 transition-colors hover:text-white"
-          >
-            Back to site
-          </Link>
-        </Container>
-        <AdminNav />
-      </header>
-      <main className="flex-1 bg-canvas">{children}</main>
-    </>
+    <div className="flex min-h-screen flex-1 flex-col lg:flex-row">
+      <AppSidebar
+        sections={NAV_SECTIONS}
+        userName={admin.name}
+        userEmail={admin.email}
+        tag="ADMIN"
+        footerLinks={FOOTER_LINKS}
+      />
+      <div className="min-w-0 flex-1 bg-canvas">
+        <main>{children}</main>
+      </div>
+    </div>
   );
 }

@@ -56,9 +56,9 @@ export default async function AdminUsersPage() {
   const listing = [...users.values()];
 
   return (
-    <Container className="space-y-6 py-8">
+    <Container wide className="space-y-6 py-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-ink-900">Users</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-ink-900">Users</h1>
         <p className="mt-1 text-sm text-muted">
           Read-only directory of every account on the platform. Some administrator accounts are
           provisioned at the platform level and may not show a stored role.
