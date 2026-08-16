@@ -12,9 +12,40 @@ const tones: Record<Tone, string> = {
   ink: "bg-ink-900 text-white",
 };
 
-type BadgeProps = ComponentPropsWithoutRef<"span"> & { tone?: Tone };
+const dotTones: Record<Tone, string> = {
+  neutral: "bg-faint",
+  accent: "bg-accent-600",
+  positive: "bg-positive-700",
+  negative: "bg-negative-700",
+  warn: "bg-warn-700",
+  ink: "bg-ink-900",
+};
 
-export function Badge({ tone = "neutral", className, ...props }: BadgeProps) {
+type BadgeProps = ComponentPropsWithoutRef<"span"> & {
+  tone?: Tone;
+  /**
+   * Status-dot style: transparent background with a small colored dot —
+   * quieter than a filled badge. Preferred for status columns and rows so
+   * screens don't fill up with colored pills.
+   */
+  dot?: boolean;
+};
+
+export function Badge({ tone = "neutral", dot = false, className, children, ...props }: BadgeProps) {
+  if (dot) {
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center gap-1.5 text-xs font-medium text-slate-650",
+          className,
+        )}
+        {...props}
+      >
+        <span aria-hidden="true" className={cn("size-1.5 rounded-full", dotTones[tone])} />
+        {children}
+      </span>
+    );
+  }
   return (
     <span
       className={cn(
@@ -23,6 +54,8 @@ export function Badge({ tone = "neutral", className, ...props }: BadgeProps) {
         className,
       )}
       {...props}
-    />
+    >
+      {children}
+    </span>
   );
 }

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
@@ -39,45 +38,42 @@ export function LoginForm() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Sign in to Vantor</CardTitle>
-      </CardHeader>
-      <CardBody>
-        <form onSubmit={onSubmit} className="space-y-4" noValidate>
-          {error ? <Alert tone="error">{error}</Alert> : null}
-          <Field label="Email" htmlFor="email" required>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              aria-invalid={Boolean(error)}
-            />
-          </Field>
-          <Field label="Password" htmlFor="password" required>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              aria-invalid={Boolean(error)}
-            />
-          </Field>
-          <Button type="submit" disabled={busy} className="w-full">
-            {busy ? <Spinner className="border-white/40 border-t-white" /> : null}
-            Sign in
-          </Button>
-        </form>
-        <p className="mt-4 text-center text-sm text-muted">
-          New to Vantor?{" "}
-          <Link href="/signup" className="font-medium text-accent-600 hover:underline">
-            Create an account
-          </Link>
-        </p>
-      </CardBody>
-    </Card>
+    <div>
+      <h1 className="text-2xl font-semibold tracking-tight text-ink-900">Sign in</h1>
+      <p className="mt-1.5 text-sm text-muted">Welcome back to Vantor.</p>
+      <form onSubmit={onSubmit} className="mt-7 space-y-4" noValidate>
+        {error ? <Alert tone="error">{error}</Alert> : null}
+        <Field label="Email" htmlFor="email" required>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            aria-invalid={Boolean(error)}
+          />
+        </Field>
+        <Field label="Password" htmlFor="password" required>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            aria-invalid={Boolean(error)}
+          />
+        </Field>
+        <Button type="submit" disabled={busy} className="w-full">
+          {busy ? <Spinner className="border-white/40 border-t-white" /> : null}
+          Sign in
+        </Button>
+      </form>
+      <p className="mt-6 text-sm text-muted">
+        New to Vantor?{" "}
+        <Link href="/signup" className="font-medium text-accent-700 hover:underline">
+          Create an account
+        </Link>
+      </p>
+    </div>
   );
 }

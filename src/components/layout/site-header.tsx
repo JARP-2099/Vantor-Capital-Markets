@@ -20,16 +20,16 @@ export async function SiteHeader() {
 
   const links = [
     { href: "/companies", label: "Discover" },
-    ...(user ? [{ href: "/founder", label: "Founder" }] : []),
+    ...(user ? [{ href: "/founder", label: "My Companies" }] : []),
     ...(admin ? [{ href: "/admin", label: "Admin" }] : []),
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-line bg-canvas/90 backdrop-blur">
       <Container className="flex h-16 items-center justify-between gap-4">
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-9">
           <Logo />
-          <nav aria-label="Main" className="hidden items-center gap-5 md:flex">
+          <nav aria-label="Main" className="hidden items-center gap-6 md:flex">
             {links.map((l) => (
               <Link key={l.href} href={l.href} className={navLinkClass}>
                 {l.label}
