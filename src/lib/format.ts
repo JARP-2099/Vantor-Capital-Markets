@@ -59,3 +59,15 @@ export function formatDate(d: Date | string): string {
   const date = typeof d === "string" ? new Date(d) : d;
   return new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(date);
 }
+
+/**
+ * Date + time, for histories where multiple entries can share a day
+ * (e.g. valuation runs) and date-only rows would be indistinguishable.
+ */
+export function formatDateTime(d: Date | string): string {
+  const date = typeof d === "string" ? new Date(d) : d;
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}

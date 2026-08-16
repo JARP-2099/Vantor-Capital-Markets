@@ -17,7 +17,7 @@ import {
   type ValuationRunRow,
 } from "@/db/queries/valuations";
 import { requestValuation, setValuationVisibility } from "@/lib/actions/valuation";
-import { formatCompactCurrency, formatDate } from "@/lib/format";
+import { formatCompactCurrency, formatDate, formatDateTime } from "@/lib/format";
 import { RUN_COOLDOWN_MS } from "@/lib/valuation/service";
 
 /**
@@ -537,7 +537,9 @@ function HistoryTable({ runs }: { runs: ValuationRunRow[] }) {
             const mid = num(run.valuationMid);
             return (
               <tr key={run.id}>
-                <TD className="text-muted tabular-nums">{formatDate(run.createdAt)}</TD>
+                <TD className="whitespace-nowrap text-muted tabular-nums">
+                  {formatDateTime(run.createdAt)}
+                </TD>
                 <TD numeric className="font-medium text-ink-900">
                   {low !== null && high !== null
                     ? `${formatCompactCurrency(low, run.currency)} – ${formatCompactCurrency(high, run.currency)}`

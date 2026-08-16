@@ -436,7 +436,10 @@ export default function LandingPage() {
             </div>
             <p className="mt-8 text-xs text-white/40">
               Free for founders ·{" "}
-              <Link href="/companies" className="underline-offset-2 hover:underline">
+              <Link
+                href="/companies"
+                className="inline-block py-2 underline-offset-2 hover:underline"
+              >
                 Browse without an account
               </Link>
             </p>

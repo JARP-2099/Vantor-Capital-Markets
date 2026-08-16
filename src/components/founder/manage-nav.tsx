@@ -56,10 +56,14 @@ export function ManageNav({ companyId }: ManageNavProps) {
           })}
         </ul>
       </nav>
-      {/* Scroll affordance: soft fade at the clipped edge on narrow screens. */}
+      {/* Scroll affordance: soft fade at both clipped edges on narrow screens. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-paper to-transparent sm:hidden"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-paper to-transparent sm:hidden"
       />
     </div>
   );

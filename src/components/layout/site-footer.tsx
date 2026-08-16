@@ -2,19 +2,17 @@ import Link from "next/link";
 import { Container } from "@/components/layout/container";
 import { Logo } from "@/components/layout/logo";
 
+/**
+ * Session-agnostic links only — the footer renders on both signed-in and
+ * signed-out pages, and auth-state controls live in the header.
+ */
 const columns: { heading: string; links: { href: string; label: string }[] }[] = [
   {
     heading: "Platform",
     links: [
       { href: "/companies", label: "Discover Companies" },
       { href: "/signup", label: "List Your Company" },
-    ],
-  },
-  {
-    heading: "Account",
-    links: [
-      { href: "/login", label: "Sign in" },
-      { href: "/signup", label: "Create account" },
+      { href: "/founder", label: "Founder Dashboard" },
     ],
   },
 ];
@@ -37,12 +35,12 @@ export function SiteFooter() {
                 <p className="text-xs font-medium uppercase tracking-wider text-muted">
                   {col.heading}
                 </p>
-                <ul className="mt-3 space-y-2">
+                <ul className="mt-2">
                   {col.links.map((l) => (
                     <li key={l.href + l.label}>
                       <Link
                         href={l.href}
-                        className="text-sm text-slate-650 transition-colors hover:text-ink-900"
+                        className="inline-block py-2 text-sm text-slate-650 transition-colors hover:text-ink-900"
                       >
                         {l.label}
                       </Link>

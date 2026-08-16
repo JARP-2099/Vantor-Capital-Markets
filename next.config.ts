@@ -5,6 +5,14 @@ import type { NextConfig } from "next";
  * individual routes. CSP allows only same-origin content; Next.js inline
  * runtime scripts need 'unsafe-inline' until a nonce pipeline is added.
  */
+// React's dev tooling needs eval for source-mapped stacks; production never
+// gets it. Without this, dev serves a permanent error-overlay badge on every
+// page. The production policy string is unchanged.
+const scriptSrc =
+  process.env.NODE_ENV === "development"
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+    : "script-src 'self' 'unsafe-inline'";
+
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -14,7 +22,7 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
+      scriptSrc,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self'",
