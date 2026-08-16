@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { valuationComponents, valuationRuns } from "@/db/schema";
 
@@ -32,6 +32,29 @@ export async function getLatestCompletedValuationRun(
     .orderBy(desc(valuationRuns.createdAt))
     .limit(1);
   return run ?? null;
+}
+
+/**
+ * Latest completed run per company, batched for marketplace lists. Same
+ * visibility contract as getLatestCompletedValuationRun: callers must pass
+ * only ids whose companies are published with showPublicValuation enabled.
+ */
+export async function getLatestCompletedValuationRuns(
+  companyIds: string[],
+): Promise<Map<string, ValuationRunRow>> {
+  if (companyIds.length === 0) return new Map();
+  const rows = await db
+    .select()
+    .from(valuationRuns)
+    .where(
+      and(inArray(valuationRuns.companyId, companyIds), eq(valuationRuns.status, "completed")),
+    )
+    .orderBy(desc(valuationRuns.createdAt));
+  const latest = new Map<string, ValuationRunRow>();
+  for (const row of rows) {
+    if (!latest.has(row.companyId)) latest.set(row.companyId, row);
+  }
+  return latest;
 }
 
 export async function getValuationComponents(runId: string): Promise<ValuationComponentRow[]> {

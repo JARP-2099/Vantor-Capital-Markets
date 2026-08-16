@@ -1,34 +1,37 @@
+import Link from "next/link";
 import { Container } from "@/components/layout/container";
-import { DiscoveryPreview } from "@/components/landing/discovery-preview";
-import { HeroDemo } from "@/components/landing/hero-demo";
+import { FeaturedCompanies } from "@/components/landing/featured-companies";
+import { ProductFrame } from "@/components/landing/product-frame";
 import { ButtonLink } from "@/components/ui/button";
 import { ConfidenceBand, RangeBar, SegmentedBar } from "@/components/ui/charts";
 import { Reveal } from "@/components/ui/reveal";
 
-/**
- * Public landing — V2 (docs/UI_REDESIGN_V2_DECISIONS.md): dark night
- * foundation, heavy Plus Jakarta display type, one cobalt accent, large
- * realistic product visualization. Motion is subtle-tier scroll reveals;
- * all demo data belongs to labeled fictional companies; regulated-language
- * rails preserved (estimates, not prices; verification of submitted data,
- * not endorsements).
+/*
+ * Public landing — V3 (docs/VANTOR_UI_UX_DIRECTION_V3.md): light-first,
+ * product-forward. The hero explains the product in one sentence and shows
+ * the actual marketplace; sections vary composition deliberately (full
+ * frame, hairline columns, one dark financial module, diligence rows) and
+ * never repeat 50/50 text/card alternation. All demo data is fictional and
+ * captioned; regulated-language rails preserved throughout.
  */
 
-const steps = [
+const MONO_LABEL = "font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-muted";
+
+const pillars = [
   {
-    n: "01",
-    title: "Standardized profiles",
-    body: "Every company reports the same structure — story, metrics, team — so private companies can be understood in minutes, not data rooms.",
+    kicker: "Profiles",
+    title: "Standardized company information",
+    body: "Every company reports the same structure — story, financial metrics, team — so a private company can be understood in minutes, not a data room.",
   },
   {
-    n: "02",
-    title: "Model-based valuation",
-    body: "A versioned, explainable engine estimates a private market range from reported data — with confidence and data sufficiency stated plainly.",
+    kicker: "Valuation",
+    title: "Explainable model-based estimates",
+    body: "A versioned engine turns reported data into an estimated valuation range, with confidence, data sufficiency, and each model's weight disclosed.",
   },
   {
-    n: "03",
-    title: "Evidence-based verification",
-    body: "Founders submit evidence, category by category, and reviewers verify it. What's verified is marked. What isn't, isn't.",
+    kicker: "Verification",
+    title: "Evidence-based diligence",
+    body: "Founders submit evidence category by category, and reviewers verify it. What's verified is marked. What isn't, isn't.",
   },
 ];
 
@@ -55,205 +58,223 @@ const historyPoints = [
   { x: 1, low: 4.2, mid: 4.65, high: 5.1 },
 ];
 
+const founderSteps = [
+  {
+    title: "Create your standardized profile",
+    body: "Structured story, metrics, and team — about ten minutes to a complete draft.",
+  },
+  {
+    title: "Report dated financial metrics",
+    body: "Revenue, growth, customers — on your terms, always dated, never fabricated.",
+  },
+  {
+    title: "Generate your valuation estimate",
+    body: "An explainable range from the Vantor engine, with confidence stated plainly.",
+  },
+  {
+    title: "Submit evidence for verification",
+    body: "Independent review, category by category. Verified data compounds trust.",
+  },
+];
+
 export default function LandingPage() {
   return (
     <>
       {/* ================================ Hero ================================ */}
-      <section className="bg-hero-night bg-grid-dark text-white">
-        <Container className="grid items-center gap-12 py-16 lg:min-h-[calc(100vh-4rem)] lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-14 lg:py-20">
-          <div>
-            <p
-              className="animate-fade-up inline-flex items-center gap-2 rounded-md border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold tracking-wide text-white/80"
-              style={{ animationDelay: "0ms" }}
-            >
-              <span className="size-1.5 rounded-full bg-accent-400" />
-              Private-market intelligence platform
-            </p>
-            <h1
-              className="animate-fade-up mt-6 text-5xl font-extrabold leading-[1.02] tracking-[-0.02em] sm:text-6xl xl:text-7xl"
-              style={{ animationDelay: "120ms" }}
-            >
-              Private markets,
-              <br />
-              finally <span className="text-accent-400">legible.</span>
+      <section className="border-b border-line bg-paper">
+        <Container className="pb-14 pt-14 sm:pt-20 lg:pb-20">
+          <div className="max-w-3xl">
+            <h1 className="animate-fade-up text-4xl font-bold leading-[1.06] tracking-[-0.025em] text-ink-900 sm:text-5xl lg:text-[3.5rem]">
+              The marketplace for private companies.
             </h1>
             <p
-              className="animate-fade-up mt-6 max-w-xl text-lg leading-relaxed text-white/65"
-              style={{ animationDelay: "240ms" }}
+              className="animate-fade-up mt-5 max-w-2xl text-lg leading-relaxed text-slate-650"
+              style={{ animationDelay: "90ms" }}
             >
-              Vantor is where private companies publish standardized profiles, model-based
-              valuations, and verified data — and where investors discover the companies
-              building what&rsquo;s next.
+              Vantor standardizes how private companies present themselves — profiles,
+              financials, model-based valuations, and verified data — so investors can
+              discover and evaluate them in minutes.
             </p>
             <div
-              className="animate-fade-up mt-9 flex flex-wrap gap-3"
-              style={{ animationDelay: "360ms" }}
+              className="animate-fade-up mt-8 flex flex-wrap items-center gap-3"
+              style={{ animationDelay: "180ms" }}
             >
               <ButtonLink href="/companies" size="lg">
                 Explore Companies
               </ButtonLink>
-              <ButtonLink
-                href="/signup"
-                size="lg"
-                variant="ghost"
-                className="border border-white/20 text-white hover:border-white/45 hover:bg-white/10 active:bg-white/15"
-              >
+              <ButtonLink href="/signup" size="lg" variant="secondary">
                 List Your Company
               </ButtonLink>
             </div>
-            <ul
-              className="animate-fade-up mt-10 flex flex-wrap gap-x-8 gap-y-2 text-sm text-white/50"
-              style={{ animationDelay: "480ms" }}
-            >
-              <li>Standardized company data</li>
-              <li>Explainable valuations</li>
-              <li>Evidence-based verification</li>
-            </ul>
           </div>
-          <HeroDemo />
+          <div className="animate-fade-up mt-12 lg:mt-16" style={{ animationDelay: "260ms" }}>
+            <ProductFrame />
+          </div>
         </Container>
       </section>
 
-      {/* ========================= Discovery preview ========================= */}
-      <section className="border-t border-white/5 bg-night-950 text-white">
+      {/* ========================= Featured companies ========================= */}
+      <section className="border-b border-line bg-canvas">
         <Container className="py-16 sm:py-20">
-          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-            <Reveal>
-              <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-                A marketplace built for discovery.
-              </h2>
-              <p className="mt-3 max-w-xl text-base text-white/60">
-                Search, filter, and compare private companies by industry, stage, revenue,
-                growth, valuation, and verification.
-              </p>
-            </Reveal>
-            <Reveal delay={120}>
-              <ButtonLink
+          <Reveal>
+            <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
+                  Explore companies
+                </h2>
+                <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-slate-650">
+                  Search and compare private companies by industry, stage, revenue, growth,
+                  valuation, and verification.
+                </p>
+              </div>
+              <Link
                 href="/companies"
-                variant="ghost"
-                className="border border-white/20 text-white hover:border-white/45 hover:bg-white/10"
+                className="text-sm font-semibold text-accent-700 underline-offset-4 hover:underline"
               >
-                Browse all companies
-              </ButtonLink>
-            </Reveal>
+                Browse all companies →
+              </Link>
+            </div>
+          </Reveal>
+          <div className="mt-7">
+            <FeaturedCompanies />
           </div>
-          <DiscoveryPreview />
+          <p className="mt-3 text-xs text-faint">
+            Illustrative — fictional companies shown while the marketplace grows.
+          </p>
         </Container>
       </section>
 
-      {/* =========================== How it works =========================== */}
-      <section className="bg-canvas">
+      {/* ============================ Why Vantor ============================ */}
+      <section className="border-b border-line bg-paper">
         <Container className="py-16 sm:py-24">
           <Reveal>
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-accent-700">
-              How Vantor works
-            </p>
-            <h2 className="mt-3 max-w-2xl text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl lg:text-5xl">
-              Structure, models, and evidence — not rumor.
+            <h2 className="max-w-2xl text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
+              Private markets run on information asymmetry.
+              <span className="text-muted"> Vantor removes it.</span>
             </h2>
           </Reveal>
-          <div className="mt-12 grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
-            {steps.map((s, i) => (
-              <Reveal key={s.n} delay={i * 110} className="bg-paper p-7">
-                <p className="text-sm font-bold text-accent-600 tabular-nums">{s.n}</p>
-                <h3 className="mt-2 text-lg font-bold tracking-tight text-ink-900">{s.title}</h3>
-                <p className="mt-2.5 text-[15px] leading-relaxed text-slate-650">{s.body}</p>
+          <div className="mt-10 grid gap-y-10 md:grid-cols-3 md:gap-x-0 md:divide-x md:divide-line">
+            {pillars.map((p, i) => (
+              <Reveal key={p.kicker} delay={i * 100} className="md:px-8 md:first:pl-0 md:last:pr-0">
+                <p className={MONO_LABEL}>{p.kicker}</p>
+                <h3 className="mt-3 text-lg font-semibold tracking-tight text-ink-900">
+                  {p.title}
+                </h3>
+                <p className="mt-2.5 text-[15px] leading-relaxed text-slate-650">{p.body}</p>
               </Reveal>
             ))}
           </div>
         </Container>
       </section>
 
-      {/* ======================= Valuation demonstration ======================= */}
-      <section className="border-t border-line bg-paper">
+      {/* ==================== Valuation — dark financial module ==================== */}
+      <section className="border-b border-line bg-paper">
         <Container className="py-16 sm:py-24">
-          <div className="grid gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-center">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:gap-16">
             <Reveal>
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-accent-700">
-                Valuation
-              </p>
-              <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">
+              <p className={MONO_LABEL}>Valuation</p>
+              <h2 className="mt-3 text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
                 An estimate you can interrogate.
               </h2>
-              <p className="mt-4 text-base leading-relaxed text-slate-650">
+              <p className="mt-4 text-[15px] leading-relaxed text-slate-650">
                 Every valuation is a range with a stated confidence — produced by weighted,
-                versioned models over reported data, never a black box and never a fake
-                precise number.
+                versioned models over reported data. Never a black box, never a fake precise
+                number, never a traded price.
               </p>
-              <ul className="mt-6 space-y-2.5 text-[15px] text-slate-650">
-                <li className="flex gap-2.5">
-                  <span aria-hidden="true" className="mt-[9px] size-1.5 shrink-0 rounded-full bg-accent-600" />
-                  Range, midpoint, confidence, and data sufficiency up front
-                </li>
-                <li className="flex gap-2.5">
-                  <span aria-hidden="true" className="mt-[9px] size-1.5 shrink-0 rounded-full bg-accent-600" />
-                  Each model&rsquo;s contribution and weight disclosed
-                </li>
-                <li className="flex gap-2.5">
-                  <span aria-hidden="true" className="mt-[9px] size-1.5 shrink-0 rounded-full bg-accent-600" />
-                  &ldquo;Insufficient data&rdquo; stated plainly when true
-                </li>
+              <ul className="mt-6 space-y-3 border-t border-line pt-5 text-sm text-slate-650">
+                <li>Range, midpoint, confidence, and data sufficiency up front</li>
+                <li>Each model&rsquo;s contribution and weight disclosed</li>
+                <li>&ldquo;Insufficient data&rdquo; stated plainly when true</li>
               </ul>
             </Reveal>
             <Reveal delay={120}>
-              <div className="rounded-xl border border-line bg-canvas p-6 shadow-card sm:p-8" aria-hidden="true">
+              <div className="rounded-xl bg-night-950 p-6 text-white sm:p-8" aria-hidden="true">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
+                  <p className="font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-white/50">
                     Estimated Private Market Valuation
                   </p>
-                  <p className="text-[11px] text-faint">AeroForge · illustrative</p>
-                </div>
-                <p className="mt-2 text-4xl font-extrabold tracking-tight text-ink-900 tabular-nums">
-                  $4.2M – $5.1M
-                </p>
-                <RangeBar
-                  className="mt-4"
-                  bandStart={0.08}
-                  bandEnd={0.92}
-                  mid={0.5}
-                  lowLabel="$4.2M"
-                  midLabel="Mid $4.65M"
-                  highLabel="$5.1M"
-                  reveal
-                />
-                <div className="mt-6 space-y-3 border-t border-line pt-5">
-                  {modelBars.map((m, i) => (
-                    <div key={m.label} className="reveal-child" style={{ transitionDelay: `${250 + i * 100}ms` }}>
-                      <div className="flex items-baseline justify-between gap-3">
-                        <p className="text-sm font-semibold text-ink-900">{m.label}</p>
-                        <p className="text-xs text-muted tabular-nums">
-                          {m.range}
-                          {m.weight ? <span className="ml-2 font-semibold text-ink-900">{m.weight}</span> : null}
-                        </p>
-                      </div>
-                      {m.weight ? (
-                        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-mist">
-                          <div
-                            className="reveal-bar h-full rounded-full bg-accent-600/70"
-                            style={{
-                              marginLeft: `${m.start * 100}%`,
-                              width: `${(m.end - m.start) * 100}%`,
-                              transitionDelay: `${300 + i * 100}ms`,
-                            }}
-                          />
-                        </div>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-5 border-t border-line pt-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
-                    Estimate history
+                  <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-white/35">
+                    Arclight Aerospace · Illustrative
                   </p>
-                  <ConfidenceBand
-                    className="mt-2"
-                    points={historyPoints}
-                    label="Estimated valuation range across five runs, midpoint rising from $3M to $4.65M"
-                    height={96}
-                    reveal
-                  />
                 </div>
-                <p className="mt-4 text-[11px] leading-relaxed text-muted">
+                <div className="grid gap-x-12 gap-y-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+                  <div>
+                    <p className="mt-2.5 text-3xl font-bold tracking-tight tabular-nums sm:text-4xl">
+                      $4.2M – $5.1M
+                    </p>
+                    <RangeBar
+                      className="mt-4"
+                      surface="dark"
+                      bandStart={0.08}
+                      bandEnd={0.92}
+                      mid={0.5}
+                      lowLabel="$4.2M"
+                      midLabel="Mid $4.65M"
+                      highLabel="$5.1M"
+                      reveal
+                    />
+                  </div>
+                  <dl className="grid grid-cols-2 gap-x-8 gap-y-4 self-end lg:border-l lg:border-white/10 lg:pl-8">
+                    {[
+                      { label: "Confidence", value: "68%" },
+                      { label: "Data sufficiency", value: "Strong" },
+                      { label: "Estimates", value: "5" },
+                      { label: "Updated", value: "Jun 2026" },
+                    ].map((s) => (
+                      <div key={s.label}>
+                        <dt className="font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-white/50">
+                          {s.label}
+                        </dt>
+                        <dd className="mt-0.5 text-sm font-semibold tabular-nums">{s.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+                <div className="mt-7 grid gap-8 border-t border-white/10 pt-6 md:grid-cols-2">
+                  <div className="space-y-4">
+                    {modelBars.map((m, i) => (
+                      <div key={m.label} className="reveal-child" style={{ transitionDelay: `${250 + i * 90}ms` }}>
+                        <div className="flex items-baseline justify-between gap-3">
+                          <p className="text-[13px] font-semibold text-white/90">{m.label}</p>
+                          <p className="text-xs text-white/50 tabular-nums">
+                            {m.weight ?? ""}
+                          </p>
+                        </div>
+                        <p className="mt-0.5 text-xs text-white/60 tabular-nums">{m.range}</p>
+                        {m.weight ? (
+                          <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/10">
+                            <div
+                              className="reveal-bar h-full rounded-full bg-accent-400/80"
+                              style={{
+                                marginLeft: `${m.start * 100}%`,
+                                width: `${(m.end - m.start) * 100}%`,
+                                transitionDelay: `${300 + i * 90}ms`,
+                              }}
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <p className="font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-white/50">
+                      Estimate history
+                    </p>
+                    <ConfidenceBand
+                      className="mt-3"
+                      surface="dark"
+                      points={historyPoints}
+                      label="Estimated valuation range across five runs, midpoint rising from $3M to $4.65M"
+                      height={120}
+                      reveal
+                    />
+                    <div className="mt-1.5 flex justify-between text-[10px] text-white/40 tabular-nums">
+                      <span>Q2 2025</span>
+                      <span>Q2 2026</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="mt-6 text-[11px] leading-relaxed text-white/40">
                   Model estimate from company-reported data. Not a traded price, an offer, or
                   investment advice.
                 </p>
@@ -263,21 +284,20 @@ export default function LandingPage() {
         </Container>
       </section>
 
-      {/* ====================== Verification demonstration ====================== */}
-      <section className="border-t border-line bg-canvas">
+      {/* ============================ Verification ============================ */}
+      <section className="border-b border-line bg-canvas">
         <Container className="py-16 sm:py-24">
-          <div className="grid gap-12 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:items-center">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16">
             <Reveal className="order-2 lg:order-1">
-              <div className="rounded-xl border border-line bg-paper p-6 shadow-card sm:p-8" aria-hidden="true">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
-                    Data Verification
+              <div className="rounded-lg border border-line bg-paper px-6 py-5 shadow-card sm:px-7" aria-hidden="true">
+                <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line pb-4">
+                  <div className="flex items-baseline gap-3">
+                    <p className="text-3xl font-bold tracking-tight text-ink-900 tabular-nums">82%</p>
+                    <p className="text-sm text-muted">of submitted information verified</p>
+                  </div>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-faint">
+                    Arclight Aerospace · Illustrative
                   </p>
-                  <p className="text-[11px] text-faint">AeroForge · illustrative</p>
-                </div>
-                <div className="mt-2 flex items-baseline gap-3">
-                  <p className="text-4xl font-extrabold tracking-tight text-ink-900 tabular-nums">82%</p>
-                  <p className="text-sm text-muted">of submitted information verified</p>
                 </div>
                 <SegmentedBar
                   className="mt-4"
@@ -289,14 +309,14 @@ export default function LandingPage() {
                     { tone: "neutral" },
                   ]}
                 />
-                <ul className="mt-5 divide-y divide-line border-t border-line">
+                <ul className="mt-2 divide-y divide-line">
                   {verificationDemo.map((row, i) => (
                     <li
                       key={row.label}
                       className="reveal-child flex items-center justify-between py-3"
-                      style={{ transitionDelay: `${250 + i * 100}ms` }}
+                      style={{ transitionDelay: `${200 + i * 80}ms` }}
                     >
-                      <span className="text-sm font-semibold text-ink-900">{row.label}</span>
+                      <span className="text-sm font-medium text-ink-900">{row.label}</span>
                       <span
                         className={
                           row.tone === "positive"
@@ -320,20 +340,18 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <p className="mt-4 text-[11px] leading-relaxed text-muted">
-                  Verification reflects review of submitted evidence — not an endorsement or
-                  investment assessment.
-                </p>
               </div>
+              <p className="mt-3 text-[11px] leading-relaxed text-muted">
+                Verification reflects review of submitted evidence — not an endorsement or
+                investment assessment.
+              </p>
             </Reveal>
             <Reveal className="order-1 lg:order-2">
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-accent-700">
-                Verification
-              </p>
-              <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">
-                Diligence-grade, category by category.
+              <p className={MONO_LABEL}>Verification</p>
+              <h2 className="mt-3 text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
+                Diligence, not badges.
               </h2>
-              <p className="mt-4 text-base leading-relaxed text-slate-650">
+              <p className="mt-4 text-[15px] leading-relaxed text-slate-650">
                 Founders submit evidence — formation documents, revenue records, financial
                 statements — and each category is reviewed on its own. No checkmarks for
                 self-reported claims. No scores from thin air.
@@ -343,38 +361,36 @@ export default function LandingPage() {
         </Container>
       </section>
 
-      {/* ========================= Founder section ========================= */}
-      <section className="border-t border-line bg-paper">
+      {/* ========================= Founder workflow ========================= */}
+      <section className="border-b border-line bg-paper">
         <Container className="py-16 sm:py-24">
-          <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <div className="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20">
             <Reveal>
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-accent-700">
-                For founders
-              </p>
-              <h2 className="mt-3 max-w-xl text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">
-                Your company, presented like it matters.
+              <p className={MONO_LABEL}>For founders</p>
+              <h2 className="mt-3 max-w-xl text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
+                Raise on the strength of your numbers.
               </h2>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-slate-650">
-                Build a standardized profile in about ten minutes, report metrics on your
-                terms, generate an explainable valuation, and let verified data compound
-                trust with every update. You control what becomes public.
+              <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-slate-650">
+                Present your company the way serious investors evaluate it — standardized,
+                valued, and verified. You control what becomes public.
               </p>
-              <ButtonLink href="/signup" size="lg" className="mt-8">
+              <ButtonLink href="/signup" className="mt-7">
                 List Your Company
               </ButtonLink>
             </Reveal>
-            <Reveal delay={130}>
-              <ol className="space-y-4" aria-label="Founder steps">
-                {["Create your standardized profile", "Report dated financial metrics", "Generate your valuation estimate", "Submit evidence for verification"].map(
-                  (step, i) => (
-                    <li key={step} className="flex items-center gap-4 rounded-lg border border-line bg-canvas px-5 py-4">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-accent-600 text-sm font-bold text-white tabular-nums">
-                        {i + 1}
-                      </span>
-                      <span className="text-[15px] font-semibold text-ink-900">{step}</span>
-                    </li>
-                  ),
-                )}
+            <Reveal delay={120}>
+              <ol className="divide-y divide-line border-y border-line" aria-label="Founder steps">
+                {founderSteps.map((step, i) => (
+                  <li key={step.title} className="grid grid-cols-[3rem_1fr] items-baseline gap-x-4 py-5">
+                    <span className="font-mono text-sm font-medium text-accent-700 tabular-nums">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <div>
+                      <h3 className="text-[15px] font-semibold text-ink-900">{step.title}</h3>
+                      <p className="mt-1 text-sm leading-relaxed text-slate-650">{step.body}</p>
+                    </div>
+                  </li>
+                ))}
               </ol>
             </Reveal>
           </div>
@@ -382,25 +398,20 @@ export default function LandingPage() {
       </section>
 
       {/* ============================= Final CTA ============================= */}
-      <section className="bg-hero-night bg-grid-dark text-white">
-        <Container className="py-20 text-center sm:py-28">
+      <section className="bg-canvas">
+        <Container className="py-16 text-center sm:py-24">
           <Reveal>
-            <h2 className="mx-auto max-w-3xl text-4xl font-extrabold tracking-tight sm:text-5xl">
+            <h2 className="mx-auto max-w-2xl text-balance text-2xl font-bold tracking-tight text-ink-900 sm:text-4xl">
               The next great companies are already private.
             </h2>
-            <p className="mx-auto mt-4 max-w-xl text-lg text-white/60">
+            <p className="mx-auto mt-3 max-w-xl text-[15px] text-slate-650">
               Find them first — or make sure they can find you.
             </p>
-            <div className="mt-9 flex flex-wrap justify-center gap-3">
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
               <ButtonLink href="/companies" size="lg">
                 Explore Companies
               </ButtonLink>
-              <ButtonLink
-                href="/signup"
-                size="lg"
-                variant="ghost"
-                className="border border-white/20 text-white hover:border-white/45 hover:bg-white/10 active:bg-white/15"
-              >
+              <ButtonLink href="/signup" size="lg" variant="secondary">
                 List Your Company
               </ButtonLink>
             </div>

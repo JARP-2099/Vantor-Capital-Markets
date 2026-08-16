@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/layout/container";
+import { CompanyMark } from "@/components/marketplace/company-mark";
 import { IntentBadges } from "@/components/marketplace/intent-badges";
 import {
   metricNumber,
@@ -30,7 +31,7 @@ import {
 import { getPublicVerificationSummary } from "@/db/queries/verifications";
 import { features } from "@/config/features";
 import { METRIC_LABELS, METRIC_TYPES, STAGE_LABELS } from "@/lib/constants";
-import { formatDate, formatMetricValue } from "@/lib/format";
+import { formatCompactCurrency, formatDate, formatMetricValue } from "@/lib/format";
 
 import { getCompany } from "./company-lookup";
 
@@ -127,17 +128,40 @@ export default async function CompanyProfilePage({ params }: { params: Params })
   const employees = pickSimpleMetric(byType, "employees");
   const capitalRaised = pickSimpleMetric(byType, "capital_raised_total");
 
+  // Headline band — the research-profile answer to "who / stage / valuation /
+  // traction / verification" (V3 §21). Estimated valuation and verification
+  // lead when visible; the rest fills from reported metrics.
+  const valuationHeadline = (() => {
+    if (!valuationRun) return null;
+    const low = valuationRun.valuationLow !== null ? Number(valuationRun.valuationLow) : NaN;
+    const high = valuationRun.valuationHigh !== null ? Number(valuationRun.valuationHigh) : NaN;
+    if (Number.isFinite(low) && Number.isFinite(high)) {
+      return `${formatCompactCurrency(low, valuationRun.currency)} – ${formatCompactCurrency(high, valuationRun.currency)}`;
+    }
+    const mid = valuationRun.valuationMid !== null ? Number(valuationRun.valuationMid) : NaN;
+    return Number.isFinite(mid) ? formatCompactCurrency(mid, valuationRun.currency) : null;
+  })();
+
   const tiles: {
     label: string;
     value: string;
     tone?: "default" | "positive" | "negative";
   }[] = [];
+  if (valuationHeadline) tiles.push({ label: "Est. Valuation", value: valuationHeadline });
   if (revenue) tiles.push({ label: revenue.label, value: revenue.value });
   if (growth) tiles.push({ label: "Growth (YoY)", value: growth.value, tone: growth.tone });
-  if (customers) tiles.push({ label: customers.label, value: customers.value });
-  if (employees) tiles.push({ label: employees.label, value: employees.value });
+  if (
+    verificationSummary &&
+    verificationSummary.submittedCount > 0 &&
+    verificationSummary.verifiedPct !== null
+  ) {
+    tiles.push({ label: "Data Verification", value: `${verificationSummary.verifiedPct}%` });
+  }
   if (capitalRaised) tiles.push({ label: capitalRaised.label, value: capitalRaised.value });
-  if (company.foundedYear) tiles.push({ label: "Founded", value: String(company.foundedYear) });
+  if (customers && tiles.length < 6) tiles.push({ label: customers.label, value: customers.value });
+  if (employees && tiles.length < 6) tiles.push({ label: employees.label, value: employees.value });
+  if (company.foundedYear && tiles.length < 6)
+    tiles.push({ label: "Founded", value: String(company.foundedYear) });
 
   /* ------------------------------- Sections ------------------------------- */
   const storyBlocks: { heading: string; body: string }[] = [
@@ -195,52 +219,45 @@ export default async function CompanyProfilePage({ params }: { params: Params })
       {/* ------------------------------ Header ------------------------------ */}
       <div className="border-b border-line bg-paper">
         <Container wide className="py-10 sm:py-12">
-          <header>
-            <h1 className="text-3xl font-extrabold tracking-tight text-ink-900 sm:text-4xl">
-              {company.name}
-            </h1>
-
-            {(stageLabel || metaLine.length > 0) && (
-              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-                {stageLabel ? (
-                  <Badge dot tone="ink" className="font-semibold text-ink-900">
-                    {stageLabel}
-                  </Badge>
-                ) : null}
-                {metaLine.length > 0 ? (
-                  <p className="text-sm text-muted">{metaLine.join(" · ")}</p>
+          <header className="flex items-start gap-5">
+            <CompanyMark name={company.name} size="lg" className="mt-1 hidden sm:flex" />
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
+                {company.name}
+              </h1>
+              {(stageLabel || metaLine.length > 0) && (
+                <p className="mt-1.5 text-sm text-slate-650">
+                  {[stageLabel, ...metaLine].filter(Boolean).join(" · ")}
+                </p>
+              )}
+              {company.shortDescription ? (
+                <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-slate-650">
+                  {company.shortDescription}
+                </p>
+              ) : null}
+              <div className="mt-3.5 flex flex-wrap items-center gap-x-5 gap-y-2">
+                <IntentBadges intents={intents} />
+                {website ? (
+                  <a
+                    href={website.href}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className="inline-flex items-center gap-1 text-sm font-medium text-accent-700 underline-offset-2 hover:underline"
+                  >
+                    {website.label}
+                    <span aria-hidden="true">&#8599;</span>
+                    <span className="sr-only">(opens in a new tab)</span>
+                  </a>
                 ) : null}
               </div>
-            )}
-
-            {company.shortDescription ? (
-              <p className="mt-4 max-w-3xl text-base leading-relaxed text-slate-650">
-                {company.shortDescription}
-              </p>
-            ) : null}
-
-            <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
-              <IntentBadges intents={intents} />
-              {website ? (
-                <a
-                  href={website.href}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className="inline-flex items-center gap-1 text-sm font-medium text-accent-700 underline-offset-2 hover:underline"
-                >
-                  {website.label}
-                  <span aria-hidden="true">&#8599;</span>
-                  <span className="sr-only">(opens in a new tab)</span>
-                </a>
-              ) : null}
             </div>
           </header>
 
-          {/* --------------------------- Key metrics --------------------------- */}
+          {/* ------------------------- Headline metrics ------------------------- */}
           {tiles.length > 0 ? (
-            <div className="mt-8 border-t border-line pt-6">
+            <div className="mt-7 border-t border-line pt-6">
               <h2 className="sr-only">Key metrics</h2>
-              <dl className="grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-3 lg:grid-cols-6">
+              <dl className="grid grid-cols-2 gap-x-8 gap-y-5 sm:flex sm:flex-wrap sm:gap-x-12">
                 {tiles.map((tile) => (
                   <MetricStat
                     key={tile.label}
@@ -260,7 +277,7 @@ export default async function CompanyProfilePage({ params }: { params: Params })
       {/* ---------------------------- Section nav ---------------------------- */}
       <nav
         aria-label="Profile sections"
-        className="sticky top-16 z-30 border-b border-line bg-canvas/95 backdrop-blur"
+        className="sticky top-16 z-30 border-b border-line bg-paper/95 backdrop-blur"
       >
         <Container wide>
           <div className="flex gap-6 overflow-x-auto">
@@ -290,9 +307,13 @@ export default async function CompanyProfilePage({ params }: { params: Params })
                   {company.fullDescription}
                 </p>
               ) : null}
-              {storyBlocks.map((block) => (
-                <StoryBlock key={block.heading} heading={block.heading} body={block.body} />
-              ))}
+              {/* Two columns on wide screens so the overview doesn't leave a
+                  dead right half (V3 §6 density). */}
+              <div className="grid gap-x-16 gap-y-7 lg:grid-cols-2">
+                {storyBlocks.map((block) => (
+                  <StoryBlock key={block.heading} heading={block.heading} body={block.body} />
+                ))}
+              </div>
             </div>
           </section>
         ) : null}
@@ -308,36 +329,36 @@ export default async function CompanyProfilePage({ params }: { params: Params })
           {metricRows.length > 0 ? (
             <TableWrap className="mt-5">
               {trend && trendFirst && trendLast ? (
-                <div className="border-b border-line p-5 sm:p-6">
-                  <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-                    <p className="text-sm font-semibold text-ink-900">
-                      {METRIC_LABELS[trend.type]}
-                    </p>
-                    <p className="text-xs text-muted tabular-nums">
-                      {formatDate(trendFirst.asOf)} – {formatDate(trendLast.asOf)}
-                    </p>
-                  </div>
-                  <TrendLine
-                    values={trendValues}
-                    label={`${METRIC_LABELS[trend.type]} moved from ${formatMetricValue(trend.type, trendValues[0], trendFirst.currency)} on ${formatDate(trendFirst.asOf)} to ${formatMetricValue(trend.type, trendValues[trendValues.length - 1], trendLast.currency)} on ${formatDate(trendLast.asOf)}, across ${trendValues.length} reported values.`}
-                    height={72}
-                    className="mt-3"
-                  />
-                  <div className="mt-2 flex items-baseline justify-between gap-4 text-xs tabular-nums">
-                    <span className="text-muted">
-                      {formatMetricValue(trend.type, trendValues[0], trendFirst.currency)}
-                    </span>
-                    <span className="font-semibold text-ink-900">
-                      {formatMetricValue(
-                        trend.type,
-                        trendValues[trendValues.length - 1],
-                        trendLast.currency,
-                      )}
-                    </span>
+                <div className="border-b border-line px-4 py-3.5 sm:px-5">
+                  <div className="grid items-center gap-x-8 gap-y-2 sm:grid-cols-[minmax(0,auto)_minmax(0,1fr)]">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-ink-900">
+                        {METRIC_LABELS[trend.type]}
+                        <span className="ml-2 font-normal text-muted tabular-nums">
+                          {formatMetricValue(trend.type, trendValues[0], trendFirst.currency)} →{" "}
+                          <span className="font-semibold text-ink-900">
+                            {formatMetricValue(
+                              trend.type,
+                              trendValues[trendValues.length - 1],
+                              trendLast.currency,
+                            )}
+                          </span>
+                        </span>
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted tabular-nums">
+                        {formatDate(trendFirst.asOf)} – {formatDate(trendLast.asOf)}
+                      </p>
+                    </div>
+                    <TrendLine
+                      values={trendValues}
+                      label={`${METRIC_LABELS[trend.type]} moved from ${formatMetricValue(trend.type, trendValues[0], trendFirst.currency)} on ${formatDate(trendFirst.asOf)} to ${formatMetricValue(trend.type, trendValues[trendValues.length - 1], trendLast.currency)} on ${formatDate(trendLast.asOf)}, across ${trendValues.length} reported values.`}
+                      height={44}
+                      className="sm:max-w-md sm:justify-self-end"
+                    />
                   </div>
                 </div>
               ) : null}
-              <Table className="min-w-[30rem]">
+              <Table className="min-w-[26rem]">
                 <THead>
                   <tr>
                     <TH>Metric</TH>

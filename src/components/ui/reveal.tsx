@@ -8,7 +8,7 @@ type RevealProps = {
   /** Stagger delay in ms, applied via transition-delay. */
   delay?: number;
   /** Render element; defaults to div. */
-  as?: "div" | "section" | "li" | "span";
+  as?: "div" | "section" | "li" | "span" | "ul" | "ol";
   className?: string;
 };
 

@@ -6,12 +6,12 @@ import { getSessionUser, getUserRoles } from "@/lib/authz";
 import { MobileNav } from "@/components/layout/mobile-nav";
 
 const navLinkClass =
-  "text-sm font-medium text-white/65 hover:text-white transition-colors px-1 py-2";
+  "px-1 py-2 text-sm font-medium text-slate-650 transition-colors hover:text-ink-900";
 
 /**
- * Public site header (server component) — V2: dark night bar across all
- * public surfaces. Nav items adapt to session state; presentation only —
- * every destination re-checks authorization.
+ * Public site header (server component) — V3: light bar on a hairline, one
+ * cobalt CTA. Nav items adapt to session state; presentation only — every
+ * destination re-checks authorization.
  */
 export async function SiteHeader() {
   const user = await getSessionUser();
@@ -25,10 +25,10 @@ export async function SiteHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-night-950/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
       <Container className="flex h-16 items-center justify-between gap-4">
         <div className="flex items-center gap-10">
-          <Logo variant="dark" />
+          <Logo />
           <nav aria-label="Main" className="hidden items-center gap-7 md:flex">
             {links.map((l) => (
               <Link key={l.href} href={l.href} className={navLinkClass}>
@@ -40,7 +40,7 @@ export async function SiteHeader() {
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
             <>
-              <span className="max-w-40 truncate text-sm text-white/55" title={user.email}>
+              <span className="max-w-40 truncate text-sm text-muted" title={user.email}>
                 {user.name}
               </span>
               <ButtonLink href={admin ? "/admin" : "/founder"} variant="primary" size="sm">
@@ -49,12 +49,7 @@ export async function SiteHeader() {
             </>
           ) : (
             <>
-              <ButtonLink
-                href="/login"
-                variant="ghost"
-                size="sm"
-                className="text-white/80 hover:bg-white/10 hover:text-white active:bg-white/15"
-              >
+              <ButtonLink href="/login" variant="ghost" size="sm" className="text-slate-650">
                 Sign in
               </ButtonLink>
               <ButtonLink href="/signup" variant="primary" size="sm">

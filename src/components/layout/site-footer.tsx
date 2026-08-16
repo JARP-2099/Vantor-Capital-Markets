@@ -32,7 +32,7 @@ export function SiteFooter() {
           <div className="flex gap-16">
             {columns.map((col) => (
               <nav key={col.heading} aria-label={col.heading}>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                <p className="font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-white/40">
                   {col.heading}
                 </p>
                 <ul className="mt-2">

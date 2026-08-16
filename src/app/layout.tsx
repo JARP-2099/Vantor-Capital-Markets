@@ -1,16 +1,23 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { IBM_Plex_Mono, Inter } from "next/font/google";
 import "./globals.css";
 
-/**
- * One family carries the whole product: Plus Jakarta Sans (V2 decisions —
- * modern B2B-finance grotesk, true 700/800 weights for display type,
- * tabular numerals activated by the `tabular-nums` utility on data).
+/*
+ * V3 typography (docs/VANTOR_UI_UX_DIRECTION_V3.md §3): Inter carries the
+ * whole product — institutional, superb screen rendering, and true tabular
+ * numerals in the served subset. IBM Plex Mono appears only in micro data
+ * labels (uppercase 11px), never in body or headings.
  */
-const jakarta = Plus_Jakarta_Sans({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-jakarta",
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-plex-mono",
   display: "swap",
 });
 
@@ -25,7 +32,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={jakarta.variable}>
+    <html lang="en" className={`${inter.variable} ${plexMono.variable}`}>
       <body className="flex min-h-screen flex-col font-sans antialiased">{children}</body>
     </html>
   );

@@ -28,7 +28,9 @@ export function MetricStat({
   const known = value !== null && value !== undefined && value !== "";
   return (
     <div className={cn("min-w-0", className)}>
-      <dt className="text-xs font-medium uppercase tracking-wider text-muted">{label}</dt>
+      <dt className="font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-muted">
+        {label}
+      </dt>
       <dd
         data-metric-value
         className={cn(

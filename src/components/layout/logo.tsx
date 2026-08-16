@@ -19,11 +19,14 @@ export function Logo({ className, href = "/", variant = "light", full = false }:
     <Link
       href={href}
       aria-label="Vantor — home"
-      className={cn("inline-flex flex-col justify-center transition-opacity hover:opacity-80", className)}
+      className={cn(
+        "inline-flex flex-col justify-center transition-opacity hover:opacity-80",
+        className,
+      )}
     >
       <span
         className={cn(
-          "text-[17px] font-extrabold leading-none tracking-[0.14em]",
+          "text-base font-bold leading-none tracking-[0.18em]",
           variant === "dark" ? "text-white" : "text-ink-900",
         )}
       >
@@ -32,7 +35,7 @@ export function Logo({ className, href = "/", variant = "light", full = false }:
       {full ? (
         <span
           className={cn(
-            "mt-1 text-[9px] font-semibold leading-none tracking-[0.32em]",
+            "mt-1 font-mono text-[8px] font-medium leading-none tracking-[0.34em]",
             variant === "dark" ? "text-white/50" : "text-muted",
           )}
         >

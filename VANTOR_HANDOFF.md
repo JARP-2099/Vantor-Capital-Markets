@@ -1,13 +1,47 @@
-# VANTOR — Handoff (through UI Redesign V2)
+# VANTOR — Handoff (through UI Redesign V3 · Gate 1)
 
 Written for the next session (or engineer) with zero prior context. Read
-this, then `docs/UI_REDESIGN_V2_DECISIONS.md` (CURRENT visual source of
-truth), `docs/ARCHITECTURE.md`, `docs/VALUATION_METHODOLOGY.md`,
+this, then **`docs/VANTOR_UI_UX_DIRECTION_V3.md` (CURRENT visual source of
+truth)**, `docs/ARCHITECTURE.md`, `docs/VALUATION_METHODOLOGY.md`,
 `docs/DEPLOYMENT.md`, and `docs/DEVELOPMENT_PLAYBOOK.md`.
-(`docs/VANTOR_UI_UX_REFERENCE_BRIEF.md` is SUPERSEDED for art direction —
-historical/product context only.)
+(`docs/UI_REDESIGN_V2_DECISIONS.md` and
+`docs/VANTOR_UI_UX_REFERENCE_BRIEF.md` are both SUPERSEDED for art
+direction — research history / product context only.)
 
-## UI Redesign V2 (this session, branch `claude/vantor-ui-ux-overhaul-e3p7lz`)
+## UI Redesign V3 — Gate 1 (this session, same branch)
+
+The V2 dark/OLED direction was REJECTED. V3 is **Republic marketplace UX ×
+AngelList visual sophistication × Robinhood simplicity**, light-first. The
+V3 prompt mandated a **gated rollout**: Gate 1 = design system + landing +
+Discover + company profile ONLY, then STOP for human approval. **Founder,
+onboarding, auth, and admin still run the V2 shell** (functionally intact,
+re-skinned only by token inheritance) — do NOT propagate V3 to them until
+the human approves Gate 1 (V3 doc §13).
+
+- **Design system**: Inter (tnum verified) + IBM Plex Mono micro-labels;
+  white/`#F8F9FB` surfaces, charcoal-navy ink (`#0E1626`), hairlines,
+  rationed cobalt (`#1E4FE0`), radii 6–10px, rows/tables over cards, dark
+  `night-950 #0A0F1E` reserved for footer + valuation modules.
+- **Gate 1 surfaces**: landing (light product-first hero, "The marketplace
+  for private companies.", full-width marketplace frame, featured
+  opportunity rows, hairline pillars, one dark valuation module,
+  verification ledger, founder steps, light CTA); Discover (search toolbar,
+  opportunity rows with Revenue/Growth/**Est. Valuation**/Status — new
+  batched read `getLatestCompletedValuationRuns` in
+  `src/db/queries/valuations.ts`, gated by `showPublicValuation` +
+  feature flag); profile (research header + metric band incl. valuation +
+  verification %, two-column overview, dark valuation headline band).
+- **Illustrative marketing data** (`src/components/landing/illustrative.ts`)
+  uses fictional names that deliberately do NOT collide with seeded DB
+  companies (Arclight Aerospace, Corvex Robotics, Basalt Analytics, …) so
+  marketing numbers can never contradict live pages.
+- The V3 prompt referenced `VANTOR_UI_UX_DIRECTION_HANDOFF_20260816.md`,
+  which was never present in the environment — see the provenance note at
+  the top of `docs/VANTOR_UI_UX_DIRECTION_V3.md`.
+
+## Previous phase — UI Redesign V2 (historical)
+
+### UI Redesign V2 (branch `claude/vantor-ui-ux-overhaul-e3p7lz`) — superseded by V3
 
 The V1 visual overhaul (warm ivory / serif / editorial, recorded below)
 was REJECTED and replaced by a research-backed V2 driven by the

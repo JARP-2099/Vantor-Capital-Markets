@@ -1,7 +1,8 @@
 # Vantor Capital Markets — UI / UX Reference Brief
 
-> **SUPERSEDED — Do not use this file as the current Vantor visual source
-> of truth. See `docs/UI_REDESIGN_V2_DECISIONS.md`.**
+> **SUPERSEDED FOR VISUAL DIRECTION. Do not use this document as the
+> current Vantor art-direction source of truth. See
+> `docs/VANTOR_UI_UX_DIRECTION_V3.md`.**
 >
 > The art direction below (warm ivory, editorial serif typography,
 > restrained editorial compositions, the V1 logo direction) was rejected

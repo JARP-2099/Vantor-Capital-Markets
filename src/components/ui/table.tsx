@@ -43,7 +43,7 @@ export function TH({ className, numeric, dense, ...props }: THProps) {
     <th
       scope="col"
       className={cn(
-        "whitespace-nowrap px-4 text-xs font-medium uppercase tracking-wider text-muted",
+        "whitespace-nowrap px-4 font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-muted",
         dense ? "py-2" : "py-2.5",
         numeric && "text-right",
         className,

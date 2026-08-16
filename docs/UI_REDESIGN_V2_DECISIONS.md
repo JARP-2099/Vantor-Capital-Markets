@@ -1,4 +1,10 @@
-# Vantor UI Redesign V2 — Design Decisions (CURRENT VISUAL SOURCE OF TRUTH)
+# Vantor UI Redesign V2 — Design Decisions
+
+> **SUPERSEDED FOR VISUAL DIRECTION. The V2 art direction below (dark/OLED
+> marketing chrome, cobalt grid heroes, heavy display type) was rejected.
+> The current Vantor art-direction source of truth is
+> `docs/VANTOR_UI_UX_DIRECTION_V3.md`.** This file is kept for research
+> history and for product/regulatory rails that remain valid.
 
 This document records the design research performed with the
 `ui-ux-pro-max` v2.13.0 skill (local searchable design database) and the

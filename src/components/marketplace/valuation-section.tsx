@@ -1,7 +1,7 @@
 import { ConfidenceBand, RangeBar, type BandPoint } from "@/components/ui/charts";
-import { MetricStat } from "@/components/ui/metric-stat";
 import { Table, TBody, TD, TH, THead, TableWrap } from "@/components/ui/table";
 import type { ValuationComponentRow, ValuationRunRow } from "@/db/queries/valuations";
+import { cn } from "@/lib/cn";
 import { formatCompactCurrency, formatDate, formatDateTime } from "@/lib/format";
 
 /**
@@ -131,61 +131,70 @@ export function ValuationSection({
   const firstEntry = entries[0];
   const lastEntry = entries[entries.length - 1];
 
+  const darkStat = (label: string, value: string | null) => (
+    <div className="min-w-0">
+      <dt className="font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-white/50">
+        {label}
+      </dt>
+      <dd
+        className={cn(
+          "mt-1 truncate text-lg font-semibold tracking-tight tabular-nums",
+          value ? "text-white" : "font-normal text-white/40",
+        )}
+      >
+        {value ?? "—"}
+      </dd>
+    </div>
+  );
+
   return (
     <div className="mt-6 space-y-10">
-      {/* ---------------------------- Headline band ---------------------------- */}
-      <div className="rounded-lg border border-line bg-paper p-5 shadow-card sm:p-7">
-        {hasRange ? (
-          <>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
-              Estimated range
-            </p>
-            <p className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 tabular-nums sm:text-4xl">
-              {formatCompactCurrency(low, currency)}
-              <span className="mx-2 font-semibold text-faint">–</span>
-              {formatCompactCurrency(high, currency)}
-            </p>
-            <RangeBar
-              {...bandPositions(low, high, mid)}
-              lowLabel={formatCompactCurrency(low, currency)}
-              midLabel={mid !== null ? formatCompactCurrency(mid, currency) : undefined}
-              highLabel={formatCompactCurrency(high, currency)}
-              className="mt-6 max-w-2xl"
-            />
-          </>
-        ) : mid !== null ? (
-          <>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
-              Estimated midpoint
-            </p>
-            <p className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900 tabular-nums sm:text-4xl">
-              {formatCompactCurrency(mid, currency)}
-            </p>
-          </>
-        ) : null}
-
-        <dl className="mt-7 grid grid-cols-2 gap-x-8 gap-y-5 border-t border-line pt-5 sm:grid-cols-4">
-          <MetricStat
-            label="Midpoint"
-            value={mid !== null ? formatCompactCurrency(mid, currency) : null}
-            className="tabular-nums"
-          />
-          <MetricStat
-            label="Confidence"
-            value={run.confidence !== null ? `${run.confidence}%` : null}
-            className="tabular-nums"
-          />
-          <MetricStat
-            label="Data Quality"
-            value={SUFFICIENCY_LABELS[run.dataSufficiency] ?? null}
-          />
-          <MetricStat label="Last updated" value={formatDate(run.createdAt)} className="tabular-nums" />
-        </dl>
+      {/* ------------- Headline band — dark financial module (V3 §4) ------------- */}
+      <div className="rounded-lg bg-night-950 p-5 text-white sm:p-7">
+        <div className="grid gap-x-12 gap-y-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <div className="min-w-0">
+            {hasRange ? (
+              <>
+                <p className="font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-white/50">
+                  Estimated range
+                </p>
+                <p className="mt-2 text-3xl font-bold tracking-tight tabular-nums sm:text-4xl">
+                  {formatCompactCurrency(low, currency)}
+                  <span className="mx-2 font-medium text-white/40">–</span>
+                  {formatCompactCurrency(high, currency)}
+                </p>
+                <RangeBar
+                  {...bandPositions(low, high, mid)}
+                  surface="dark"
+                  lowLabel={formatCompactCurrency(low, currency)}
+                  midLabel={mid !== null ? formatCompactCurrency(mid, currency) : undefined}
+                  highLabel={formatCompactCurrency(high, currency)}
+                  className="mt-6"
+                />
+              </>
+            ) : mid !== null ? (
+              <>
+                <p className="font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-white/50">
+                  Estimated midpoint
+                </p>
+                <p className="mt-2 text-3xl font-bold tracking-tight tabular-nums sm:text-4xl">
+                  {formatCompactCurrency(mid, currency)}
+                </p>
+              </>
+            ) : null}
+          </div>
+          <dl className="grid grid-cols-2 gap-x-8 gap-y-5 self-end border-t border-white/10 pt-5 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
+            {darkStat("Midpoint", mid !== null ? formatCompactCurrency(mid, currency) : null)}
+            {darkStat("Confidence", run.confidence !== null ? `${run.confidence}%` : null)}
+            {darkStat("Data Quality", SUFFICIENCY_LABELS[run.dataSufficiency] ?? null)}
+            {darkStat("Last updated", formatDate(run.createdAt))}
+          </dl>
+        </div>
       </div>
 
       {/* -------------------------- Estimate Breakdown ------------------------- */}
       <div>
-        <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+        <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-muted">
           Estimate Breakdown
         </h3>
         <div className="mt-2 divide-y divide-line border-t border-line">
@@ -247,7 +256,7 @@ export function ValuationSection({
       {/* ------------------------------- History ------------------------------- */}
       {showHistory ? (
         <div>
-          <h3 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+          <h3 className="font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-muted">
             Estimate History
           </h3>
           <p className="mt-1 text-xs text-muted">
