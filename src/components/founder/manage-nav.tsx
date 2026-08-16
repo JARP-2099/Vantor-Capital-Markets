@@ -43,7 +43,7 @@ export function ManageNav({ companyId }: ManageNavProps) {
                   href={t.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "inline-block border-b-2 px-3 py-2.5 text-sm font-medium transition-colors",
+                    "inline-block border-b-2 px-2.5 py-2.5 text-sm font-medium transition-colors sm:px-3",
                     active
                       ? "border-accent-600 font-semibold text-ink-900"
                       : "border-transparent text-muted hover:border-line-strong hover:text-ink-900",

@@ -2,7 +2,7 @@ import { ConfidenceBand, RangeBar, type BandPoint } from "@/components/ui/charts
 import { MetricStat } from "@/components/ui/metric-stat";
 import { Table, TBody, TD, TH, THead, TableWrap } from "@/components/ui/table";
 import type { ValuationComponentRow, ValuationRunRow } from "@/db/queries/valuations";
-import { formatCompactCurrency, formatDate } from "@/lib/format";
+import { formatCompactCurrency, formatDate, formatDateTime } from "@/lib/format";
 
 /**
  * Public profile valuation section — V2, built on the shared chart
@@ -273,7 +273,7 @@ export function ValuationSection({
                 {[...entries].reverse().map((entry) => (
                   <tr key={entry.date.toISOString()}>
                     <TD className="whitespace-nowrap text-muted tabular-nums">
-                      {formatDate(entry.date)}
+                      {formatDateTime(entry.date)}
                     </TD>
                     <TD numeric className="text-slate-650">
                       {entry.low !== null ? formatCompactCurrency(entry.low, entry.currency) : "—"}

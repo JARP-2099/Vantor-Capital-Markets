@@ -29,7 +29,7 @@ export function WizardProgress({ companyId, current }: WizardProgressProps) {
   return (
     <nav aria-label="Onboarding progress">
       {/* Mobile: compact, nothing can clip. */}
-      <div className="sm:hidden">
+      <div className="lg:hidden">
         <div className="flex items-baseline justify-between gap-3">
           <p className="text-xs font-medium uppercase tracking-wider text-muted">
             Step {current} of {WIZARD_STEPS.length}
@@ -56,7 +56,7 @@ export function WizardProgress({ companyId, current }: WizardProgressProps) {
       </div>
 
       {/* Desktop: numbered steps with connectors. */}
-      <ol className="hidden items-center gap-2 sm:flex">
+      <ol className="hidden items-center gap-2 lg:flex">
         {WIZARD_STEPS.map((s, i) => {
           const done = s.step < current;
           const isActive = s.step === current;

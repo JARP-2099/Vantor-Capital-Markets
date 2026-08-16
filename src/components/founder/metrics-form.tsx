@@ -231,7 +231,7 @@ export function MetricsForm({ action, initial, submitLabel, disabled }: MetricsF
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="h-10 w-10 px-0 text-muted hover:text-negative-700"
+                          className="h-11 w-11 px-0 text-muted hover:text-negative-700"
                           aria-label={`Remove ${METRIC_LABELS[row.metricType]} entry`}
                           title="Remove"
                           onClick={() => removeRow(row.key)}

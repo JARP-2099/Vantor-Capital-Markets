@@ -128,8 +128,14 @@ export function ConfidenceBand({
   const H = 100;
   const pad = 4;
   const values = points.flatMap((p) => [p.low, p.high]);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
+  const rawMin = Math.min(...values);
+  const rawMax = Math.max(...values);
+  // Pad the y-domain so flat/near-flat series (identical runs) still draw a
+  // centered line with a visible band instead of hugging one edge.
+  const rawSpan = rawMax - rawMin;
+  const domainPad = Math.max(rawSpan * 0.18, Math.abs(rawMax) * 0.06, 0.5);
+  const min = rawMin - domainPad;
+  const max = rawMax + domainPad;
   const span = max - min || 1;
   const px = (x: number) => pad + x * (W - 2 * pad);
   const py = (v: number) => H - pad - ((v - min) / span) * (H - 2 * pad);

@@ -168,9 +168,10 @@ export default async function AdminVerificationDetailPage({
           ) : null}
         </div>
 
-        {/* Decision panel — ordered first on mobile so the decision actions
-            are reachable without scrolling past the whole request. */}
-        <div className="order-first min-w-0 space-y-6 lg:order-none">
+        {/* Decision panel — after claim/evidence in DOM order so reviewers
+            read the evidence before reaching the decision controls on
+            mobile; grid placement keeps it in the right column on desktop. */}
+        <div className="min-w-0 space-y-6">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle>Decision</CardTitle>

@@ -7,9 +7,9 @@ import { Logo } from "@/components/layout/logo";
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <main className="flex min-h-screen flex-col bg-canvas">
-      <header className="border-b border-line bg-paper">
+      <header className="border-b border-white/10 bg-night-950">
         <div className="mx-auto flex h-16 w-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
-          <Logo full />
+          <Logo variant="dark" full />
         </div>
       </header>
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
