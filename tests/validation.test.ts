@@ -40,6 +40,14 @@ describe("companyIdentitySchema", () => {
     ).toBe(false);
   });
 
+  it("rejects websites whose hostname has no dot (scheme smuggling)", () => {
+    for (const bad of ["javascript:alert(1)", "javascript:void(0)", "localhost", "https://intranet"]) {
+      expect(companyIdentitySchema.safeParse({ ...validIdentity, website: bad }).success).toBe(
+        false,
+      );
+    }
+  });
+
   it("rejects unknown industries and too-short descriptions", () => {
     expect(
       companyIdentitySchema.safeParse({ ...validIdentity, industry: "Memecoins" }).success,

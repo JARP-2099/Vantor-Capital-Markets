@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { cache } from "react";
 import { Container } from "@/components/layout/container";
 import { IntentBadges } from "@/components/marketplace/intent-badges";
 import {
@@ -17,26 +16,28 @@ import {
   getCompanyMembers,
   getCompanyMetricHistory,
   getLatestMetrics,
-  getPublishedCompanyBySlug,
   type CompanyMetricRow,
 } from "@/db/queries/companies";
 import { METRIC_LABELS, METRIC_TYPES, STAGE_LABELS } from "@/lib/constants";
 import { formatDate, formatMetricValue } from "@/lib/format";
 
+import { getCompany } from "./company-lookup";
+
 /**
  * Public company profile. The only data source is the published-only query
- * layer: an unpublished or nonexistent slug both 404, so the two cases are
+ * layer: an unpublished or nonexistent slug both 404 (status enforced in
+ * this segment's layout, before streaming), so the two cases are
  * indistinguishable from outside (privacy boundary).
  */
-
-// Dedupe the slug lookup between generateMetadata and the page render.
-const getCompany = cache(getPublishedCompanyBySlug);
 
 type Params = Promise<{ slug: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
   const company = await getCompany(slug);
+  // Existence/404 is handled by this segment's layout (pre-stream, real 404
+  // status). Throwing notFound() from generateMetadata instead would race
+  // the layout and downgrade the response to a streamed 200.
   if (!company) return {};
   return {
     title: company.name,

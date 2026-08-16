@@ -36,7 +36,13 @@ export const websiteSchema = z
       if (v === undefined) return true;
       try {
         const url = new URL(v.includes("://") ? v : `https://${v}`);
-        return url.protocol === "https:" || url.protocol === "http:";
+        // Require a dotted hostname so scheme-smuggled input such as
+        // "javascript:alert(1)" (hostname "javascript") is rejected rather
+        // than normalized into an inert but confusing https URL.
+        return (
+          (url.protocol === "https:" || url.protocol === "http:") &&
+          url.hostname.includes(".")
+        );
       } catch {
         return false;
       }

@@ -104,6 +104,32 @@ robots-disallowed; admin area 404s for non-admins; secrets confined to
 validated server-only env; audit log with no sensitive payloads; seed gated
 + `isDemo` flag.
 
+## QA / security review results (adversarial pass, this session)
+
+A dedicated QA agent probed a running build (dev + production) with real
+sessions. **Passed:** admin boundaries (non-admin gets data-free 404),
+draft/submitted privacy (absent from list, slug 404, no data in any
+response), IDOR (cross-founder page and action attempts denied; actions
+re-derive access server-side), state-machine guards (illegal transitions
+rejected; guarded UPDATEs make concurrent reviews apply once), XSS (React
+escaping intact, no `dangerouslySetInnerHTML`), SQL injection (parameterized
++ LIKE-escape), security headers, no secrets in client bundles, rate
+limiting (429 after ~30 rapid failed sign-ins), SEO metadata + noindex.
+
+**Fixed after review:** (1) marketplace profile 404s previously streamed as
+HTTP 200 because `loading.tsx` Suspense boundaries committed the status
+before `notFound()` — the existence check now lives in
+`companies/[slug]/layout.tsx` (pre-stream → real 404), the segment's
+loading files were removed, and `/founder` gained a layout-level auth gate
+(real 307); (2) `scope="col"` added to admin/review metric tables;
+(3) website validation now requires a dotted hostname, killing
+`javascript:`-style scheme smuggling (regression-tested).
+
+**Testing gotcha for future sessions:** kill dev/prod servers with
+`pkill -f next-server` (the process is named `next-server`, not
+"next start") — a stale server will silently serve an old build and
+invalidate status-code measurements.
+
 ## Known issues / deliberate limitations
 
 1. **Published-company edits take effect immediately** without re-review.
@@ -127,6 +153,16 @@ validated server-only env; audit log with no sensitive payloads; seed gated
    transaction) — simple, safe, but means concurrent edits last-write-wins.
 9. Tabs/manage nav are links (URL-driven), not ARIA tab widgets — simpler
    and accessible, just not fancy.
+10. Inside the authenticated founder area, a wrong-company id renders the
+    not-found UI but may stream with HTTP 200 (the `founder/loading.tsx`
+    boundary commits status early). No data is exposed and the area is
+    noindex; accepted for v1. The public marketplace emits real 404s.
+11. Anonymous requests to `/admin` redirect to `/login` (route existence is
+    disclosed); signed-in non-admins get a 404. Deliberate UX choice.
+12. `/companies` list has no skeleton `loading.tsx` (removed while fixing
+    status-code streaming). Server-rendering is fast; revisit only with
+    care — a parent-segment loading boundary can silently break child 404
+    statuses.
 
 ## Deferred (do NOT accidentally build ahead of sequence)
 

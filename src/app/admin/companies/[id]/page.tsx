@@ -194,16 +194,16 @@ export default async function AdminCompanyReviewPage({
                   <table className="w-full min-w-120 border-collapse">
                     <thead className="border-b border-line">
                       <tr>
-                        <th className="py-2 pr-4 text-left text-xs font-semibold uppercase tracking-wider text-muted">
+                        <th scope="col" className="py-2 pr-4 text-left text-xs font-semibold uppercase tracking-wider text-muted">
                           Metric
                         </th>
-                        <th className="py-2 pr-4 text-left text-xs font-semibold uppercase tracking-wider text-muted">
+                        <th scope="col" className="py-2 pr-4 text-left text-xs font-semibold uppercase tracking-wider text-muted">
                           Latest value
                         </th>
-                        <th className="py-2 pr-4 text-left text-xs font-semibold uppercase tracking-wider text-muted">
+                        <th scope="col" className="py-2 pr-4 text-left text-xs font-semibold uppercase tracking-wider text-muted">
                           As of
                         </th>
-                        <th className="py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">
+                        <th scope="col" className="py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted">
                           Source
                         </th>
                       </tr>

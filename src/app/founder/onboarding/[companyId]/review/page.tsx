@@ -146,9 +146,9 @@ export default async function OnboardingReviewPage({
               <table className="w-full min-w-96 text-left text-sm">
                 <thead>
                   <tr className="border-b border-line text-xs font-medium uppercase tracking-wider text-muted">
-                    <th className="py-2 pr-4 font-medium">Metric</th>
-                    <th className="py-2 pr-4 font-medium">Value</th>
-                    <th className="py-2 font-medium">As of</th>
+                    <th scope="col" className="py-2 pr-4 font-medium">Metric</th>
+                    <th scope="col" className="py-2 pr-4 font-medium">Value</th>
+                    <th scope="col" className="py-2 font-medium">As of</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
