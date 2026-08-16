@@ -1,16 +1,23 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
+import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
 
 type NavLink = { href: string; label: string };
 
 /** Disclosure-based mobile menu; closes when a link is chosen. */
 export function MobileNav({ links, signedIn }: { links: NavLink[]; signedIn: boolean }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
   const menuId = useId();
   const close = () => setOpen(false);
+
+  const itemClass =
+    "rounded-md px-3 py-2.5 text-sm font-medium text-ink-900 hover:bg-mist";
 
   return (
     <div className="md:hidden">
@@ -39,25 +46,39 @@ export function MobileNav({ links, signedIn }: { links: NavLink[]; signedIn: boo
       >
         <nav aria-label="Mobile" className="flex flex-col px-4 py-3">
           {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              onClick={close}
-              className="rounded-md px-3 py-2.5 text-sm font-medium text-ink-900 hover:bg-mist"
-            >
+            <Link key={l.href} href={l.href} onClick={close} className={itemClass}>
               {l.label}
             </Link>
           ))}
-          {!signedIn ? (
+          {signedIn ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                await authClient.signOut();
+                close();
+                router.push("/");
+                router.refresh();
+              }}
+              className={cn(itemClass, "text-left text-muted disabled:opacity-50")}
+            >
+              Sign out
+            </button>
+          ) : (
             <>
-              <Link href="/login" onClick={close} className="rounded-md px-3 py-2.5 text-sm font-medium text-ink-900 hover:bg-mist">
+              <Link href="/login" onClick={close} className={itemClass}>
                 Sign in
               </Link>
-              <Link href="/signup" onClick={close} className="rounded-md px-3 py-2.5 text-sm font-medium text-accent-600 hover:bg-mist">
+              <Link
+                href="/signup"
+                onClick={close}
+                className={cn(itemClass, "text-accent-700")}
+              >
                 List Your Company
               </Link>
             </>
-          ) : null}
+          )}
         </nav>
       </div>
     </div>
