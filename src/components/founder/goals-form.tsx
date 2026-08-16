@@ -54,7 +54,7 @@ export function GoalsForm({ action, initial, submitLabel, disabled }: GoalsFormP
                   name="intents"
                   value={intent}
                   defaultChecked={initial.includes(intent)}
-                  className="mt-0.5 size-4 accent-ink-900"
+                  className="mt-0.5 size-4 accent-accent-600"
                 />
                 <span>
                   <span className="block text-sm font-medium text-ink-900">
@@ -73,7 +73,7 @@ export function GoalsForm({ action, initial, submitLabel, disabled }: GoalsFormP
         </fieldset>
 
         {!disabled ? (
-          <div className="pt-2">
+          <div className="border-t border-line pt-4">
             <SubmitButton pending={pending}>{submitLabel}</SubmitButton>
           </div>
         ) : null}

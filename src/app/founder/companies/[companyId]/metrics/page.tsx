@@ -2,6 +2,7 @@ import { EditStatusAlert, isEditable } from "@/components/founder/edit-status-al
 import { getMetricRows, requireManagerPage } from "@/components/founder/data";
 import { MetricsForm, type MetricInitialRow } from "@/components/founder/metrics-form";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TBody, TD, TH, THead } from "@/components/ui/table";
 import { saveMetrics } from "@/lib/actions/founder-company";
 import { METRIC_LABELS, type CompanyStatus, type MetricType } from "@/lib/constants";
 import { formatDate, formatMetricValue } from "@/lib/format";
@@ -24,15 +25,6 @@ export default async function ManageMetricsPage({
     asOf: r.asOf,
   }));
 
-  // History grouped by metric type; rows arrive sorted type asc, asOf desc.
-  const grouped = new Map<MetricType, typeof rows>();
-  for (const row of rows) {
-    const t = row.metricType as MetricType;
-    const list = grouped.get(t) ?? [];
-    list.push(row);
-    grouped.set(t, list);
-  }
-
   return (
     <div className="space-y-6">
       <EditStatusAlert status={status} />
@@ -40,6 +32,9 @@ export default async function ManageMetricsPage({
       <Card>
         <CardHeader>
           <CardTitle>Reported metrics</CardTitle>
+          <p className="mt-1 text-sm text-muted">
+            Real numbers, reported by you, with the date they describe.
+          </p>
         </CardHeader>
         <CardBody>
           <MetricsForm
@@ -59,34 +54,29 @@ export default async function ManageMetricsPage({
           {rows.length === 0 ? (
             <p className="text-sm text-faint">No metrics reported yet.</p>
           ) : (
-            <div className="space-y-6">
-              {[...grouped.entries()].map(([type, entries]) => (
-                <div key={type}>
-                  <h3 className="text-xs font-medium uppercase tracking-wider text-muted">
-                    {METRIC_LABELS[type]}
-                  </h3>
-                  <div className="mt-2 overflow-x-auto">
-                    <table className="w-full min-w-72 text-left text-sm">
-                      <thead className="sr-only">
-                        <tr>
-                          <th>Value</th>
-                          <th>As of</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-line">
-                        {entries.map((m) => (
-                          <tr key={m.id}>
-                            <td className="py-1.5 pr-4 font-medium text-ink-900">
-                              {formatMetricValue(type, Number(m.value), m.currency)}
-                            </td>
-                            <td className="py-1.5 text-muted">{formatDate(m.asOf)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ))}
+            <div className="overflow-x-auto rounded-md border border-line">
+              <Table>
+                <THead>
+                  <tr>
+                    <TH>Metric</TH>
+                    <TH numeric>Value</TH>
+                    <TH className="text-right">As of</TH>
+                  </tr>
+                </THead>
+                <TBody>
+                  {rows.map((m) => (
+                    <tr key={m.id}>
+                      <TD className="font-medium text-ink-900">
+                        {METRIC_LABELS[m.metricType as MetricType]}
+                      </TD>
+                      <TD numeric className="font-medium text-ink-900">
+                        {formatMetricValue(m.metricType as MetricType, Number(m.value), m.currency)}
+                      </TD>
+                      <TD className="text-right text-muted tabular-nums">{formatDate(m.asOf)}</TD>
+                    </tr>
+                  ))}
+                </TBody>
+              </Table>
             </div>
           )}
         </CardBody>

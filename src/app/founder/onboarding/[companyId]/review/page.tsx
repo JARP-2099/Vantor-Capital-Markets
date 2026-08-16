@@ -6,6 +6,7 @@ import { SubmitPanel } from "@/components/founder/submit-panel";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TBody, TD, TH, THead } from "@/components/ui/table";
 import { getCompanyIntents, getCompanyMembers } from "@/db/queries/companies";
 import { submitCompany } from "@/lib/actions/founder-company";
 import {
@@ -50,13 +51,16 @@ function SectionCard({
 }) {
   return (
     <Card>
-      <CardHeader className="flex items-center justify-between">
+      <CardHeader className="flex items-center justify-between border-b border-line pb-3">
         <CardTitle>{title}</CardTitle>
-        <Link href={editHref} className="text-sm font-medium text-accent-600 hover:underline">
-          Edit
+        <Link
+          href={editHref}
+          className="text-sm font-medium text-accent-700 transition-colors hover:text-accent-600"
+        >
+          Edit<span className="sr-only"> {title.toLowerCase()}</span>
         </Link>
       </CardHeader>
-      <CardBody>{children}</CardBody>
+      <CardBody className="pt-4">{children}</CardBody>
     </Card>
   );
 }
@@ -142,29 +146,29 @@ export default async function OnboardingReviewPage({
               No metrics reported — fine for pre-revenue companies.
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-96 text-left text-sm">
-                <thead>
-                  <tr className="border-b border-line text-xs font-medium uppercase tracking-wider text-muted">
-                    <th scope="col" className="py-2 pr-4 font-medium">Metric</th>
-                    <th scope="col" className="py-2 pr-4 font-medium">Value</th>
-                    <th scope="col" className="py-2 font-medium">As of</th>
+            <div className="overflow-x-auto rounded-md border border-line">
+              <Table>
+                <THead>
+                  <tr>
+                    <TH>Metric</TH>
+                    <TH numeric>Value</TH>
+                    <TH className="text-right">As of</TH>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-line">
+                </THead>
+                <TBody>
                   {metrics.map((m) => (
                     <tr key={m.id}>
-                      <td className="py-2 pr-4 text-ink-900">
+                      <TD className="text-ink-900">
                         {METRIC_LABELS[m.metricType as MetricType]}
-                      </td>
-                      <td className="py-2 pr-4 font-medium text-ink-900">
+                      </TD>
+                      <TD numeric className="font-medium text-ink-900">
                         {formatMetricValue(m.metricType as MetricType, Number(m.value), m.currency)}
-                      </td>
-                      <td className="py-2 text-muted">{formatDate(m.asOf)}</td>
+                      </TD>
+                      <TD className="text-right text-muted tabular-nums">{formatDate(m.asOf)}</TD>
                     </tr>
                   ))}
-                </tbody>
-              </table>
+                </TBody>
+              </Table>
             </div>
           )}
         </SectionCard>
@@ -190,7 +194,7 @@ export default async function OnboardingReviewPage({
                 <li key={m.id} className="flex flex-wrap items-baseline gap-x-2 py-2">
                   <span className="text-sm font-medium text-ink-900">{m.name}</span>
                   {m.title ? <span className="text-sm text-muted">{m.title}</span> : null}
-                  <Badge tone={m.role === "founder" ? "ink" : "neutral"} className="ml-auto">
+                  <Badge tone={m.role === "founder" ? "accent" : "neutral"} dot className="ml-auto">
                     {m.role === "founder" ? "Founder" : "Team"}
                   </Badge>
                 </li>

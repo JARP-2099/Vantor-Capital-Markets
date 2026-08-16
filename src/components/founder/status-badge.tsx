@@ -9,6 +9,10 @@ const STATUS_TONES: Record<CompanyStatus, "neutral" | "warn" | "positive"> = {
   archived: "neutral",
 };
 
-export function StatusBadge({ status }: { status: CompanyStatus }) {
-  return <Badge tone={STATUS_TONES[status]}>{STATUS_LABELS[status]}</Badge>;
+export function StatusBadge({ status, dot = false }: { status: CompanyStatus; dot?: boolean }) {
+  return (
+    <Badge tone={STATUS_TONES[status]} dot={dot}>
+      {STATUS_LABELS[status]}
+    </Badge>
+  );
 }

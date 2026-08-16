@@ -17,12 +17,20 @@ type SubmitRequestFormProps = {
   action: (prev: VerificationFormState, formData: FormData) => Promise<VerificationFormState>;
   /** Categories whose latest request is pending or under review. */
   blockedCategories: VerificationCategory[];
+  /** Preselected category (from a "Request verification" row link). */
+  defaultCategory?: VerificationCategory;
 };
 
-export function SubmitRequestForm({ action, blockedCategories }: SubmitRequestFormProps) {
+export function SubmitRequestForm({
+  action,
+  blockedCategories,
+  defaultCategory,
+}: SubmitRequestFormProps) {
   const [state, formAction, pending] = useActionState(action, IDLE_STATE);
   const errors = state.fieldErrors ?? {};
   const blocked = new Set(blockedCategories);
+  const preselected =
+    defaultCategory && !blocked.has(defaultCategory) ? defaultCategory : "";
 
   return (
     <form action={formAction} noValidate className="space-y-5">
@@ -32,7 +40,8 @@ export function SubmitRequestForm({ action, blockedCategories }: SubmitRequestFo
         <Select
           id="verification-category"
           name="category"
-          defaultValue=""
+          key={preselected}
+          defaultValue={preselected}
           {...invalidProps("verification-category", errors.category)}
         >
           <option value="" disabled>
@@ -63,20 +72,24 @@ export function SubmitRequestForm({ action, blockedCategories }: SubmitRequestFo
         />
       </Field>
 
-      <fieldset className="space-y-4 rounded-md border border-line p-4">
-        <legend className="px-1 text-sm font-medium text-ink-900">
+      <fieldset className="rounded-lg border border-line bg-canvas p-4">
+        <legend className="float-left mb-3 w-full text-sm font-medium text-ink-900">
           Initial evidence <span className="font-normal text-muted">(optional)</span>
         </legend>
-        <EvidenceFields
-          idPrefix="verification-evidence"
-          optional
-          kindError={errors["evidence.kind"]}
-          descriptionError={errors["evidence.description"]}
-          referenceError={errors["evidence.reference"]}
-        />
+        <div className="clear-both space-y-4">
+          <EvidenceFields
+            idPrefix="verification-evidence"
+            optional
+            kindError={errors["evidence.kind"]}
+            descriptionError={errors["evidence.description"]}
+            referenceError={errors["evidence.reference"]}
+          />
+        </div>
       </fieldset>
 
-      <SubmitButton pending={pending}>Submit for verification</SubmitButton>
+      <div className="border-t border-line pt-4">
+        <SubmitButton pending={pending}>Submit for verification</SubmitButton>
+      </div>
     </form>
   );
 }

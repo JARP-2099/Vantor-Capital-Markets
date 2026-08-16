@@ -14,6 +14,16 @@ const STATUS_TONES: Record<VerificationStatus, "neutral" | "warn" | "positive" |
   expired: "neutral",
 };
 
-export function VerificationStatusBadge({ status }: { status: VerificationStatus }) {
-  return <Badge tone={STATUS_TONES[status]}>{VERIFICATION_STATUS_LABELS[status]}</Badge>;
+export function VerificationStatusBadge({
+  status,
+  dot = false,
+}: {
+  status: VerificationStatus;
+  dot?: boolean;
+}) {
+  return (
+    <Badge tone={STATUS_TONES[status]} dot={dot}>
+      {VERIFICATION_STATUS_LABELS[status]}
+    </Badge>
+  );
 }

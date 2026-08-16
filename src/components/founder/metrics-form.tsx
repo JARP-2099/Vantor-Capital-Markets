@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input, Select } from "@/components/ui/input";
 import type { FounderFormState } from "@/lib/actions/founder-company";
+import { formatMetricValue } from "@/lib/format";
 import {
   METRIC_LABELS,
   METRIC_TYPES,
@@ -43,6 +44,31 @@ type MetricsFormProps = {
   disabled?: boolean;
 };
 
+/**
+ * Stored numerics arrive as fixed-scale strings ("900000.0000"). Trim the
+ * trailing zeros for editing — the numeric value submitted is unchanged.
+ */
+function trimDecimalZeros(value: string): string {
+  if (!/^-?\d+\.\d+$/.test(value)) return value;
+  return value.replace(/\.?0+$/, "");
+}
+
+/** Quiet "this is how it will read" preview under the value input. */
+function displayPreview(row: Row, monetary: boolean): string | undefined {
+  if (row.value.trim() === "") return undefined;
+  const n = Number(row.value);
+  if (!Number.isFinite(n)) return undefined;
+  try {
+    return `Displays as ${formatMetricValue(
+      row.metricType,
+      n,
+      monetary && /^[A-Za-z]{3}$/.test(row.currency) ? row.currency : null,
+    )}`;
+  } catch {
+    return undefined;
+  }
+}
+
 export function MetricsForm({ action, initial, submitLabel, disabled }: MetricsFormProps) {
   const [state, formAction, pending] = useActionState(action, IDLE_STATE);
   const errors = state.fieldErrors ?? {};
@@ -52,7 +78,7 @@ export function MetricsForm({ action, initial, submitLabel, disabled }: MetricsF
     initial.map((m, i) => ({
       key: i,
       metricType: m.metricType,
-      value: m.value,
+      value: trimDecimalZeros(m.value),
       currency: m.currency ?? "USD",
       asOf: m.asOf,
     })),
@@ -90,7 +116,7 @@ export function MetricsForm({ action, initial, submitLabel, disabled }: MetricsF
             </p>
           </div>
         ) : (
-          <ul className="space-y-4">
+          <ul className="space-y-3">
             {rows.map((row, i) => {
               const monetary = MONETARY_METRICS.has(row.metricType);
               const currencyIsCommon = (COMMON_CURRENCIES as readonly string[]).includes(
@@ -103,7 +129,7 @@ export function MetricsForm({ action, initial, submitLabel, disabled }: MetricsF
               const asOfId = `metric-${row.key}-asOf`;
               return (
                 <li key={row.key} className="rounded-lg border border-line bg-paper p-4">
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,0.9fr)_minmax(0,1fr)_2.5rem]">
                     <Field label="Metric" htmlFor={typeId} error={errors[`metrics.${i}.metricType`]}>
                       <Select
                         id={typeId}
@@ -122,7 +148,12 @@ export function MetricsForm({ action, initial, submitLabel, disabled }: MetricsF
                       </Select>
                     </Field>
 
-                    <Field label="Value" htmlFor={valueId} error={errors[`metrics.${i}.value`]}>
+                    <Field
+                      label="Value"
+                      htmlFor={valueId}
+                      hint={displayPreview(row, monetary)}
+                      error={errors[`metrics.${i}.value`]}
+                    >
                       <Input
                         id={valueId}
                         name={`metric_${i}_value`}
@@ -131,6 +162,7 @@ export function MetricsForm({ action, initial, submitLabel, disabled }: MetricsF
                         inputMode="decimal"
                         value={row.value}
                         onChange={(e) => patchRow(row.key, { value: e.target.value })}
+                        className="tabular-nums"
                         {...invalidProps(valueId, errors[`metrics.${i}.value`])}
                       />
                     </Field>
@@ -176,7 +208,10 @@ export function MetricsForm({ action, initial, submitLabel, disabled }: MetricsF
                           ) : null}
                         </div>
                       </Field>
-                    ) : null}
+                    ) : (
+                      /* Keeps the grid columns aligned across mixed row types. */
+                      <div aria-hidden="true" className="hidden lg:block" />
+                    )}
 
                     <Field label="As of" htmlFor={asOfId} error={errors[`metrics.${i}.asOf`]}>
                       <Input
@@ -189,20 +224,25 @@ export function MetricsForm({ action, initial, submitLabel, disabled }: MetricsF
                         {...invalidProps(asOfId, errors[`metrics.${i}.asOf`])}
                       />
                     </Field>
+
+                    {!disabled ? (
+                      <div className="flex justify-end sm:col-span-2 lg:col-span-1 lg:justify-center lg:pt-7">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-10 w-10 px-0 text-muted hover:text-negative-700"
+                          aria-label={`Remove ${METRIC_LABELS[row.metricType]} entry`}
+                          title="Remove"
+                          onClick={() => removeRow(row.key)}
+                        >
+                          <span aria-hidden="true" className="text-base leading-none">
+                            &times;
+                          </span>
+                        </Button>
+                      </div>
+                    ) : null}
                   </div>
-                  {!disabled ? (
-                    <div className="mt-3 flex justify-end">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-negative-700"
-                        onClick={() => removeRow(row.key)}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ) : null}
                 </li>
               );
             })}
@@ -210,11 +250,11 @@ export function MetricsForm({ action, initial, submitLabel, disabled }: MetricsF
         )}
 
         {!disabled ? (
-          <div className="flex flex-wrap items-center gap-3 pt-2">
+          <div className="flex flex-wrap items-center gap-3 border-t border-line pt-4">
+            <SubmitButton pending={pending}>{submitLabel}</SubmitButton>
             <Button type="button" variant="secondary" onClick={addRow}>
               Add metric
             </Button>
-            <SubmitButton pending={pending}>{submitLabel}</SubmitButton>
           </div>
         ) : null}
       </fieldset>

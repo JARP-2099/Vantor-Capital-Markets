@@ -199,7 +199,7 @@ export function IdentityForm({ action, initial, submitLabel, disabled }: Identit
         </Field>
 
         {!disabled ? (
-          <div className="pt-2">
+          <div className="border-t border-line pt-4">
             <SubmitButton pending={pending}>{submitLabel}</SubmitButton>
           </div>
         ) : null}

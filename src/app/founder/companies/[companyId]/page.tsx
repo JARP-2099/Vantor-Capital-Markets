@@ -1,12 +1,19 @@
+import Link from "next/link";
 import { getMetricRows, requireManagerPage } from "@/components/founder/data";
 import { computeCompletion } from "@/components/founder/profile-completion";
 import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
+import { MetricStat } from "@/components/ui/metric-stat";
 import { getCompanyIntents, getCompanyMembers } from "@/db/queries/companies";
-import { INTENT_LABELS, type CompanyStatus } from "@/lib/constants";
-import { formatDate } from "@/lib/format";
+import {
+  INTENT_LABELS,
+  METRIC_LABELS,
+  type CompanyStatus,
+  type MetricType,
+} from "@/lib/constants";
+import { formatDate, formatMetricValue } from "@/lib/format";
 import { cn } from "@/lib/cn";
 
 const STEP_BY_CHECKLIST_KEY = {
@@ -16,6 +23,22 @@ const STEP_BY_CHECKLIST_KEY = {
   story: "story",
   team: "team",
 } as const;
+
+/** Display order for the at-a-glance metric tiles. */
+const METRIC_TILE_ORDER: MetricType[] = [
+  "arr",
+  "revenue_annual",
+  "mrr",
+  "revenue_growth_yoy",
+  "gross_margin",
+  "customers",
+  "employees",
+  "burn_monthly",
+  "runway_months",
+  "net_profit_annual",
+  "capital_raised_total",
+  "top_customer_revenue_pct",
+];
 
 function StatusExplanation({ status }: { status: CompanyStatus }) {
   if (status === "submitted" || status === "under_review") {
@@ -69,6 +92,14 @@ export default async function CompanyOverviewPage({
   });
   const requirementsMet = completion.identityComplete && intents.length > 0;
 
+  // Latest entry per metric type (rows arrive sorted type asc, asOf desc).
+  const latestByType = new Map<MetricType, (typeof metrics)[number]>();
+  for (const row of metrics) {
+    const t = row.metricType as MetricType;
+    if (!latestByType.has(t)) latestByType.set(t, row);
+  }
+  const tiles = METRIC_TILE_ORDER.filter((t) => latestByType.has(t)).slice(0, 8);
+
   return (
     <div className="space-y-6">
       {submitted === "1" && (status === "submitted" || status === "under_review") ? (
@@ -91,6 +122,43 @@ export default async function CompanyOverviewPage({
 
       <StatusExplanation status={status} />
 
+      {/* ------------------------------------------------- Latest metrics */}
+      <Card>
+        <CardHeader className="flex flex-wrap items-center justify-between gap-2">
+          <CardTitle>Latest reported metrics</CardTitle>
+          <ButtonLink
+            href={`/founder/companies/${companyId}/metrics`}
+            variant="ghost"
+            size="sm"
+            className="text-accent-700"
+          >
+            {tiles.length > 0 ? "Update" : "Add metrics"}
+          </ButtonLink>
+        </CardHeader>
+        <CardBody>
+          {tiles.length === 0 ? (
+            <p className="text-sm text-faint">
+              No metrics reported yet — fine for pre-revenue companies.
+            </p>
+          ) : (
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-4">
+              {tiles.map((type) => {
+                const row = latestByType.get(type);
+                if (!row) return null;
+                return (
+                  <MetricStat
+                    key={type}
+                    label={METRIC_LABELS[type]}
+                    value={formatMetricValue(type, Number(row.value), row.currency)}
+                    hint={`as of ${formatDate(row.asOf)}`}
+                  />
+                );
+              })}
+            </dl>
+          )}
+        </CardBody>
+      </Card>
+
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <Card>
           <CardHeader>
@@ -99,7 +167,9 @@ export default async function CompanyOverviewPage({
           <CardBody>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted">Overall completion</span>
-              <span className="font-semibold text-ink-900">{completion.percent}%</span>
+              <span className="font-semibold text-ink-900 tabular-nums">
+                {completion.percent}%
+              </span>
             </div>
             <div
               role="progressbar"
@@ -107,10 +177,10 @@ export default async function CompanyOverviewPage({
               aria-valuemin={0}
               aria-valuemax={100}
               aria-label="Profile completion"
-              className="mt-2 h-2 overflow-hidden rounded-full bg-mist"
+              className="mt-2 h-1.5 overflow-hidden rounded-full bg-mist"
             >
               <div
-                className="h-full rounded-full bg-accent-500"
+                className="h-full rounded-full bg-accent-600"
                 style={{ width: `${completion.percent}%` }}
               />
             </div>
@@ -121,10 +191,12 @@ export default async function CompanyOverviewPage({
                     aria-hidden="true"
                     className={cn(
                       "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-                      item.done ? "bg-positive-50 text-positive-700" : "bg-mist text-faint",
+                      item.done
+                        ? "bg-positive-50 text-positive-700"
+                        : "border border-line-strong bg-paper text-faint",
                     )}
                   >
-                    {item.done ? "✓" : "·"}
+                    {item.done ? "✓" : ""}
                   </span>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-ink-900">
@@ -138,7 +210,7 @@ export default async function CompanyOverviewPage({
                       href={`/founder/onboarding/${companyId}/${STEP_BY_CHECKLIST_KEY[item.key]}`}
                       variant="ghost"
                       size="sm"
-                      className="ml-auto shrink-0 text-accent-600"
+                      className="ml-auto shrink-0 text-accent-700"
                     >
                       Edit
                     </ButtonLink>
@@ -158,13 +230,15 @@ export default async function CompanyOverviewPage({
               {intents.length === 0 ? (
                 <p className="text-sm text-faint">Not provided</p>
               ) : (
-                <div className="flex flex-wrap gap-2">
+                <ul className="space-y-2">
                   {intents.map((i) => (
-                    <Badge key={i} tone="accent">
-                      {INTENT_LABELS[i]}
-                    </Badge>
+                    <li key={i}>
+                      <Badge tone="accent" dot className="text-sm font-normal text-slate-650">
+                        {INTENT_LABELS[i]}
+                      </Badge>
+                    </li>
                   ))}
-                </div>
+                </ul>
               )}
             </CardBody>
           </Card>
@@ -202,6 +276,38 @@ export default async function CompanyOverviewPage({
               </CardBody>
             </Card>
           ) : null}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>More on this company</CardTitle>
+            </CardHeader>
+            <CardBody>
+              <ul className="divide-y divide-line text-sm">
+                <li>
+                  <Link
+                    href={`/founder/companies/${companyId}/valuation`}
+                    className="flex items-center justify-between py-2.5 pt-0 text-slate-650 transition-colors hover:text-ink-900"
+                  >
+                    Estimated Private Market Valuation
+                    <span aria-hidden="true" className="text-faint">
+                      &rarr;
+                    </span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href={`/founder/companies/${companyId}/verification`}
+                    className="flex items-center justify-between py-2.5 pb-0 text-slate-650 transition-colors hover:text-ink-900"
+                  >
+                    Data verification
+                    <span aria-hidden="true" className="text-faint">
+                      &rarr;
+                    </span>
+                  </Link>
+                </li>
+              </ul>
+            </CardBody>
+          </Card>
         </div>
       </div>
     </div>

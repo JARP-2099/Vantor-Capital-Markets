@@ -18,16 +18,48 @@ type WizardProgressProps = {
 };
 
 /**
- * Seven-step progress indicator. Steps before the current one show a check
- * and link back to their page (once a draft exists); later steps are inert.
+ * Seven-step progress indicator. On mobile it collapses to "Step n of 7" +
+ * a segmented bar so every step is always represented — nothing clips.
+ * On sm+ it shows the numbered steps; completed ones link back to their page
+ * (once a draft exists); later steps are inert.
  */
 export function WizardProgress({ companyId, current }: WizardProgressProps) {
+  const active = WIZARD_STEPS.find((s) => s.step === current);
+
   return (
-    <nav aria-label="Onboarding progress" className="overflow-x-auto">
-      <ol className="flex min-w-max items-center gap-1 sm:gap-2">
+    <nav aria-label="Onboarding progress">
+      {/* Mobile: compact, nothing can clip. */}
+      <div className="sm:hidden">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">
+            Step {current} of {WIZARD_STEPS.length}
+          </p>
+          <p className="text-sm font-semibold text-ink-900">{active?.label}</p>
+        </div>
+        <ol className="mt-2 flex gap-1">
+          {WIZARD_STEPS.map((s) => (
+            <li
+              key={s.step}
+              aria-current={s.step === current ? "step" : undefined}
+              className={cn(
+                "h-1 flex-1 rounded-full",
+                s.step <= current ? "bg-accent-600" : "bg-mist",
+              )}
+            >
+              <span className="sr-only">
+                {s.label}
+                {s.step < current ? " — complete" : s.step === current ? " — current step" : ""}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      {/* Desktop: numbered steps with connectors. */}
+      <ol className="hidden items-center gap-2 sm:flex">
         {WIZARD_STEPS.map((s, i) => {
           const done = s.step < current;
-          const active = s.step === current;
+          const isActive = s.step === current;
           const href =
             companyId && done && s.step < 7
               ? `/founder/onboarding/${companyId}/${s.segment}`
@@ -38,9 +70,9 @@ export function WizardProgress({ companyId, current }: WizardProgressProps) {
               aria-hidden="true"
               className={cn(
                 "flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-                active && "bg-ink-900 text-white",
-                done && "bg-positive-50 text-positive-700",
-                !active && !done && "bg-mist text-muted",
+                isActive && "bg-accent-600 text-white",
+                done && "bg-accent-50 text-accent-700",
+                !isActive && !done && "border border-line-strong bg-paper text-muted",
               )}
             >
               {done ? "✓" : s.step}
@@ -52,8 +84,10 @@ export function WizardProgress({ companyId, current }: WizardProgressProps) {
               {circle}
               <span
                 className={cn(
-                  "text-xs font-medium sm:text-sm",
-                  active ? "text-ink-900" : done ? "text-slate-650" : "text-faint",
+                  "text-sm font-medium",
+                  // Circles-only between sm and md so the row never clips.
+                  isActive ? "text-ink-900" : "hidden md:inline",
+                  !isActive && (done ? "text-slate-650" : "text-faint"),
                 )}
               >
                 {s.label}
@@ -62,12 +96,12 @@ export function WizardProgress({ companyId, current }: WizardProgressProps) {
           );
 
           return (
-            <li key={s.step} className="flex items-center gap-1 sm:gap-2">
-              {i > 0 ? <span aria-hidden="true" className="h-px w-3 bg-line sm:w-5" /> : null}
+            <li key={s.step} className="flex items-center gap-2">
+              {i > 0 ? <span aria-hidden="true" className="h-px w-4 bg-line-strong" /> : null}
               {href ? (
                 <Link
                   href={href}
-                  className="flex items-center gap-1.5 rounded-md px-1 py-1 hover:bg-mist"
+                  className="flex items-center gap-1.5 rounded-md px-1 py-1 transition-colors hover:bg-mist"
                   title={`Back to ${s.label}`}
                 >
                   {content}
@@ -75,7 +109,7 @@ export function WizardProgress({ companyId, current }: WizardProgressProps) {
               ) : (
                 <span
                   className="flex items-center gap-1.5 px-1 py-1"
-                  aria-current={active ? "step" : undefined}
+                  aria-current={isActive ? "step" : undefined}
                 >
                   {content}
                 </span>

@@ -70,7 +70,9 @@ export function TeamForm({ action, initial, submitLabel, disabled }: TeamFormPro
         <div className="rounded-lg border border-line bg-paper p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm font-semibold text-ink-900">{initial.creator?.name ?? "You"}</p>
-            <Badge tone="ink">Founder — you</Badge>
+            <Badge tone="accent" dot>
+              Founder — you
+            </Badge>
           </div>
           <p className="mt-1 text-xs text-muted">
             This is your own listing. It cannot be removed, but you can edit your title and bio.
@@ -92,6 +94,7 @@ export function TeamForm({ action, initial, submitLabel, disabled }: TeamFormPro
                 id="creatorBio"
                 name="creatorBio"
                 rows={3}
+                className="min-h-20"
                 defaultValue={initial.creator?.bio ?? ""}
                 {...invalidProps("creatorBio", errors.creatorBio)}
               />
@@ -107,6 +110,22 @@ export function TeamForm({ action, initial, submitLabel, disabled }: TeamFormPro
           const bioId = `member-${row.key}-bio`;
           return (
             <div key={row.key} className="rounded-lg border border-line bg-paper p-4">
+              {!disabled ? (
+                <div className="mb-3 flex items-center justify-between gap-2 border-b border-line pb-2">
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted">
+                    Team member
+                  </p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted hover:text-negative-700"
+                    onClick={() => removeRow(row.key)}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ) : null}
               <div className="grid gap-4 sm:grid-cols-3">
                 <Field label="Name" htmlFor={nameId} required error={errors[`members.${i}.name`]}>
                   <Input
@@ -148,35 +167,23 @@ export function TeamForm({ action, initial, submitLabel, disabled }: TeamFormPro
                     id={bioId}
                     name={`member_${i}_bio`}
                     rows={3}
+                    className="min-h-20"
                     value={row.bio}
                     onChange={(e) => patchRow(row.key, { bio: e.target.value })}
                     {...invalidProps(bioId, errors[`members.${i}.bio`])}
                   />
                 </Field>
               </div>
-              {!disabled ? (
-                <div className="mt-3 flex justify-end">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-negative-700"
-                    onClick={() => removeRow(row.key)}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ) : null}
             </div>
           );
         })}
 
         {!disabled ? (
-          <div className="flex flex-wrap items-center gap-3 pt-2">
+          <div className="flex flex-wrap items-center gap-3 border-t border-line pt-4">
+            <SubmitButton pending={pending}>{submitLabel}</SubmitButton>
             <Button type="button" variant="secondary" onClick={addRow}>
               Add team member
             </Button>
-            <SubmitButton pending={pending}>{submitLabel}</SubmitButton>
           </div>
         ) : null}
       </fieldset>

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricStat } from "@/components/ui/metric-stat";
+import { Table, TBody, TD, TH, THead } from "@/components/ui/table";
 import {
   getLatestValuationRun,
   getValuationComponents,
@@ -103,6 +104,58 @@ function joinLabels(labels: string[]): string {
   return `${labels.slice(0, -1).join(", ")}, and ${labels[labels.length - 1]}`;
 }
 
+/**
+ * Horizontal range visual for the headline estimate: quiet track, cobalt
+ * low–high band, ink midpoint marker. Purely decorative — every number it
+ * encodes is also rendered as text.
+ */
+function RangeBar({
+  low,
+  high,
+  mid,
+  currency,
+}: {
+  low: number;
+  high: number;
+  mid: number | null;
+  currency: string;
+}) {
+  const span = high - low;
+  const pad = span > 0 ? span * 0.22 : Math.abs(high) * 0.2 || 1;
+  const domainLow = Math.max(0, low - pad);
+  const domainHigh = high + pad;
+  const pct = (v: number) =>
+    Math.min(100, Math.max(0, ((v - domainLow) / (domainHigh - domainLow)) * 100));
+  const lowPct = pct(low);
+  const highPct = pct(high);
+
+  return (
+    <div aria-hidden="true" className="mt-5 max-w-2xl select-none">
+      <div className="relative h-3">
+        <div className="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-mist" />
+        <div
+          className="absolute top-1/2 h-1 -translate-y-1/2 rounded-full bg-accent-600"
+          style={{ left: `${lowPct}%`, width: `${Math.max(highPct - lowPct, 1)}%` }}
+        />
+        {mid !== null ? (
+          <div
+            className="absolute top-1/2 h-3 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink-900"
+            style={{ left: `${pct(mid)}%` }}
+          />
+        ) : null}
+      </div>
+      <div className="relative mt-1.5 h-4 text-xs text-muted tabular-nums">
+        <span className="absolute -translate-x-1/2" style={{ left: `${lowPct}%` }}>
+          {formatCompactCurrency(low, currency)}
+        </span>
+        <span className="absolute -translate-x-1/2" style={{ left: `${highPct}%` }}>
+          {formatCompactCurrency(high, currency)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function BreakdownRow({ row, currency }: { row: ValuationComponentRow; currency: string }) {
   const label = COMPONENT_LABELS[row.componentKey] ?? row.componentKey;
   const reason = detailReason(row);
@@ -113,9 +166,11 @@ function BreakdownRow({ row, currency }: { row: ValuationComponentRow; currency:
     const weight = num(row.weight);
     return (
       <div className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           <p className="text-sm font-medium text-ink-900">{label}</p>
-          <Badge tone="accent">Applied</Badge>
+          <Badge tone="accent" dot>
+            Applied
+          </Badge>
         </div>
         <p className="text-sm font-semibold text-ink-900 tabular-nums">
           {low !== null && high !== null
@@ -131,9 +186,9 @@ function BreakdownRow({ row, currency }: { row: ValuationComponentRow; currency:
 
   return (
     <div className="py-3">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-3">
         <p className="text-sm font-medium text-muted">{label}</p>
-        <Badge>{row.status === "not_applicable" ? "Not applicable" : "Insufficient data"}</Badge>
+        <Badge dot>{row.status === "not_applicable" ? "Not applicable" : "Insufficient data"}</Badge>
       </div>
       {reason ? <p className="mt-1 text-xs text-faint">{reason}</p> : null}
     </div>
@@ -142,7 +197,7 @@ function BreakdownRow({ row, currency }: { row: ValuationComponentRow; currency:
 
 function Disclaimer() {
   return (
-    <p className="text-xs leading-relaxed text-faint">
+    <p className="text-xs leading-relaxed text-muted">
       Vantor estimates are produced by a deterministic model from company-reported data. They are
       estimates only — not an offer, valuation opinion, or investment advice. Actual transaction
       prices may differ materially.
@@ -209,10 +264,10 @@ export default async function ManageValuationPage({
           note={`Estimates can be refreshed once every ${cooldownMinutes} minutes.`}
         />
         <div className="border-t border-line pt-5">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-3">
             <h3 className="text-sm font-medium text-ink-900">Public visibility</h3>
-            <Badge tone={company.showPublicValuation ? "accent" : "neutral"}>
-              {company.showPublicValuation ? "Enabled" : "Disabled"}
+            <Badge tone={company.showPublicValuation ? "positive" : "neutral"} dot>
+              {company.showPublicValuation ? "Shown on public profile" : "Hidden from public profile"}
             </Badge>
           </div>
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">
@@ -235,11 +290,20 @@ export default async function ManageValuationPage({
       <Card>
         <CardHeader>
           <CardTitle>Improve your estimate</CardTitle>
+          <p className="mt-1 text-sm text-muted">
+            More reported data lets more models apply — and raises confidence.
+          </p>
         </CardHeader>
         <CardBody className="space-y-4">
-          <ul className="max-w-2xl list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-slate-650">
+          <ul className="max-w-2xl divide-y divide-line">
             {hints.map((hint) => (
-              <li key={hint}>{hint}</li>
+              <li key={hint} className="flex items-center gap-3 py-2.5">
+                <span
+                  aria-hidden="true"
+                  className="size-4 shrink-0 rounded-full border border-line-strong bg-paper"
+                />
+                <span className="text-sm leading-relaxed text-slate-650">{hint}</span>
+              </li>
             ))}
           </ul>
           <div className="flex flex-wrap gap-2">
@@ -324,32 +388,34 @@ export default async function ManageValuationPage({
         </CardHeader>
         <CardBody>
           {range ? (
-            <p className="text-3xl font-bold tracking-tight text-ink-900 tabular-nums sm:text-4xl">
+            <p className="text-3xl font-semibold tracking-tight text-ink-900 tabular-nums sm:text-4xl">
               {range}
             </p>
           ) : null}
-          <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
+          {low !== null && high !== null ? (
+            <RangeBar low={low} high={high} mid={mid} currency={currency} />
+          ) : null}
+          <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-line pt-5 sm:grid-cols-4">
             <MetricStat
-              className="tabular-nums"
               label="Midpoint"
               value={mid !== null ? formatCompactCurrency(mid, currency) : null}
             />
             <MetricStat
-              className="tabular-nums"
               label="Confidence"
               value={latest.confidence !== null ? `${latest.confidence}%` : null}
+              hint="In the estimate, not your company"
             />
             <MetricStat
               label="Data Quality"
               value={SUFFICIENCY_LABELS[latest.dataSufficiency] ?? null}
+              hint="Completeness of reported data"
             />
             <MetricStat
-              className="tabular-nums"
               label="Last updated"
               value={formatDate(latest.createdAt)}
+              hint={`Engine ${latest.engineVersion}`}
             />
           </dl>
-          <p className="mt-4 text-xs text-faint">Engine {latest.engineVersion}</p>
         </CardBody>
       </Card>
 
@@ -357,6 +423,9 @@ export default async function ManageValuationPage({
       <Card>
         <CardHeader>
           <CardTitle>Estimate Breakdown</CardTitle>
+          <p className="mt-1 text-sm text-muted">
+            Which methodologies applied to your data — and why the others were excluded.
+          </p>
         </CardHeader>
         <CardBody>
           <div className="divide-y divide-line">
@@ -371,6 +440,9 @@ export default async function ManageValuationPage({
       <Card>
         <CardHeader>
           <CardTitle>Risk Factors</CardTitle>
+          <p className="mt-1 text-sm text-muted">
+            Adjustments the model applied to the estimate — not judgments of your company.
+          </p>
         </CardHeader>
         <CardBody>
           {flags.length === 0 ? (
@@ -382,8 +454,11 @@ export default async function ManageValuationPage({
                   key={flag.key ?? flag.label}
                   className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0"
                 >
-                  <span className="text-sm text-slate-650">{flag.label}</span>
-                  <span className="text-sm font-medium text-ink-900 tabular-nums">
+                  <span className="flex items-center gap-2.5 text-sm text-slate-650">
+                    <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-warn-700" />
+                    {flag.label}
+                  </span>
+                  <span className="text-sm font-medium text-warn-700 tabular-nums">
                     &minus;{Math.abs(flag.impactPct)}%
                   </span>
                 </li>
@@ -425,7 +500,10 @@ export default async function ManageValuationPage({
         </CardHeader>
         <CardBody>
           {historyNewestFirst.length <= 1 ? (
-            <p className="text-sm text-faint">History builds as you refresh your estimate.</p>
+            <p className="text-sm text-faint">
+              History builds as you refresh your estimate — each run is kept so you can see how the
+              range moves as your data changes.
+            </p>
           ) : (
             <HistoryTable runs={historyNewestFirst} />
           )}
@@ -442,50 +520,40 @@ export default async function ManageValuationPage({
 /** Completed runs, newest first. */
 function HistoryTable({ runs }: { runs: ValuationRunRow[] }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[30rem] text-left text-sm">
-        <thead>
-          <tr className="border-b border-line text-xs uppercase tracking-wider text-muted">
-            <th scope="col" className="py-2 pr-4 font-medium">
-              Date
-            </th>
-            <th scope="col" className="py-2 pr-4 font-medium">
-              Range
-            </th>
-            <th scope="col" className="py-2 pr-4 font-medium">
-              Midpoint
-            </th>
-            <th scope="col" className="py-2 font-medium">
-              Confidence
-            </th>
+    <div className="overflow-x-auto rounded-md border border-line">
+      <Table className="min-w-[30rem]">
+        <THead>
+          <tr>
+            <TH>Date</TH>
+            <TH numeric>Range</TH>
+            <TH numeric>Midpoint</TH>
+            <TH numeric>Confidence</TH>
           </tr>
-        </thead>
-        <tbody className="divide-y divide-line">
+        </THead>
+        <TBody>
           {runs.map((run) => {
             const low = num(run.valuationLow);
             const high = num(run.valuationHigh);
             const mid = num(run.valuationMid);
             return (
               <tr key={run.id}>
-                <td className="py-2.5 pr-4 text-muted tabular-nums">
-                  {formatDate(run.createdAt)}
-                </td>
-                <td className="py-2.5 pr-4 font-medium text-ink-900 tabular-nums">
+                <TD className="text-muted tabular-nums">{formatDate(run.createdAt)}</TD>
+                <TD numeric className="font-medium text-ink-900">
                   {low !== null && high !== null
                     ? `${formatCompactCurrency(low, run.currency)} – ${formatCompactCurrency(high, run.currency)}`
                     : "—"}
-                </td>
-                <td className="py-2.5 pr-4 font-medium text-ink-900 tabular-nums">
+                </TD>
+                <TD numeric className="font-medium text-ink-900">
                   {mid !== null ? formatCompactCurrency(mid, run.currency) : "—"}
-                </td>
-                <td className="py-2.5 text-muted tabular-nums">
+                </TD>
+                <TD numeric className="text-muted">
                   {run.confidence !== null ? `${run.confidence}%` : "—"}
-                </td>
+                </TD>
               </tr>
             );
           })}
-        </tbody>
-      </table>
+        </TBody>
+      </Table>
     </div>
   );
 }

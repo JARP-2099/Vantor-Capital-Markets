@@ -54,6 +54,13 @@ const SECTIONS = [
   },
 ] as const;
 
+/** Presentation grouping only — every field still lives in the one story form. */
+const GROUPS = [
+  { title: "The opportunity", sections: SECTIONS.slice(0, 4) },
+  { title: "How you execute", sections: SECTIONS.slice(4, 7) },
+  { title: "In your own words", sections: SECTIONS.slice(7) },
+] as const;
+
 export type StoryInitial = Partial<Record<(typeof SECTIONS)[number]["name"], string | null>>;
 
 type StoryFormProps = {
@@ -75,19 +82,35 @@ export function StoryForm({ action, initial, submitLabel, disabled }: StoryFormP
           Every section is optional — write the ones that matter for your company. You can come
           back and refine them at any time.
         </p>
-        {SECTIONS.map((s) => (
-          <Field key={s.name} label={s.label} htmlFor={s.name} hint={s.hint} error={errors[s.name]}>
-            <Textarea
-              id={s.name}
-              name={s.name}
-              defaultValue={initial[s.name] ?? ""}
-              rows={s.name === "fullDescription" ? 6 : 4}
-              {...invalidProps(s.name, errors[s.name])}
-            />
-          </Field>
+        {GROUPS.map((group, gi) => (
+          <div key={group.title} className={gi > 0 ? "border-t border-line pt-5" : undefined}>
+            <p className="text-xs font-medium uppercase tracking-wider text-muted">
+              {group.title}
+            </p>
+            <div className="mt-3 space-y-5">
+              {group.sections.map((s) => (
+                <Field
+                  key={s.name}
+                  label={s.label}
+                  htmlFor={s.name}
+                  hint={s.hint}
+                  error={errors[s.name]}
+                >
+                  <Textarea
+                    id={s.name}
+                    name={s.name}
+                    defaultValue={initial[s.name] ?? ""}
+                    rows={s.name === "fullDescription" ? 6 : 4}
+                    className={s.name === "fullDescription" ? undefined : "min-h-24"}
+                    {...invalidProps(s.name, errors[s.name])}
+                  />
+                </Field>
+              ))}
+            </div>
+          </div>
         ))}
         {!disabled ? (
-          <div className="pt-2">
+          <div className="border-t border-line pt-4">
             <SubmitButton pending={pending}>{submitLabel}</SubmitButton>
           </div>
         ) : null}
