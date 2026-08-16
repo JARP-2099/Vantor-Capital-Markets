@@ -36,7 +36,10 @@ export async function requestValuation(
   if (!parsed.success) return { error: "Invalid request." };
 
   try {
-    const { user } = await requireCompanyManager(parsed.data);
+    const { user, company } = await requireCompanyManager(parsed.data);
+    if (company.status === "archived") {
+      return { error: "Archived companies cannot generate new estimates." };
+    }
     const admin = await isAdmin(user);
     await executeValuationRun({
       companyId: parsed.data,

@@ -4,10 +4,9 @@ import { db } from "@/db";
 import { valuationComponents, valuationRuns } from "@/db/schema";
 
 /**
- * Valuation read layer. Public surfaces must use `getPublicValuation`, which
- * callers may only invoke for companies that are published AND have
- * showPublicValuation enabled — enforce that at the call site with the
- * published-only company queries.
+ * Valuation read layer. Public display is gated at the call site (the public
+ * profile page queries valuations only when the company is published AND
+ * showPublicValuation is enabled); founder/admin surfaces gate via authz.
  */
 
 export type ValuationRunRow = typeof valuationRuns.$inferSelect;

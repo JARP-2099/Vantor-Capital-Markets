@@ -7,13 +7,24 @@
 import "dotenv/config";
 import { randomUUID } from "node:crypto";
 import { hashPassword } from "better-auth/crypto";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import { buildValuationInputs } from "../lib/valuation/assemble";
+import { runValuationEngine } from "../lib/valuation/engine";
 import * as schema from "./schema";
 
-const { user, account, userRoles, companies, companyIntents, companyMembers, companyMetrics } =
-  schema;
+const {
+  user,
+  account,
+  userRoles,
+  companies,
+  companyIntents,
+  companyMembers,
+  companyMetrics,
+  valuationRuns,
+  valuationComponents,
+} = schema;
 
 async function main() {
   if (process.env.ALLOW_SEED !== "true") {
@@ -486,6 +497,74 @@ async function main() {
       );
     }
     console.log(`  company: ${demo.name}`);
+  }
+
+  // Demo valuation runs: give each demo company one run through the real
+  // engine so the founder and public valuation surfaces are demonstrable.
+  console.log("Seeding demo valuation runs…");
+  const demoRows = await db.select().from(companies).where(eq(companies.isDemo, true));
+  for (const company of demoRows) {
+    const [existing] = await db
+      .select({ id: valuationRuns.id })
+      .from(valuationRuns)
+      .where(eq(valuationRuns.companyId, company.id))
+      .limit(1);
+    if (existing) {
+      console.log(`  skip (has run): ${company.name}`);
+      continue;
+    }
+
+    const metricRows = await db
+      .select()
+      .from(companyMetrics)
+      .where(eq(companyMetrics.companyId, company.id))
+      .orderBy(desc(companyMetrics.asOf), desc(companyMetrics.createdAt));
+
+    const inputs = buildValuationInputs(
+      company,
+      metricRows,
+      [],
+      new Date().toISOString().slice(0, 10),
+    );
+    const result = runValuationEngine(inputs);
+
+    const [run] = await db
+      .insert(valuationRuns)
+      .values({
+        companyId: company.id,
+        engineVersion: result.engineVersion,
+        assumptionsVersion: result.assumptionsVersion,
+        status: result.status === "completed" ? "completed" : "insufficient_data",
+        dataSufficiency: result.dataSufficiency,
+        currency: result.status === "completed" ? result.currency : "USD",
+        valuationLow: result.status === "completed" ? String(result.low) : null,
+        valuationHigh: result.status === "completed" ? String(result.high) : null,
+        valuationMid: result.status === "completed" ? String(result.mid) : null,
+        confidence: result.status === "completed" ? result.confidence : null,
+        inputSnapshot: inputs,
+        riskFlags: result.status === "completed" ? result.riskFlags : null,
+        insufficiencyReasons:
+          result.status === "insufficient_data"
+            ? { reasons: result.reasons, hints: result.improvementHints }
+            : { hints: result.improvementHints },
+        requestedBy: null,
+      })
+      .returning({ id: valuationRuns.id });
+
+    await db.insert(valuationComponents).values(
+      result.components.map((c) => ({
+        runId: run.id,
+        componentKey: c.key,
+        status: c.status,
+        valuationLow: c.low !== undefined && Number.isFinite(c.low) ? String(Math.round(c.low)) : null,
+        valuationHigh:
+          c.high !== undefined && Number.isFinite(c.high) ? String(Math.round(c.high)) : null,
+        valuationMid: c.mid !== undefined && Number.isFinite(c.mid) ? String(Math.round(c.mid)) : null,
+        weight: String(c.weight),
+        detail: c.detail,
+      })),
+    );
+    console.log(`  valuation: ${company.name} (${result.status})`);
   }
 
   await client.end();

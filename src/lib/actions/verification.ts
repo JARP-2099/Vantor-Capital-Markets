@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { getCompanyByIdUnscoped } from "@/db/queries/companies";
 import {
+  getEvidenceForRequest,
   getLatestRequestsByCategory,
   getVerificationRequestById,
 } from "@/db/queries/verifications";
@@ -78,13 +79,13 @@ const ACCESS_DENIED = "You do not have access to this company.";
 /* Authorization helpers                                                      */
 /* -------------------------------------------------------------------------- */
 
-type ManagerCtx = { user: AuthedUser; company: { id: string; slug: string } };
+type ManagerCtx = { user: AuthedUser; company: { id: string; slug: string; status: string } };
 
 /** Manager context or null; unauthenticated callers go to login. */
 async function getManagerOrNull(companyId: string): Promise<ManagerCtx | null> {
   try {
     const { user, company } = await requireCompanyManager(companyId);
-    return { user, company: { id: company.id, slug: company.slug } };
+    return { user, company: { id: company.id, slug: company.slug, status: company.status } };
   } catch (e) {
     if (e instanceof UnauthorizedError) redirect("/login");
     if (e instanceof ForbiddenError) return null;
@@ -173,9 +174,14 @@ export async function submitVerificationRequest(
   if (!parsed.success) return err(VALIDATION_MESSAGE, fieldErrorsOf(parsed.error));
   const { category, claimSummary, evidence } = parsed.data;
 
+  if (ctx.company.status === "archived") {
+    return err("Archived companies cannot submit verification requests.");
+  }
+
   try {
     // One open request per category: the latest request governs the category,
     // so a new submission is rejected while one is still awaiting review.
+    // (A partial unique index backs this check against concurrent submits.)
     const latest = (await getLatestRequestsByCategory(companyId)).get(category);
     if (latest && (latest.status === "pending" || latest.status === "under_review")) {
       return err("A request for this category is already awaiting review.", {
@@ -252,6 +258,12 @@ export async function addVerificationEvidence(
     const open: string[] = ["pending", "under_review", "needs_update"];
     if (!open.includes(request.status)) {
       return err("This request has been decided — evidence can no longer be added to it.");
+    }
+
+    // Cap evidence per request so the admin review surface cannot be spammed.
+    const existing = await getEvidenceForRequest(requestId);
+    if (existing.length >= 20) {
+      return err("This request already has the maximum number of evidence items (20).");
     }
 
     await db.insert(verificationEvidence).values({

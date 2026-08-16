@@ -239,6 +239,8 @@ export const companyMetrics = pgTable(
       sql`${t.metricType} NOT IN ('customers', 'employees', 'runway_months', 'capital_raised_total') OR ${t.value} >= 0`,
     ),
     check("company_metrics_currency_format", sql`${t.currency} IS NULL OR ${t.currency} ~ '^[A-Z]{3}$'`),
+    check("company_metrics_value_finite", sql`${t.value} <> 'NaN'::numeric`),
+    check("company_metrics_as_of_sane", sql`${t.asOf} >= '1900-01-01'`),
     check(
       "company_metrics_period_order",
       sql`${t.periodStart} IS NULL OR ${t.periodEnd} IS NULL OR ${t.periodStart} <= ${t.periodEnd}`,

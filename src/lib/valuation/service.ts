@@ -58,19 +58,30 @@ export async function executeValuationRun(options: {
 
   const result = runValuationEngine(inputs);
 
+  // Final finiteness guard: pathological stored metrics (e.g. a NaN that
+  // reached the DB outside the validated write path) must produce a failed
+  // run, never a "completed" row carrying NaN/Infinity.
+  const numbersSane =
+    result.status !== "completed" ||
+    [result.low, result.high, result.mid].every((v) => Number.isFinite(v));
+
   const [run] = await db
     .insert(valuationRuns)
     .values({
       companyId: options.companyId,
       engineVersion: result.engineVersion,
       assumptionsVersion: result.assumptionsVersion,
-      status: result.status === "completed" ? "completed" : "insufficient_data",
+      status: !numbersSane
+        ? "failed"
+        : result.status === "completed"
+          ? "completed"
+          : "insufficient_data",
       dataSufficiency: result.dataSufficiency,
       currency: result.status === "completed" ? result.currency : "USD",
-      valuationLow: result.status === "completed" ? String(result.low) : null,
-      valuationHigh: result.status === "completed" ? String(result.high) : null,
-      valuationMid: result.status === "completed" ? String(result.mid) : null,
-      confidence: result.status === "completed" ? result.confidence : null,
+      valuationLow: numbersSane && result.status === "completed" ? String(result.low) : null,
+      valuationHigh: numbersSane && result.status === "completed" ? String(result.high) : null,
+      valuationMid: numbersSane && result.status === "completed" ? String(result.mid) : null,
+      confidence: numbersSane && result.status === "completed" ? result.confidence : null,
       inputSnapshot: inputs,
       riskFlags: result.status === "completed" ? result.riskFlags : null,
       insufficiencyReasons:
@@ -82,14 +93,17 @@ export async function executeValuationRun(options: {
     })
     .returning();
 
+  const finiteOrNull = (v: number | undefined) =>
+    v !== undefined && Number.isFinite(v) ? String(Math.round(v)) : null;
+
   await db.insert(valuationComponents).values(
     result.components.map((c) => ({
       runId: run.id,
       componentKey: c.key,
       status: c.status,
-      valuationLow: c.low !== undefined ? String(Math.round(c.low)) : null,
-      valuationHigh: c.high !== undefined ? String(Math.round(c.high)) : null,
-      valuationMid: c.mid !== undefined ? String(Math.round(c.mid)) : null,
+      valuationLow: finiteOrNull(c.low),
+      valuationHigh: finiteOrNull(c.high),
+      valuationMid: finiteOrNull(c.mid),
       weight: String(c.weight),
       detail: c.detail,
     })),

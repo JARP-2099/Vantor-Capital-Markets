@@ -6,6 +6,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth";
@@ -83,6 +84,11 @@ export const verificationRequests = pgTable(
     index("verification_requests_company_idx").on(t.companyId, t.category, t.createdAt),
     index("verification_requests_status_idx").on(t.status),
     check("verification_requests_claim_not_empty", sql`length(trim(${t.claimSummary})) > 0`),
+    // DB backstop for the action-level "one open request per category" rule:
+    // concurrent submissions cannot both land in an open state.
+    uniqueIndex("verification_requests_one_open_per_category")
+      .on(t.companyId, t.category)
+      .where(sql`${t.status} IN ('pending', 'under_review')`),
   ],
 );
 

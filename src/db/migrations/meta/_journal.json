@@ -15,6 +15,13 @@
       "when": 1786840567319,
       "tag": "0001_volatile_millenium_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786842601342,
+      "tag": "0002_tiny_mentallo",
+      "breakpoints": true
     }
   ]
 }

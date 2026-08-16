@@ -83,6 +83,10 @@ export const valuationRuns = pgTable(
       sql`${t.valuationMid} IS NULL OR ((${t.valuationLow} IS NULL OR ${t.valuationMid} >= ${t.valuationLow}) AND (${t.valuationHigh} IS NULL OR ${t.valuationMid} <= ${t.valuationHigh}))`,
     ),
     check("valuation_runs_currency_format", sql`${t.currency} ~ '^[A-Z]{3}$'`),
+    check(
+      "valuation_runs_values_finite",
+      sql`(${t.valuationLow} IS NULL OR ${t.valuationLow} <> 'NaN'::numeric) AND (${t.valuationHigh} IS NULL OR ${t.valuationHigh} <> 'NaN'::numeric) AND (${t.valuationMid} IS NULL OR ${t.valuationMid} <> 'NaN'::numeric)`,
+    ),
   ],
 );
 

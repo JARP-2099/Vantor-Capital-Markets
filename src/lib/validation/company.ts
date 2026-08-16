@@ -111,8 +111,26 @@ export const metricEntrySchema = z
       m.value >= 0,
     { message: "This metric cannot be negative", path: ["value"] },
   )
+  .refine(
+    (m) =>
+      !["gross_margin", "top_customer_revenue_pct"].includes(m.metricType) ||
+      (m.value >= -100 && m.value <= 100),
+    { message: "Percentage must be between -100 and 100", path: ["value"] },
+  )
+  .refine(
+    (m) => m.metricType !== "top_customer_revenue_pct" || m.value >= 0,
+    { message: "Customer concentration cannot be negative", path: ["value"] },
+  )
+  .refine(
+    (m) => m.metricType !== "revenue_growth_yoy" || (m.value >= -100 && m.value <= 10000),
+    { message: "Growth must be between -100% and 10,000%", path: ["value"] },
+  )
   .refine((m) => new Date(m.asOf) <= new Date(), {
     message: "Metric date cannot be in the future",
+    path: ["asOf"],
+  })
+  .refine((m) => new Date(m.asOf) >= new Date("1900-01-01"), {
+    message: "Metric date is implausibly old",
     path: ["asOf"],
   });
 export type MetricEntryInput = z.infer<typeof metricEntrySchema>;

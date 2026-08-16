@@ -45,6 +45,18 @@ export type PublicVerificationSummary = {
   verifiedPct: number | null;
 };
 
+/** Statuses shown publicly per category. Negative outcomes (rejected,
+ * needs_update, expired) stay between the founder and Vantor — a public
+ * scarlet letter would deter verification attempts — but they STILL count
+ * in the percentage denominator, so hiding them can never inflate the
+ * headline number. */
+const PUBLICLY_LISTED_STATUSES: ReadonlySet<VerificationStatus> = new Set([
+  "verified",
+  "partially_verified",
+  "pending",
+  "under_review",
+]);
+
 /**
  * Public-safe verification summary. Partial verification counts as half a
  * category. "Not submitted" categories are excluded from the percentage so
@@ -55,19 +67,19 @@ export async function getPublicVerificationSummary(
   companyId: string,
 ): Promise<PublicVerificationSummary> {
   const byCategory = await getLatestRequestsByCategory(companyId);
-  const categories = [...byCategory.entries()].map(([category, row]) => ({
+  const all = [...byCategory.entries()].map(([category, row]) => ({
     category,
     status: row.status as VerificationStatus,
   }));
-  const submitted = categories.length;
-  const verifiedWeight = categories.reduce((s, c) => {
+  const submitted = all.length;
+  const verifiedWeight = all.reduce((s, c) => {
     if (c.status === "verified") return s + 1;
     if (c.status === "partially_verified") return s + 0.5;
     return s;
   }, 0);
   return {
-    categories,
-    verifiedCount: categories.filter((c) => c.status === "verified").length,
+    categories: all.filter((c) => PUBLICLY_LISTED_STATUSES.has(c.status)),
+    verifiedCount: all.filter((c) => c.status === "verified").length,
     submittedCount: submitted,
     verifiedPct: submitted === 0 ? null : Math.round((verifiedWeight / submitted) * 100),
   };

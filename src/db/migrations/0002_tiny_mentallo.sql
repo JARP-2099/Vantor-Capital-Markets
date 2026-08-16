@@ -1,0 +1,4 @@
+CREATE UNIQUE INDEX "verification_requests_one_open_per_category" ON "verification_requests" USING btree ("company_id","category") WHERE "verification_requests"."status" IN ('pending', 'under_review');--> statement-breakpoint
+ALTER TABLE "company_metrics" ADD CONSTRAINT "company_metrics_value_finite" CHECK ("company_metrics"."value" <> 'NaN'::numeric);--> statement-breakpoint
+ALTER TABLE "company_metrics" ADD CONSTRAINT "company_metrics_as_of_sane" CHECK ("company_metrics"."as_of" >= '1900-01-01');--> statement-breakpoint
+ALTER TABLE "valuation_runs" ADD CONSTRAINT "valuation_runs_values_finite" CHECK (("valuation_runs"."valuation_low" IS NULL OR "valuation_runs"."valuation_low" <> 'NaN'::numeric) AND ("valuation_runs"."valuation_high" IS NULL OR "valuation_runs"."valuation_high" <> 'NaN'::numeric) AND ("valuation_runs"."valuation_mid" IS NULL OR "valuation_runs"."valuation_mid" <> 'NaN'::numeric));

@@ -62,6 +62,19 @@ describe("verification summary math", () => {
     expect(summary.verifiedPct).toBe(50);
   });
 
+  it("hides negative outcomes from public rows but keeps them in the denominator", async () => {
+    const u = await createTestUser();
+    const c = await createTestCompany(u.id);
+    await addRequest(c.id, u.id, "founder_identity", "verified");
+    await addRequest(c.id, u.id, "revenue", "rejected");
+    const summary = await getPublicVerificationSummary(c.id);
+    // Rejected category is not listed publicly…
+    expect(summary.categories.map((x) => x.category)).toEqual(["founder_identity"]);
+    // …but still counts against the percentage: 1 verified of 2 submitted.
+    expect(summary.submittedCount).toBe(2);
+    expect(summary.verifiedPct).toBe(50);
+  });
+
   it("uses the LATEST request per category for status", async () => {
     const u = await createTestUser();
     const c = await createTestCompany(u.id);
