@@ -84,6 +84,7 @@ export const metricTypeEnum = pgEnum("metric_type", [
   "net_profit_annual",
   "gross_margin",
   "capital_raised_total",
+  "top_customer_revenue_pct",
 ]);
 
 export const companyMemberRoleEnum = pgEnum("company_member_role", ["founder", "team"]);
@@ -132,6 +133,9 @@ export const companies = pgTable(
 
     /** Marks seeded demo content so it can never mix silently with real data. */
     isDemo: boolean("is_demo").notNull().default(false),
+
+    /** Founder-controlled: render the Vantor estimate on the public profile. */
+    showPublicValuation: boolean("show_public_valuation").notNull().default(true),
 
     createdBy: text("created_by")
       .notNull()

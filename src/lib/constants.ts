@@ -127,6 +127,7 @@ export const METRIC_TYPES = [
   "net_profit_annual",
   "gross_margin",
   "capital_raised_total",
+  "top_customer_revenue_pct",
 ] as const;
 export type MetricType = (typeof METRIC_TYPES)[number];
 
@@ -142,6 +143,7 @@ export const METRIC_LABELS: Record<MetricType, string> = {
   net_profit_annual: "Net Profit (Annual)",
   gross_margin: "Gross Margin",
   capital_raised_total: "Capital Raised",
+  top_customer_revenue_pct: "Top Customer % of Revenue",
 };
 
 export const MONETARY_METRICS: ReadonlySet<MetricType> = new Set([
@@ -156,6 +158,7 @@ export const MONETARY_METRICS: ReadonlySet<MetricType> = new Set([
 export const PERCENT_METRICS: ReadonlySet<MetricType> = new Set([
   "revenue_growth_yoy",
   "gross_margin",
+  "top_customer_revenue_pct",
 ]);
 
 export const COMPANY_STATUSES = [

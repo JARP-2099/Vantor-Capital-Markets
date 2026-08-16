@@ -1,0 +1,112 @@
+import "server-only";
+import { desc, eq } from "drizzle-orm";
+import { db } from "@/db";
+import { valuationComponents, valuationRuns } from "@/db/schema";
+import { recordAudit } from "@/lib/audit";
+import { ENGINE_VERSION, runValuationEngine } from "./engine";
+import { assembleValuationInputs } from "./inputs";
+
+/**
+ * Valuation run orchestration. Callers are responsible for AUTHORIZATION
+ * (requireCompanyManager / requireAdmin) before invoking this service; the
+ * service is responsible for cooldown, computation, persistence, and audit.
+ * Runs are append-only: history is never overwritten.
+ */
+
+/** Minimum time between runs per company (abuse prevention). */
+export const RUN_COOLDOWN_MS = 10 * 60 * 1000;
+
+export class ValuationCooldownError extends Error {
+  constructor(public retryAfterMs: number) {
+    super("A valuation was generated very recently. Please try again shortly.");
+    this.name = "ValuationCooldownError";
+  }
+}
+
+export async function getLatestRun(companyId: string) {
+  const [run] = await db
+    .select()
+    .from(valuationRuns)
+    .where(eq(valuationRuns.companyId, companyId))
+    .orderBy(desc(valuationRuns.createdAt))
+    .limit(1);
+  return run ?? null;
+}
+
+export async function executeValuationRun(options: {
+  companyId: string;
+  requestedBy: string | null;
+  /** Admins bypass the cooldown. */
+  bypassCooldown?: boolean;
+  /** Injectable clock for tests. */
+  now?: Date;
+}) {
+  const now = options.now ?? new Date();
+
+  if (!options.bypassCooldown) {
+    const latest = await getLatestRun(options.companyId);
+    if (latest) {
+      const elapsed = now.getTime() - latest.createdAt.getTime();
+      if (elapsed < RUN_COOLDOWN_MS) {
+        throw new ValuationCooldownError(RUN_COOLDOWN_MS - elapsed);
+      }
+    }
+  }
+
+  const inputs = await assembleValuationInputs(options.companyId, now.toISOString().slice(0, 10));
+  if (!inputs) throw new Error("Company not found");
+
+  const result = runValuationEngine(inputs);
+
+  const [run] = await db
+    .insert(valuationRuns)
+    .values({
+      companyId: options.companyId,
+      engineVersion: result.engineVersion,
+      assumptionsVersion: result.assumptionsVersion,
+      status: result.status === "completed" ? "completed" : "insufficient_data",
+      dataSufficiency: result.dataSufficiency,
+      currency: result.status === "completed" ? result.currency : "USD",
+      valuationLow: result.status === "completed" ? String(result.low) : null,
+      valuationHigh: result.status === "completed" ? String(result.high) : null,
+      valuationMid: result.status === "completed" ? String(result.mid) : null,
+      confidence: result.status === "completed" ? result.confidence : null,
+      inputSnapshot: inputs,
+      riskFlags: result.status === "completed" ? result.riskFlags : null,
+      insufficiencyReasons:
+        result.status === "insufficient_data"
+          ? { reasons: result.reasons, hints: result.improvementHints }
+          : { hints: result.improvementHints },
+      requestedBy: options.requestedBy,
+      createdAt: now,
+    })
+    .returning();
+
+  await db.insert(valuationComponents).values(
+    result.components.map((c) => ({
+      runId: run.id,
+      componentKey: c.key,
+      status: c.status,
+      valuationLow: c.low !== undefined ? String(Math.round(c.low)) : null,
+      valuationHigh: c.high !== undefined ? String(Math.round(c.high)) : null,
+      valuationMid: c.mid !== undefined ? String(Math.round(c.mid)) : null,
+      weight: String(c.weight),
+      detail: c.detail,
+    })),
+  );
+
+  await recordAudit({
+    actorUserId: options.requestedBy,
+    action: "valuation.run",
+    entityType: "company",
+    entityId: options.companyId,
+    metadata: {
+      runId: run.id,
+      engineVersion: ENGINE_VERSION,
+      status: run.status,
+      dataSufficiency: run.dataSufficiency,
+    },
+  });
+
+  return { run, result };
+}

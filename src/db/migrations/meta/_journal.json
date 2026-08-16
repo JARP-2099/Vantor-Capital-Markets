@@ -8,6 +8,13 @@
       "when": 1786837268810,
       "tag": "0000_chief_nekra",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786840567319,
+      "tag": "0001_volatile_millenium_guard",
+      "breakpoints": true
     }
   ]
 }

@@ -315,6 +315,113 @@ async function main() {
     },
   ];
 
+  // Archetypes added for valuation-engine testing: pre-revenue, high-growth/
+  // high-burn/low-runway, and declining revenue with customer concentration.
+  demoCompanies.push(
+    {
+      name: "Verdant Materials",
+      slug: "verdant-materials",
+      shortDescription:
+        "Bio-based structural insulation panels for commercial construction.",
+      industry: "Climate & Energy",
+      subindustry: "Sustainable Materials",
+      stage: "pre_seed",
+      businessModel: "hardware",
+      hqCity: "Portland",
+      hqCountry: "United States",
+      foundedYear: 2025,
+      website: "https://example.com/verdant-materials",
+      intents: ["seeking_investment"],
+      story: {
+        problem:
+          "Commercial insulation is carbon-intensive, and green alternatives fail fire-rating requirements.",
+        solution:
+          "Mycelium-derived panels that meet commercial fire codes at cost parity with conventional foam.",
+        market: "Commercial construction insulation across North America and the EU.",
+        traction: "Two pilot installations underway with regional builders; pre-revenue.",
+        roadmap: "Fire certification completion and first production line in 2027.",
+      },
+      team: [
+        { name: "Elena Vasquez", role: "founder", title: "CEO", bio: "Materials engineer, ex-building-products R&D." },
+        { name: "Noah Kim", role: "founder", title: "CTO" },
+      ],
+      metrics: [
+        { metricType: "employees", value: "6", asOf: "2026-06-30" },
+        { metricType: "capital_raised_total", value: "1800000", currency: "USD", asOf: "2026-06-30" },
+        { metricType: "burn_monthly", value: "95000", currency: "USD", asOf: "2026-06-30" },
+        { metricType: "runway_months", value: "14", asOf: "2026-06-30" },
+      ],
+    },
+    {
+      name: "Helios Grid",
+      slug: "helios-grid",
+      shortDescription:
+        "AI-driven load forecasting for municipal utilities and co-ops.",
+      industry: "Artificial Intelligence",
+      subindustry: "Energy Software",
+      stage: "series_a",
+      businessModel: "subscription",
+      hqCity: "Denver",
+      hqCountry: "United States",
+      foundedYear: 2023,
+      website: "https://example.com/helios-grid",
+      intents: ["seeking_investment", "open_to_strategic_investment"],
+      story: {
+        problem:
+          "Small utilities overbuy peak capacity because their demand forecasts run on decade-old models.",
+        solution:
+          "Forecasting platform that cuts peak procurement costs with hour-ahead and season-ahead predictions.",
+        market: "Thousands of municipal utilities and rural co-ops in the U.S. alone.",
+        traction: "ARR tripled in twelve months across 44 utility customers.",
+        roadmap: "Wholesale market bidding module; expansion into ERCOT and MISO territories.",
+      },
+      team: [
+        { name: "Grace Okonkwo", role: "founder", title: "CEO" },
+        { name: "Pieter Jansen", role: "founder", title: "Chief Scientist" },
+      ],
+      metrics: [
+        { metricType: "arr", value: "2100000", currency: "USD", asOf: "2026-06-30" },
+        { metricType: "arr", value: "680000", currency: "USD", asOf: "2025-06-30" },
+        { metricType: "revenue_growth_yoy", value: "209", asOf: "2026-06-30" },
+        { metricType: "customers", value: "44", asOf: "2026-06-30" },
+        { metricType: "employees", value: "31", asOf: "2026-06-30" },
+        { metricType: "gross_margin", value: "61", asOf: "2026-06-30" },
+        { metricType: "burn_monthly", value: "450000", currency: "USD", asOf: "2026-06-30" },
+        { metricType: "runway_months", value: "7", asOf: "2026-06-30" },
+        { metricType: "capital_raised_total", value: "11000000", currency: "USD", asOf: "2026-06-30" },
+      ],
+    },
+    {
+      name: "Foundry Metrics",
+      slug: "foundry-metrics",
+      shortDescription:
+        "Production analytics for mid-size metal fabrication shops.",
+      industry: "Software",
+      subindustry: "Manufacturing Analytics",
+      stage: "seed",
+      businessModel: "subscription",
+      hqCity: "Sheffield",
+      hqCountry: "United Kingdom",
+      foundedYear: 2021,
+      website: "https://example.com/foundry-metrics",
+      intents: ["open_to_acquisition_offers"],
+      story: {
+        problem: "Fab shops lose margin to unmeasured machine downtime and rework.",
+        solution: "Shop-floor analytics with retrofit sensors and simple dashboards.",
+        traction:
+          "Revenue declined after losing a large anchor customer; remaining base is stable.",
+      },
+      team: [{ name: "Callum Price", role: "founder", title: "CEO" }],
+      metrics: [
+        { metricType: "arr", value: "900000", currency: "GBP", asOf: "2026-05-31" },
+        { metricType: "arr", value: "1100000", currency: "GBP", asOf: "2025-05-31" },
+        { metricType: "revenue_growth_yoy", value: "-18", asOf: "2026-05-31" },
+        { metricType: "top_customer_revenue_pct", value: "55", asOf: "2026-05-31" },
+        { metricType: "employees", value: "11", asOf: "2026-05-31" },
+      ],
+    },
+  );
+
   console.log("Seeding demo companies…");
   for (const demo of demoCompanies) {
     const existing = await db

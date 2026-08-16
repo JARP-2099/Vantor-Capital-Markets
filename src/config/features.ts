@@ -16,10 +16,10 @@ export const features = {
   secondaryMarketEnabled: false,
   /** Binding acquisition transactions. Phase 6+ (marketplace), Phase 9+ (transactions). */
   acquisitionTransactionsEnabled: false,
-  /** AI valuation engine. Phase 2 — architecture reserved, not built. */
-  valuationsEnabled: false,
-  /** Data verification engine. Phase 3 — architecture reserved, not built. */
-  verificationEnabled: false,
+  /** Vantor valuation engine V1 (deterministic estimates; Phase 2). */
+  valuationsEnabled: true,
+  /** Data verification foundation (Phase 3): categories, evidence, admin review. */
+  verificationEnabled: true,
   /** Investor watchlists. Schema exists; UI ships in Phase 4. */
   watchlistsEnabled: false,
 } as const;

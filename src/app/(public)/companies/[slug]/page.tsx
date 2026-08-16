@@ -11,6 +11,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { MetricStat } from "@/components/ui/metric-stat";
+import { ValuationSection } from "@/components/marketplace/valuation-section";
+import { VerificationSection } from "@/components/marketplace/verification-section";
 import {
   getCompanyIntents,
   getCompanyMembers,
@@ -18,6 +20,13 @@ import {
   getLatestMetrics,
   type CompanyMetricRow,
 } from "@/db/queries/companies";
+import {
+  getLatestCompletedValuationRun,
+  getValuationComponents,
+  getValuationHistory,
+} from "@/db/queries/valuations";
+import { getPublicVerificationSummary } from "@/db/queries/verifications";
+import { features } from "@/config/features";
 import { METRIC_LABELS, METRIC_TYPES, STAGE_LABELS } from "@/lib/constants";
 import { formatDate, formatMetricValue } from "@/lib/format";
 
@@ -77,12 +86,22 @@ export default async function CompanyProfilePage({ params }: { params: Params })
   const company = await getCompany(slug);
   if (!company) notFound();
 
-  const [metricsByCompany, intentsByCompany, members, metricHistory] = await Promise.all([
-    getLatestMetrics([company.id]),
-    getCompanyIntents([company.id]),
-    getCompanyMembers(company.id),
-    getCompanyMetricHistory(company.id),
-  ]);
+  const [metricsByCompany, intentsByCompany, members, metricHistory, valuationRun, verificationSummary] =
+    await Promise.all([
+      getLatestMetrics([company.id]),
+      getCompanyIntents([company.id]),
+      getCompanyMembers(company.id),
+      getCompanyMetricHistory(company.id),
+      features.valuationsEnabled && company.showPublicValuation
+        ? getLatestCompletedValuationRun(company.id)
+        : Promise.resolve(null),
+      features.verificationEnabled
+        ? getPublicVerificationSummary(company.id)
+        : Promise.resolve(null),
+    ]);
+  const [valuationComponents, valuationHistory] = valuationRun
+    ? await Promise.all([getValuationComponents(valuationRun.id), getValuationHistory(company.id)])
+    : [[], []];
   const byType = metricsByCompany.get(company.id);
   const intents = intentsByCompany.get(company.id) ?? [];
 
@@ -135,9 +154,14 @@ export default async function CompanyProfilePage({ params }: { params: Params })
 
   const hasTeam = members.length > 0;
 
+  const showVerification = Boolean(
+    verificationSummary && verificationSummary.submittedCount > 0,
+  );
   const navItems = [
     ...(hasOverview ? [{ href: "#overview", label: "Overview" }] : []),
     { href: "#financials", label: "Financials" },
+    ...(valuationRun ? [{ href: "#valuation", label: "Valuation" }] : []),
+    ...(showVerification ? [{ href: "#verification", label: "Verification" }] : []),
     ...(hasTeam ? [{ href: "#team", label: "Team" }] : []),
   ];
 
@@ -311,6 +335,34 @@ export default async function CompanyProfilePage({ params }: { params: Params })
             </div>
           )}
         </section>
+
+        {/* ----------------------------- Valuation ----------------------------- */}
+        {valuationRun ? (
+          <section id="valuation" aria-labelledby="valuation-heading" className="scroll-mt-32 pt-10">
+            <h2 id="valuation-heading" className="text-lg font-semibold text-ink-900">
+              Estimated Private Market Valuation
+            </h2>
+            <ValuationSection
+              run={valuationRun}
+              components={valuationComponents}
+              history={valuationHistory}
+            />
+          </section>
+        ) : null}
+
+        {/* ---------------------------- Verification --------------------------- */}
+        {showVerification && verificationSummary ? (
+          <section
+            id="verification"
+            aria-labelledby="verification-heading"
+            className="scroll-mt-32 pt-10"
+          >
+            <h2 id="verification-heading" className="text-lg font-semibold text-ink-900">
+              Data Verification
+            </h2>
+            <VerificationSection summary={verificationSummary} />
+          </section>
+        ) : null}
 
         {/* ------------------------------- Team ------------------------------- */}
         {hasTeam ? (

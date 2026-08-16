@@ -14,6 +14,8 @@ export function ManageNav({ companyId }: ManageNavProps) {
     { href: `${base}/profile`, label: "Profile" },
     { href: `${base}/metrics`, label: "Metrics" },
     { href: `${base}/team`, label: "Team" },
+    { href: `${base}/valuation`, label: "Valuation" },
+    { href: `${base}/verification`, label: "Verification" },
   ];
 
   return (

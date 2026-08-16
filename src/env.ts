@@ -7,6 +7,8 @@ import { z } from "zod";
  */
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
+  /** Per-instance connection pool size. Keep small on serverless (Vercel). */
+  DB_POOL_MAX: z.coerce.number().int().min(1).max(50).default(5),
   BETTER_AUTH_SECRET: z.string().min(16, "BETTER_AUTH_SECRET must be a strong secret"),
   BETTER_AUTH_URL: z.url().default("http://localhost:3000"),
   ADMIN_EMAILS: z.string().default(""),
