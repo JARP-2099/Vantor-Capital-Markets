@@ -17,6 +17,11 @@ type RevealProps = {
  * by default (no-JS and reduced-motion users see everything); when motion is
  * allowed, content starts translated/faded and transitions in the first time
  * it enters the viewport. Product data surfaces should not use this.
+ *
+ * The wrapper also exposes `data-reveal-state` so descendants can join the
+ * reveal with CSS hooks (globals.css): `.reveal-child` fades/rises with the
+ * wrapper (use inline `transitionDelay` to stagger) and `.reveal-bar` scales
+ * horizontally from zero — for range bars and completeness meters.
  */
 export function Reveal({ children, delay = 0, as: Tag = "div", className }: RevealProps) {
   const ref = useRef<HTMLElement | null>(null);
@@ -51,6 +56,7 @@ export function Reveal({ children, delay = 0, as: Tag = "div", className }: Reve
     <Tag
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ref={ref as any}
+      data-reveal-state={state}
       className={cn(
         "transition-[opacity,transform] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]",
         state === "hidden" && "translate-y-5 opacity-0",

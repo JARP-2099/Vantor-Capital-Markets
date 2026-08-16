@@ -153,6 +153,30 @@ body {
   background-size: 44px 44px;
 }
 
+/*
+ * Reveal hooks (see src/components/ui/reveal.tsx). Descendants of a Reveal
+ * wrapper can opt into the entrance: `.reveal-child` rises with the wrapper
+ * (stagger via inline transition-delay), `.reveal-bar` grows horizontally.
+ * With JS off or reduced motion, state stays "initial"/durations collapse —
+ * everything is simply visible.
+ */
+[data-reveal-state] .reveal-child {
+  transition:
+    opacity 0.6s var(--ease-swift),
+    transform 0.6s var(--ease-swift);
+}
+[data-reveal-state="hidden"] .reveal-child {
+  opacity: 0;
+  transform: translateY(12px);
+}
+[data-reveal-state] .reveal-bar {
+  transform-origin: left;
+  transition: transform 0.9s var(--ease-swift);
+}
+[data-reveal-state="hidden"] .reveal-bar {
+  transform: scaleX(0);
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
