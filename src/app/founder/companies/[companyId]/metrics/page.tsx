@@ -62,7 +62,7 @@ export default async function ManageMetricsPage({
             <div className="space-y-6">
               {[...grouped.entries()].map(([type, entries]) => (
                 <div key={type}>
-                  <h3 className="text-xs font-medium uppercase tracking-wider text-muted">
+                  <h3 className="text-xs font-medium text-faint">
                     {METRIC_LABELS[type]}
                   </h3>
                   <div className="mt-2 overflow-x-auto">

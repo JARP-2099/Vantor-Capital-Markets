@@ -70,7 +70,7 @@ export function TeamForm({ action, initial, submitLabel, disabled }: TeamFormPro
         <div className="rounded-lg border border-line bg-paper p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm font-semibold text-ink-900">{initial.creator?.name ?? "You"}</p>
-            <Badge tone="ink">Founder — you</Badge>
+            <Badge tone="ink">Founder (you)</Badge>
           </div>
           <p className="mt-1 text-xs text-muted">
             This is your own listing. It cannot be removed, but you can edit your title and bio.

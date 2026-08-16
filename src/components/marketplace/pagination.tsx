@@ -36,7 +36,7 @@ export function Pagination({ page, pageSize, total, hrefFor }: PaginationProps) 
       className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4"
     >
       <p className={cn("text-xs text-muted", "tabular-nums")}>
-        Showing {from.toLocaleString("en-US")}&ndash;{to.toLocaleString("en-US")} of{" "}
+        Showing {from.toLocaleString("en-US")} to {to.toLocaleString("en-US")} of{" "}
         {total.toLocaleString("en-US")}
       </p>
       {totalPages > 1 ? (

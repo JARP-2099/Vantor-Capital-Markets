@@ -13,7 +13,7 @@ export function IntentBadges({ intents }: { intents: readonly CompanyIntent[] })
     <ul className="flex flex-wrap items-center gap-1.5">
       {badges.map(({ intent, label }) => (
         <li key={intent}>
-          <Badge tone={intent === "not_raising" ? "neutral" : "accent"}>{label}</Badge>
+          <Badge tone="neutral">{label}</Badge>
         </li>
       ))}
     </ul>

@@ -61,7 +61,7 @@ export function IdentityForm({ action, initial, submitLabel, disabled }: Identit
         <Field
           label="Website"
           htmlFor="website"
-          hint="e.g. yourcompany.com — we'll add https:// for you"
+          hint="e.g. yourcompany.com. We'll add https:// for you."
           error={errors.website}
         >
           <Input
@@ -116,7 +116,7 @@ export function IdentityForm({ action, initial, submitLabel, disabled }: Identit
           <Field
             label="Subindustry"
             htmlFor="subindustry"
-            hint="Optional — e.g. Fraud detection"
+            hint="Optional, e.g. Fraud detection"
             error={errors.subindustry}
           >
             <Input
@@ -186,7 +186,7 @@ export function IdentityForm({ action, initial, submitLabel, disabled }: Identit
           label="Short description"
           htmlFor="shortDescription"
           required
-          hint="One clear sentence about what your company does (10–200 characters)."
+          hint="One clear sentence about what your company does (10 to 200 characters)."
           error={errors.shortDescription}
         >
           <Input

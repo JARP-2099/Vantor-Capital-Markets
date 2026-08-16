@@ -83,7 +83,7 @@ export function MetricsForm({ action, initial, submitLabel, disabled }: MetricsF
 
         {rows.length === 0 ? (
           <div className="rounded-lg border border-dashed border-line bg-paper px-5 py-8 text-center">
-            <p className="text-sm font-medium text-ink-900">No metrics yet — and that&apos;s okay.</p>
+            <p className="text-sm font-medium text-ink-900">No metrics yet.</p>
             <p className="mx-auto mt-1.5 max-w-md text-xs leading-relaxed text-muted">
               Pre-revenue or early? You can continue without metrics and add them any time. Even a
               team headcount helps investors understand where you are.

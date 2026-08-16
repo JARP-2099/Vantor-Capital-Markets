@@ -41,7 +41,7 @@ export function SubmitRequestForm({ action, blockedCategories }: SubmitRequestFo
           {VERIFICATION_CATEGORIES.map((category) => (
             <option key={category} value={category} disabled={blocked.has(category)}>
               {VERIFICATION_CATEGORY_LABELS[category]}
-              {blocked.has(category) ? " — awaiting review" : ""}
+              {blocked.has(category) ? " (awaiting review)" : ""}
             </option>
           ))}
         </Select>

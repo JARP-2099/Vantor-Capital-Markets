@@ -83,7 +83,7 @@ export function EvidenceFields({
       <Field
         label="Reference"
         htmlFor={referenceId}
-        hint="Link to a document location or provider — do not paste file contents."
+        hint="Link to a document location or provider. Do not paste file contents."
         error={referenceError}
       >
         <Input

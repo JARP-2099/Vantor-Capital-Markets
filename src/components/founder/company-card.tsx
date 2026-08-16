@@ -35,7 +35,7 @@ export function CompanyCard({ company, completionPercent }: CompanyCardProps) {
             className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-mist"
           >
             <div
-              className="h-full rounded-full bg-accent-500"
+              className="h-full rounded-full bg-slate-650"
               style={{ width: `${completionPercent}%` }}
             />
           </div>

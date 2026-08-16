@@ -10,7 +10,7 @@ export default async function OnboardingNewPage() {
       companyId={null}
       step={1}
       title="Tell us about your company"
-      description="The basics investors see first. Everything you enter is saved as a private draft — nothing is public until your profile is reviewed and published."
+      description="The basics investors see first. Everything you enter is saved as a private draft. Nothing is public until your profile is reviewed and published."
     >
       <IdentityForm action={createCompanyDraft} submitLabel="Create draft & continue" />
     </WizardShell>

@@ -33,8 +33,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="sticky top-0 z-40 border-b border-line bg-paper/95 backdrop-blur">
         <Container className="flex h-14 items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Logo href="/admin" />
-            <span className="rounded-sm bg-ink-900 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-widest text-white">
+            <Logo href="/admin" size="sm" markOnly />
+            <span className="rounded-sm bg-ink-900 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-widest text-canvas">
               Admin
             </span>
           </div>

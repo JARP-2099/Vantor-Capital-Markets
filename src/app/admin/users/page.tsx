@@ -9,10 +9,10 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { formatDate } from "@/lib/format";
 import type { PlatformRole } from "@/lib/authz";
 
-export const metadata: Metadata = { title: "Admin — Users" };
+export const metadata: Metadata = { title: "Admin · Users" };
 
 const thClass =
-  "px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-muted whitespace-nowrap";
+  "px-4 py-2.5 text-left text-xs font-medium text-faint whitespace-nowrap";
 const tdClass = "px-4 py-3 text-sm text-slate-650 whitespace-nowrap";
 
 const ROLE_TONES: Record<PlatformRole, "neutral" | "accent" | "positive" | "ink"> = {
@@ -101,7 +101,7 @@ export default async function AdminUsersPage() {
                   <td className={tdClass}>{account.email}</td>
                   <td className={tdClass}>
                     {account.roles.length === 0 ? (
-                      <span className="text-faint">—</span>
+                      <span className="text-faint">–</span>
                     ) : (
                       <span className="flex flex-wrap gap-1.5">
                         {account.roles.map((role) => (

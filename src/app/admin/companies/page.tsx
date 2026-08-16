@@ -9,7 +9,7 @@ import { Container } from "@/components/layout/container";
 import { cn } from "@/lib/cn";
 import { COMPANY_STATUSES, STATUS_LABELS, type CompanyStatus } from "@/lib/constants";
 
-export const metadata: Metadata = { title: "Admin — Companies" };
+export const metadata: Metadata = { title: "Admin · Companies" };
 
 function isCompanyStatus(value: string | undefined): value is CompanyStatus {
   return Boolean(value) && (COMPANY_STATUSES as readonly string[]).includes(value as string);
@@ -31,7 +31,7 @@ function FilterLink({
       className={cn(
         "rounded-full border px-3 py-1 text-sm font-medium transition-colors",
         active
-          ? "border-ink-900 bg-ink-900 text-white"
+          ? "border-line-strong bg-raised text-ink-900"
           : "border-line bg-paper text-slate-650 hover:border-faint hover:text-ink-900",
       )}
     >

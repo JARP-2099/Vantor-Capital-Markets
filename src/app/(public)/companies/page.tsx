@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/layout/container";
-import { CompanyCard } from "@/components/marketplace/company-card";
+import { CompanyTable, type CompanyListItem } from "@/components/marketplace/company-table";
 import { FilterBar, type MarketplaceFilterValues } from "@/components/marketplace/filter-bar";
 import { Pagination } from "@/components/marketplace/pagination";
 import { ButtonLink } from "@/components/ui/button";
@@ -12,6 +12,9 @@ import {
   getPublishedCompanies,
   type MarketplaceFilters,
 } from "@/db/queries/companies";
+import { getLatestCompletedValuationRuns } from "@/db/queries/valuations";
+import { getPublicVerificationPcts } from "@/db/queries/verifications";
+import { features } from "@/config/features";
 import {
   COMPANY_STAGES,
   PUBLIC_INTENT_BADGES,
@@ -22,7 +25,7 @@ import {
 export const metadata: Metadata = {
   title: "Discover Private Companies",
   description:
-    "Browse standardized profiles of private companies — story, metrics, and team — on Vantor.",
+    "Browse standardized profiles of private companies on Vantor: story, metrics, and team.",
 };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -64,12 +67,29 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Se
     getMarketplaceFilterOptions(),
   ]);
 
-  // Batched lookups for everything on this page — no per-card queries.
+  // Batched lookups for everything on this page — no per-row queries.
+  // Valuations are only fetched for companies that opted into public display.
   const companyIds = companies.map((c) => c.id);
-  const [metricsByCompany, intentsByCompany] = await Promise.all([
-    getLatestMetrics(companyIds),
-    getCompanyIntents(companyIds),
-  ]);
+  const valuationEligibleIds = features.valuationsEnabled
+    ? companies.filter((c) => c.showPublicValuation).map((c) => c.id)
+    : [];
+  const [metricsByCompany, intentsByCompany, valuationsByCompany, verificationPcts] =
+    await Promise.all([
+      getLatestMetrics(companyIds),
+      getCompanyIntents(companyIds),
+      getLatestCompletedValuationRuns(valuationEligibleIds),
+      features.verificationEnabled
+        ? getPublicVerificationPcts(companyIds)
+        : Promise.resolve(new Map<string, number>()),
+    ]);
+
+  const items: CompanyListItem[] = companies.map((company) => ({
+    company,
+    metrics: metricsByCompany.get(company.id),
+    intents: intentsByCompany.get(company.id) ?? [],
+    valuation: valuationsByCompany.get(company.id) ?? null,
+    verificationPct: verificationPcts.get(company.id) ?? null,
+  }));
 
   const filterValues: MarketplaceFilterValues = { q, industry, stage, country, intent };
 
@@ -89,18 +109,18 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Se
   const nothingPublished = total === 0 && activeCount === 0;
 
   return (
-    <Container className="py-10 sm:py-12">
+    <Container size="product" className="py-8 sm:py-10">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
+        <h1 className="text-2xl font-bold tracking-tight text-ink-900 sm:text-[28px]">
           Discover Private Companies
         </h1>
         <p className="mt-2 max-w-3xl text-xs leading-relaxed text-faint">
-          Company information is provided by the companies themselves and has not been
-          independently verified by Vantor.
+          Company information is provided by the companies themselves unless marked verified.
+          Valuations are Vantor model estimates, not traded prices.
         </p>
       </header>
 
-      <div className="mt-6">
+      <div className="mt-5">
         <FilterBar
           values={filterValues}
           industries={filterOptions.industries}
@@ -109,19 +129,10 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Se
         />
       </div>
 
-      <div className="mt-6 space-y-6">
-        {companies.length > 0 ? (
+      <div className="mt-5 space-y-5">
+        {items.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {companies.map((company) => (
-                <CompanyCard
-                  key={company.id}
-                  company={company}
-                  metrics={metricsByCompany.get(company.id)}
-                  intents={intentsByCompany.get(company.id) ?? []}
-                />
-              ))}
-            </div>
+            <CompanyTable items={items} />
             <Pagination page={page} pageSize={pageSize} total={total} hrefFor={hrefFor} />
           </>
         ) : nothingPublished ? (

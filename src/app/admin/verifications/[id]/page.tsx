@@ -19,7 +19,7 @@ import {
   type VerificationStatus,
 } from "@/lib/verification/constants";
 
-export const metadata: Metadata = { title: "Admin — Review Verification" };
+export const metadata: Metadata = { title: "Admin · Review Verification" };
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -74,7 +74,7 @@ export default async function AdminVerificationDetailPage({
             Verification request for{" "}
             <Link
               href={`/admin/companies/${company.id}`}
-              className="font-medium text-accent-600 hover:underline"
+              className="font-medium text-ink-900 underline decoration-line-strong underline-offset-2 hover:decoration-faint"
             >
               {company.name}
             </Link>
@@ -148,7 +148,7 @@ export default async function AdminVerificationDetailPage({
               <CardHeader>
                 <CardTitle>Internal notes</CardTitle>
                 <p className="mt-1 text-xs text-muted">
-                  Visible to admins only — never shown to the founder or the public.
+                  Visible to admins only. Never shown to the founder or the public.
                 </p>
               </CardHeader>
               <CardBody>

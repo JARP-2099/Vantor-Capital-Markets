@@ -175,7 +175,7 @@ export function ReviewActions({
               idPrefix="send-back"
               buttonLabel="Send back to founder"
               variant="secondary"
-              hint="Required — the founder sees these notes on their draft (10–2,000 characters)."
+              hint="Required. The founder sees these notes on their draft (10 to 2,000 characters)."
             />
           </div>
         </div>
@@ -197,7 +197,7 @@ export function ReviewActions({
               idPrefix="send-back"
               buttonLabel="Send back to founder"
               variant="secondary"
-              hint="Required — the founder sees these notes on their draft (10–2,000 characters)."
+              hint="Required. The founder sees these notes on their draft (10 to 2,000 characters)."
             />
           </div>
         </div>
@@ -216,7 +216,7 @@ export function ReviewActions({
               idPrefix="unpublish"
               buttonLabel="Confirm unpublish"
               variant="danger"
-              hint="Required — explain why the listing was taken down (10–2,000 characters)."
+              hint="Required. Explain why the listing was taken down (10 to 2,000 characters)."
             />
           </ConfirmDisclosure>
           <ConfirmDisclosure
@@ -237,7 +237,7 @@ export function ReviewActions({
       return (
         <div className="space-y-3">
           <p className="text-sm text-muted">
-            This company is in draft — waiting on the founder to submit it for review.
+            This company is a draft, waiting on the founder to submit it for review.
           </p>
           <ConfirmDisclosure
             summary="Archive…"

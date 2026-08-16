@@ -85,6 +85,47 @@ export async function getPublicVerificationSummary(
   };
 }
 
+/**
+ * Batch verified-percent for marketplace listings (no N+1). Same math as
+ * getPublicVerificationSummary — latest request per category, partial
+ * verification counts as half — but returns only the public-safe headline
+ * number per company. Companies with no submissions are absent from the map.
+ */
+export async function getPublicVerificationPcts(
+  companyIds: string[],
+): Promise<Map<string, number>> {
+  const result = new Map<string, number>();
+  if (companyIds.length === 0) return result;
+  const rows = await db
+    .select()
+    .from(verificationRequests)
+    .where(inArray(verificationRequests.companyId, companyIds))
+    .orderBy(desc(verificationRequests.createdAt));
+
+  // Latest request per (company, category); rows arrive newest-first.
+  const latest = new Map<string, Map<VerificationCategory, VerificationStatus>>();
+  for (const row of rows) {
+    let byCategory = latest.get(row.companyId);
+    if (!byCategory) {
+      byCategory = new Map();
+      latest.set(row.companyId, byCategory);
+    }
+    const cat = row.category as VerificationCategory;
+    if (!byCategory.has(cat)) byCategory.set(cat, row.status as VerificationStatus);
+  }
+
+  for (const [companyId, byCategory] of latest) {
+    const statuses = [...byCategory.values()];
+    const verifiedWeight = statuses.reduce((s, status) => {
+      if (status === "verified") return s + 1;
+      if (status === "partially_verified") return s + 0.5;
+      return s;
+    }, 0);
+    result.set(companyId, Math.round((verifiedWeight / statuses.length) * 100));
+  }
+  return result;
+}
+
 /** Founder view: full requests for a company (no internalNotes — strip!). */
 export async function getCompanyVerificationRequests(
   companyId: string,

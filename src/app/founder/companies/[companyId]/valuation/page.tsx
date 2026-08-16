@@ -60,7 +60,7 @@ function rangeDisplay(
   currency: string,
 ): string | null {
   if (low !== null && high !== null) {
-    return `${formatCompactCurrency(low, currency)} – ${formatCompactCurrency(high, currency)}`;
+    return `${formatCompactCurrency(low, currency)} to ${formatCompactCurrency(high, currency)}`;
   }
   if (mid !== null) return formatCompactCurrency(mid, currency);
   return null;
@@ -115,11 +115,11 @@ function BreakdownRow({ row, currency }: { row: ValuationComponentRow; currency:
       <div className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-sm font-medium text-ink-900">{label}</p>
-          <Badge tone="accent">Applied</Badge>
+          <Badge tone="neutral">Applied</Badge>
         </div>
         <p className="text-sm font-semibold text-ink-900 tabular-nums">
           {low !== null && high !== null
-            ? `${formatCompactCurrency(low, currency)} – ${formatCompactCurrency(high, currency)}`
+            ? `${formatCompactCurrency(low, currency)} to ${formatCompactCurrency(high, currency)}`
             : null}
           {weight !== null ? (
             <span className="ml-2 font-normal text-muted">{Math.round(weight * 100)}% weight</span>
@@ -144,7 +144,7 @@ function Disclaimer() {
   return (
     <p className="text-xs leading-relaxed text-faint">
       Vantor estimates are produced by a deterministic model from company-reported data. They are
-      estimates only — not an offer, valuation opinion, or investment advice. Actual transaction
+      estimates only. They are not an offer, valuation opinion, or investment advice. Actual transaction
       prices may differ materially.
     </p>
   );
@@ -183,7 +183,7 @@ export default async function ManageValuationPage({
             </p>
             <ul className="max-w-2xl list-disc space-y-1 pl-5 text-sm leading-relaxed text-slate-650">
               <li>An indicative value range and midpoint, built from up to four methodologies</li>
-              <li>A transparent breakdown of which models applied to your data — and why</li>
+              <li>A breakdown of which models applied to your data and why</li>
               <li>Risk adjustments and concrete hints for improving the estimate</li>
             </ul>
             <RefreshEstimateForm action={refreshAction} label="Generate estimate" />
@@ -408,12 +408,12 @@ export default async function ManageValuationPage({
           </p>
           <p>
             Baseline multiples and stage ranges are Vantor model assumptions chosen to be
-            conservative and internally consistent — they are not market data. The comparable
+            conservative and internally consistent. They are not market data. The comparable
             transactions model activates only when a legitimate comparables dataset exists.
           </p>
           <p>
-            Confidence measures confidence in the estimate itself — data completeness, model
-            agreement, and freshness — never the quality of your company as an investment.
+            Confidence measures the reliability of the estimate itself (data completeness, model
+            agreement, and freshness). It does not rate the quality of your company as an investment.
           </p>
         </CardBody>
       </Card>
@@ -445,7 +445,7 @@ function HistoryTable({ runs }: { runs: ValuationRunRow[] }) {
     <div className="overflow-x-auto">
       <table className="w-full min-w-[30rem] text-left text-sm">
         <thead>
-          <tr className="border-b border-line text-xs uppercase tracking-wider text-muted">
+          <tr className="border-b border-line text-xs font-medium text-faint">
             <th scope="col" className="py-2 pr-4 font-medium">
               Date
             </th>
@@ -472,14 +472,14 @@ function HistoryTable({ runs }: { runs: ValuationRunRow[] }) {
                 </td>
                 <td className="py-2.5 pr-4 font-medium text-ink-900 tabular-nums">
                   {low !== null && high !== null
-                    ? `${formatCompactCurrency(low, run.currency)} – ${formatCompactCurrency(high, run.currency)}`
-                    : "—"}
+                    ? `${formatCompactCurrency(low, run.currency)} to ${formatCompactCurrency(high, run.currency)}`
+                    : "–"}
                 </td>
                 <td className="py-2.5 pr-4 font-medium text-ink-900 tabular-nums">
-                  {mid !== null ? formatCompactCurrency(mid, run.currency) : "—"}
+                  {mid !== null ? formatCompactCurrency(mid, run.currency) : "–"}
                 </td>
                 <td className="py-2.5 text-muted tabular-nums">
-                  {run.confidence !== null ? `${run.confidence}%` : "—"}
+                  {run.confidence !== null ? `${run.confidence}%` : "–"}
                 </td>
               </tr>
             );

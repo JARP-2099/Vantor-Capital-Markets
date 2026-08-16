@@ -35,7 +35,7 @@ export default async function FounderDashboardPage() {
         {companies.length === 0 ? (
           <EmptyState
             title="You haven't listed a company yet"
-            description="Create a standardized profile — your story, your metrics, your team — and decide exactly what becomes public. It takes about ten minutes, and you can save a draft at any point."
+            description="Create a standardized profile with your story, metrics, and team, and decide exactly what becomes public. It takes about ten minutes, and you can save a draft at any point."
             action={<ButtonLink href="/founder/onboarding/new">List Your Company</ButtonLink>}
           />
         ) : (
