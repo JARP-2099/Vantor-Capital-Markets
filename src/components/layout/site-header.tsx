@@ -44,7 +44,9 @@ export async function SiteHeader() {
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
             <>
-              <span className="max-w-40 truncate text-sm text-muted" title={user.email}>
+              {/* Hidden below lg: with the full signed-in nav (Discover,
+                  Watchlist, Founder, Admin) the name no longer fits at 768. */}
+              <span className="hidden max-w-40 truncate text-sm text-muted lg:inline" title={user.email}>
                 {user.name}
               </span>
               <SignOutButton />

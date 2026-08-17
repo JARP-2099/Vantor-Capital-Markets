@@ -1,5 +1,24 @@
 import type { DiscoverySignal } from "@/lib/discovery/signals";
 
+const DEMO_EXPLANATION =
+  "Fictional demonstration company created by Vantor for testing. Not a real business.";
+
+/**
+ * Marks seeded fictional companies wherever they are publicly rendered so
+ * demo content can never be mistaken for a real listing.
+ */
+export function DemoChip() {
+  return (
+    <span
+      title={DEMO_EXPLANATION}
+      className="inline-flex items-center whitespace-nowrap rounded-full border border-warn-700/40 bg-warn-50 px-1.5 py-px text-[10px] font-medium text-warn-700"
+    >
+      Demo
+      <span className="sr-only">. {DEMO_EXPLANATION}</span>
+    </span>
+  );
+}
+
 /**
  * Factual discovery-signal chips ("New to Vantor", "Recently updated",
  * "Highly verified"). Quiet by design: these are context, not endorsements.

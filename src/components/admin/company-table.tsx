@@ -45,7 +45,9 @@ export function CompanyTable({ companies, emptyTitle, emptyDescription }: Compan
             <th scope="col" className={thClass}>
               Status
             </th>
-            <th scope="col" className={thClass}>
+            {/* relative: contains the absolute sr-only text so it cannot
+                widen the document beyond the scroll container */}
+            <th scope="col" className={`relative ${thClass}`}>
               <span className="sr-only">Actions</span>
             </th>
           </tr>

@@ -33,7 +33,10 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   return (
     <div className="flex justify-between gap-4 py-1.5">
       <dt className="shrink-0 text-sm text-muted">{label}</dt>
-      <dd className="min-w-0 text-right text-sm font-medium text-ink-900 break-words">
+      {/* overflow-wrap:anywhere (unlike break-word) also shrinks the flex
+          min-content width, so unbreakable ids/URLs wrap instead of forcing
+          the card wider than small screens. */}
+      <dd className="min-w-0 text-right text-sm font-medium text-ink-900 [overflow-wrap:anywhere]">
         {children}
       </dd>
     </div>
@@ -95,7 +98,7 @@ export default async function AdminCompanyReviewPage({
           {company.shortDescription ? (
             <p className="mt-1.5 max-w-2xl text-sm text-muted">{company.shortDescription}</p>
           ) : null}
-          <p className="mt-1 font-mono text-xs text-faint">
+          <p className="mt-1 font-mono text-xs text-faint [overflow-wrap:anywhere]">
             {company.slug} · {company.id}
           </p>
         </div>
@@ -108,8 +111,10 @@ export default async function AdminCompanyReviewPage({
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* ------------------------------------------------ Profile content */}
-        <div className="space-y-6 lg:col-span-2">
+        {/* min-w-0: grid items otherwise refuse to shrink below the metrics
+            table's min-width, overflowing the page on phones instead of
+            letting the table scroll inside its own container. */}
+        <div className="min-w-0 space-y-6 lg:col-span-2">
           <Card>
             <CardHeader>
               <CardTitle>Identity</CardTitle>
@@ -290,7 +295,7 @@ export default async function AdminCompanyReviewPage({
         </div>
 
         {/* ------------------------------------------------ Review sidebar */}
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Review actions</CardTitle>

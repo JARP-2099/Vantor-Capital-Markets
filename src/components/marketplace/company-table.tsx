@@ -6,7 +6,7 @@ import { STAGE_LABELS, type CompanyIntent, type MetricType } from "@/lib/constan
 import type { DiscoverySignal } from "@/lib/discovery/signals";
 import { formatCompactCurrency, formatDate } from "@/lib/format";
 import { pickGrowthMetric, pickPublicIntent, pickRevenueMetric } from "./metrics";
-import { SignalChips } from "./signal-chips";
+import { DemoChip, SignalChips } from "./signal-chips";
 import { SignInToSaveLink, WatchButton } from "./watch-button";
 
 /**
@@ -126,12 +126,15 @@ export function CompanyTable({ items, watch }: { items: CompanyListItem[]; watch
             {rows.map((row) => (
               <tr key={row.company.id} className="group transition-colors hover:bg-mist">
                 <td className="max-w-64 px-5 py-3.5">
-                  <Link
-                    href={`/companies/${row.company.slug}`}
-                    className="font-semibold text-ink-900 group-hover:text-ink-950"
-                  >
-                    {row.company.name}
-                  </Link>
+                  <span className="flex flex-wrap items-center gap-1.5">
+                    <Link
+                      href={`/companies/${row.company.slug}`}
+                      className="font-semibold text-ink-900 group-hover:text-ink-950"
+                    >
+                      {row.company.name}
+                    </Link>
+                    {row.company.isDemo ? <DemoChip /> : null}
+                  </span>
                   {row.signals.length > 0 ? (
                     <div className="mt-1">
                       <SignalChips signals={row.signals} />
@@ -187,6 +190,11 @@ export function CompanyTable({ items, watch }: { items: CompanyListItem[]; watch
                 <div className="min-w-0">
                   <p className={cn("truncate font-semibold text-ink-900", watch && "pr-8")}>
                     {row.company.name}
+                    {row.company.isDemo ? (
+                      <span className="ml-1.5 align-middle">
+                        <DemoChip />
+                      </span>
+                    ) : null}
                   </p>
                   <p className="mt-0.5 truncate text-xs text-muted">{row.industryStage}</p>
                   {row.savedAt ? (

@@ -30,5 +30,6 @@ await migrate(drizzle(client), { migrationsFolder: "./src/db/migrations" });
 // rows persisted by a previous run.
 await client`TRUNCATE TABLE "user", "session", "account", "verification",
   companies, company_intents, company_members, company_metrics,
-  funding_rounds, user_roles, watchlist_items, audit_log CASCADE`;
+  funding_rounds, user_roles, watchlist_items, audit_log,
+  feedback, product_events CASCADE`;
 await client.end();

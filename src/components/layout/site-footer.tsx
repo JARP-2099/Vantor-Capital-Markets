@@ -15,6 +15,9 @@ export function SiteFooter() {
             <Link href="/signup" className="hover:text-ink-900">
               List Your Company
             </Link>
+            <Link href="/feedback" className="hover:text-ink-900">
+              Beta Feedback
+            </Link>
           </nav>
         </div>
         <p className="mt-8 max-w-3xl text-xs leading-relaxed text-faint">

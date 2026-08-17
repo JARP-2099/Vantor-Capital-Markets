@@ -94,6 +94,25 @@ export async function getCompanyMembers(companyId: string): Promise<CompanyMembe
 /* -------------------------------------------------------------------------- */
 
 /**
+ * Whether fictional demo companies are hidden from public surfaces.
+ * Hidden on the Vercel PRODUCTION deployment (real investors must never
+ * mistake seeded fiction for a real business); visible in development and
+ * on Preview so the product can be demonstrated and tested.
+ * HIDE_DEMO_COMPANIES=true forces hiding anywhere (used by tests and
+ * available as an operational override).
+ */
+export function demoCompaniesHidden(): boolean {
+  return process.env.HIDE_DEMO_COMPANIES === "true" || process.env.VERCEL_ENV === "production";
+}
+
+/** WHERE conditions every public company read must satisfy. */
+function publicVisibilityConditions(): SQL[] {
+  const conditions: SQL[] = [eq(companies.status, "published")];
+  if (demoCompaniesHidden()) conditions.push(eq(companies.isDemo, false));
+  return conditions;
+}
+
+/**
  * Marketplace sort options. Every option orders by data that legitimately
  * exists; companies missing the sorted value go last (NULLS LAST), never
  * ranked by a fabricated zero. This whitelist is the server-side boundary
@@ -194,7 +213,7 @@ export async function getPublishedCompanies(filters: MarketplaceFilters = {}): P
   const page = Math.max(1, filters.page ?? 1);
   const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, filters.pageSize ?? DEFAULT_PAGE_SIZE));
 
-  const conditions: SQL[] = [eq(companies.status, "published")];
+  const conditions: SQL[] = publicVisibilityConditions();
 
   if (filters.industry) conditions.push(eq(companies.industry, filters.industry));
   if (filters.stage) conditions.push(eq(companies.stage, filters.stage));
@@ -238,7 +257,7 @@ export async function getPublishedCompanyBySlug(slug: string): Promise<CompanyRo
   const [row] = await db
     .select()
     .from(companies)
-    .where(and(eq(companies.slug, slug), eq(companies.status, "published")))
+    .where(and(eq(companies.slug, slug), ...publicVisibilityConditions()))
     .limit(1);
   return row ?? null;
 }
@@ -248,15 +267,10 @@ export async function getMarketplaceFilterOptions(): Promise<{
   industries: string[];
   countries: string[];
 }> {
+  const visible = and(...publicVisibilityConditions());
   const [industries, countries] = await Promise.all([
-    db
-      .selectDistinct({ v: companies.industry })
-      .from(companies)
-      .where(eq(companies.status, "published")),
-    db
-      .selectDistinct({ v: companies.hqCountry })
-      .from(companies)
-      .where(eq(companies.status, "published")),
+    db.selectDistinct({ v: companies.industry }).from(companies).where(visible),
+    db.selectDistinct({ v: companies.hqCountry }).from(companies).where(visible),
   ]);
   return {
     industries: industries.map((r) => r.v).filter((v): v is string => Boolean(v)).sort(),
@@ -299,6 +313,27 @@ export async function getCompaniesAwaitingReview(): Promise<CompanyRow[]> {
     .from(companies)
     .where(inArray(companies.status, ["submitted", "under_review"]))
     .orderBy(asc(companies.submittedAt));
+}
+
+/**
+ * Published companies whose content changed meaningfully after publication,
+ * newest edit first (admin oversight for live edits — published profiles are
+ * founder-editable without re-review, so this is the review surface).
+ * The 1-hour gap mirrors the "Recently updated" discovery signal: the
+ * publish itself and same-moment touches don't count as edits.
+ */
+export async function getRecentlyUpdatedPublishedCompanies(limit = 15): Promise<CompanyRow[]> {
+  return db
+    .select()
+    .from(companies)
+    .where(
+      and(
+        eq(companies.status, "published"),
+        sql`${companies.updatedAt} > ${companies.publishedAt} + interval '1 hour'`,
+      ),
+    )
+    .orderBy(desc(companies.updatedAt))
+    .limit(limit);
 }
 
 export async function getCompanyByIdUnscoped(id: string): Promise<CompanyRow | null> {

@@ -13,6 +13,7 @@ import postgres from "postgres";
 import { buildValuationInputs } from "../lib/valuation/assemble";
 import { runValuationEngine } from "../lib/valuation/engine";
 import * as schema from "./schema";
+import { checkSeedAllowed } from "./seed-guard";
 
 const {
   user,
@@ -28,17 +29,18 @@ const {
 } = schema;
 
 async function main() {
-  if (process.env.ALLOW_SEED !== "true") {
-    console.error("Refusing to seed: set ALLOW_SEED=true in the environment first.");
+  // All refusal rules live in seed-guard.ts (pure + unit-tested).
+  const decision = checkSeedAllowed({
+    allowSeed: process.env.ALLOW_SEED,
+    nodeEnv: process.env.NODE_ENV,
+    vercelEnv: process.env.VERCEL_ENV,
+    databaseUrl: process.env.DATABASE_URL,
+  });
+  if (!decision.allowed) {
+    console.error(`Refusing to seed: ${decision.reason}`);
     process.exit(1);
   }
-  // Second, independent guard: the seed creates a demo admin account with a
-  // password committed to a public repository. A leaked ALLOW_SEED=true must
-  // not be enough to plant it in production.
-  if (process.env.NODE_ENV === "production") {
-    console.error("Refusing to seed: NODE_ENV is production.");
-    process.exit(1);
-  }
+  console.log(`Seeding ${decision.targetDescription} with fictional demo data (isDemo=true)…`);
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not set");
 

@@ -67,7 +67,9 @@ export default async function AdminVerificationsPage() {
                 <th scope="col" className={thClass}>
                   Submitted
                 </th>
-                <th scope="col" className={thClass}>
+                {/* relative: contains the absolute sr-only text so it cannot
+                    widen the document beyond the scroll container */}
+                <th scope="col" className={`relative ${thClass}`}>
                   <span className="sr-only">Actions</span>
                 </th>
               </tr>

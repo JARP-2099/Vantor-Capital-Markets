@@ -1,6 +1,79 @@
-# VANTOR — Handoff (through Phase 3: Investor Experience)
+# VANTOR — Handoff (through Phase 3.5: Private Beta Readiness)
 
-## Latest session: Phase 3 — Investor Experience, Watchlists, Discovery Intelligence
+## Latest session: Phase 3.5 — Private Beta Readiness
+
+Branch: `claude/vantor-phase-3-investor-2mpd9m` (continues the Phase 3
+session). At session end: lint 0 problems, typecheck clean, **122/122
+tests** (107 baseline + 15 new), production build passing.
+
+### What shipped
+
+- **Demo vs real separation.** `demoCompaniesHidden()` in
+  `src/db/queries/companies.ts`: fictional `isDemo` companies are excluded
+  from every public read path (marketplace list, filter options, slug
+  lookup, watchlist saves and rendering) on the Vercel PRODUCTION
+  deployment (`VERCEL_ENV=production`; `HIDE_DEMO_COMPANIES=true` forces it
+  anywhere, used by tests). Where demo companies DO render (dev/Preview), a
+  visible amber "Demo" chip marks them on Discover rows, mobile cards, and
+  the profile header ("Demo company"), each with a plain-language
+  explanation. Admin surfaces already labeled demo rows.
+- **Seed safety.** Guard extracted to `src/db/seed-guard.ts` (pure,
+  unit-tested): requires ALLOW_SEED=true, refuses NODE_ENV=production,
+  refuses inside ANY Vercel runtime (preview included — seeding is a
+  dev-machine operation), validates DATABASE_URL, and prints the target
+  database/host before writing.
+- **Admin beta operations.** New "Recently edited published companies"
+  section on the admin dashboard (`getRecentlyUpdatedPublishedCompanies`:
+  published rows whose updated_at is >1h after published_at, newest first)
+  — the oversight surface for live founder edits, which go live without
+  re-review by design. Approve/send-back/unpublish/archive/restore already
+  existed with guarded transitions and required founder-facing notes.
+- **Founder clarity.** `METRIC_HELP` (src/lib/constants.ts): one-line
+  plain-language explanation for every metric type, shown live under the
+  metric selector; metrics form states the no-FX/one-currency rule.
+  Profile-completion checklist and submission gates already existed.
+- **Beta feedback.** `feedback` table (migration 0005) + `/feedback` page
+  (signed-in, role/page/message, 10/day per-user cap, DB CHECK bounds) +
+  `/admin/feedback` listing + footer "Beta Feedback" link.
+- **Usage signals.** `product_events` table (migration 0005, separate from
+  audit_log by design) + `recordProductEvent` (fire-and-forget, written via
+  `after()` so pages never block): `company.viewed` on profile views,
+  `discover.queried` on non-default Discover queries (booleans/counts only,
+  never query text). Admin dashboard shows 7-day profile-view and
+  discover-query counts. Signup/created/submitted/published/save funnel is
+  already answerable from audit_log.
+- **QA fixes.** Admin company detail page no longer overflows at 390px
+  (grid items got min-w-0; unbreakable ids/URLs wrap via
+  overflow-wrap:anywhere); admin verifications table sr-only header
+  contained (same fix as Phase 3's marketplace table); signed-in header
+  fits at 768px (account name hidden below lg).
+
+### Beta access decision (documented, not built)
+
+Signup remains open. The real gate is publication review: nothing a
+stranger creates becomes public without admin approval, and the beta URL
+is unannounced. An invite/allowlist system was deliberately not built for
+a 5–15 company beta. Revisit if signup abuse appears.
+
+### Known limitations flagged for beta
+
+- No email delivery (no password reset, no submission/review
+  notifications). Beta founders should be told review happens manually;
+  password resets require operator intervention. Smallest fix later: a
+  transactional email provider on 3 events (submission received, approved,
+  sent back).
+- Verification evidence remains references/descriptions only — founders
+  should NOT be pointed at uploading sensitive documents; the secure
+  document store is a later phase.
+- Monetary values are not FX-converted anywhere (sorting compares
+  numerically across currencies); forms now say so. Fine while beta
+  companies mostly share a currency.
+- Watchlist/feedback mutations rely on per-user caps and auth, not IP rate
+  limiting (auth endpoints ARE rate limited).
+
+---
+
+## Previous session: Phase 3 — Investor Experience, Watchlists, Discovery Intelligence
 
 Branch: `claude/vantor-phase-3-investor-2mpd9m` (based on the stabilization
 branch tip `4a94263`, which was never merged to the default branch — this

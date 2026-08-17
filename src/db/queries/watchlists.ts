@@ -2,7 +2,7 @@ import "server-only";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { companies, watchlistItems } from "@/db/schema";
-import type { CompanyRow } from "./companies";
+import { demoCompaniesHidden, type CompanyRow } from "./companies";
 
 /**
  * Watchlist persistence layer. Every function takes an explicit userId that
@@ -37,11 +37,14 @@ export async function saveCompanyToWatchlist(
   companyId: string,
 ): Promise<SaveResult> {
   const [company] = await db
-    .select({ id: companies.id, slug: companies.slug })
+    .select({ id: companies.id, slug: companies.slug, isDemo: companies.isDemo })
     .from(companies)
     .where(and(eq(companies.id, companyId), eq(companies.status, "published")))
     .limit(1);
   if (!company) return { saved: false, reason: "not_available" };
+  // Where demo companies are hidden from the marketplace they are also not
+  // saveable — same indistinguishable answer as a nonexistent id.
+  if (company.isDemo && demoCompaniesHidden()) return { saved: false, reason: "not_available" };
 
   await db
     .insert(watchlistItems)
@@ -107,9 +110,13 @@ export async function getWatchlistItems(userId: string): Promise<WatchlistItem[]
     .innerJoin(companies, eq(companies.id, watchlistItems.companyId))
     .where(eq(watchlistItems.userId, userId))
     .orderBy(desc(watchlistItems.createdAt), desc(watchlistItems.companyId));
+  const hideDemo = demoCompaniesHidden();
   return rows.map((row) => ({
     companyId: row.companyId,
     savedAt: row.savedAt,
-    company: row.company.status === "published" ? row.company : null,
+    company:
+      row.company.status === "published" && !(hideDemo && row.company.isDemo)
+        ? row.company
+        : null,
   }));
 }

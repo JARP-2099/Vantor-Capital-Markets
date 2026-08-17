@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { after } from "next/server";
 import { Container } from "@/components/layout/container";
+import { recordProductEvent } from "@/lib/product-events";
 import { CompanyTable, type CompanyListItem } from "@/components/marketplace/company-table";
 import {
   FilterBar,
@@ -89,6 +91,23 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Se
     getMarketplaceFilterOptions(),
     features.watchlistsEnabled ? getSessionUser() : Promise.resolve(null),
   ]);
+
+  // Beta usage signal for non-default queries only (a plain Discover visit
+  // is not a search). Booleans and counts, never the query text itself.
+  if (activeCount > 0 || sort !== DEFAULT_MARKETPLACE_SORT) {
+    after(() =>
+      recordProductEvent({
+        event: "discover.queried",
+        userId: user?.id ?? null,
+        metadata: {
+          hasSearch: Boolean(q),
+          filterCount: activeCount - (q ? 1 : 0),
+          sort,
+          results: total,
+        },
+      }),
+    );
+  }
 
   // Batched lookups for everything on this page — no per-row queries.
   // Valuations are only fetched for companies that opted into public display.

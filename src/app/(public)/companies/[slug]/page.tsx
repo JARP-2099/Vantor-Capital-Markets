@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
+import { recordProductEvent } from "@/lib/product-events";
 import { Container } from "@/components/layout/container";
 import { IntentBadges } from "@/components/marketplace/intent-badges";
 import {
@@ -90,6 +92,17 @@ export default async function CompanyProfilePage({ params }: { params: Params })
   if (!company) notFound();
 
   const sessionUser = features.watchlistsEnabled ? await getSessionUser() : null;
+
+  // Beta usage signal, written after the response so it can never slow or
+  // break the page.
+  after(() =>
+    recordProductEvent({
+      event: "company.viewed",
+      userId: sessionUser?.id ?? null,
+      entityId: company.id,
+      metadata: { demo: company.isDemo },
+    }),
+  );
   const [metricsByCompany, intentsByCompany, members, metricHistory, valuationRun, verificationSummary, watched] =
     await Promise.all([
       getLatestMetrics([company.id]),
@@ -226,8 +239,16 @@ export default async function CompanyProfilePage({ params }: { params: Params })
               ) : null}
             </div>
 
-            {(stageLabel || hq || company.foundedYear) && (
+            {(stageLabel || hq || company.foundedYear || company.isDemo) && (
               <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                {company.isDemo ? (
+                  <Badge
+                    tone="warn"
+                    title="Fictional demonstration company created by Vantor for testing. Not a real business."
+                  >
+                    Demo company
+                  </Badge>
+                ) : null}
                 {stageLabel ? <Badge tone="ink">{stageLabel}</Badge> : null}
                 {hq ? <Badge>{hq}</Badge> : null}
                 {company.foundedYear ? <Badge>Founded {company.foundedYear}</Badge> : null}

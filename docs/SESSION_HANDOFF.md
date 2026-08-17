@@ -1,8 +1,9 @@
-# Session Handoff — Phase 3 complete (start here in a new session)
+# Session Handoff — Phase 3.5 complete (start here in a new session)
 
 This file is the briefing for a fresh Claude Code session picking up the
-Vantor Capital Markets project after Phase 3 (Investor Experience +
-Watchlists + Discovery Intelligence). Read this first, then
+Vantor Capital Markets project after Phase 3.5 (Private Beta Readiness,
+on top of Phase 3 Investor Experience + Watchlists + Discovery
+Intelligence). Read this first, then
 `VANTOR_HANDOFF.md` (per-session detail) and `docs/DEPLOYMENT.md`
 (operational runbook) as needed.
 
@@ -28,7 +29,14 @@ run from a dev machine, never at serverless boot.
   branch carries all of it. Never push to other branches; never merge
   without Jack's say-so; never deploy over Production.
 - **Validation at head:** lint clean, typecheck clean (after a build —
-  see caveat below), 107/107 tests, production build passing.
+  see caveat below), 122/122 tests, production build passing.
+- **What Phase 3.5 added:** demo/real separation (Demo chips everywhere
+  demo companies render; demo hidden entirely on the production
+  deployment), unit-tested seed guard, admin "recently edited published
+  companies" view, metric help text + currency guidance, /feedback +
+  /admin/feedback, product_events usage counts on the admin dashboard,
+  mobile QA fixes. Beta access decision: open signup, publication review
+  is the gate (documented in VANTOR_HANDOFF.md).
 - **What Phase 3 added:** watchlists (schema was pre-staged; now live end
   to end), Discover sorting (5 whitelisted sorts incl. SQL-side latest
   revenue/growth/valuation), discovery signal chips (New to Vantor /
@@ -39,10 +47,11 @@ run from a dev machine, never at serverless boot.
 
 ## Manual provider-side steps — REQUIRED before/at Preview review
 
-1. **Apply migration 0004** (`0004_luxuriant_monster_badoon.sql`, one
-   additive index `companies_status_updated_at_idx`) to BOTH Railway
-   databases: `DATABASE_URL="<preview-url>?sslmode=require" pnpm db:migrate`
-   and again with the production URL. Safe, additive, no data movement.
+1. **Apply migrations 0004 + 0005** (`0004_…` index;
+   `0005_dusty_landau.sql` adds the `feedback` and `product_events` tables)
+   to BOTH Railway databases: `DATABASE_URL="<preview-url>?sslmode=require"
+   pnpm db:migrate` and again with the production URL. Both are additive,
+   no data movement.
 2. **Optionally reseed Preview** (`ALLOW_SEED=true pnpm db:seed` against
    the Preview DB) if you want the new demo verification requests and
    publish/update recency variance there. The seed skips existing rows
@@ -75,10 +84,10 @@ run from a dev machine, never at serverless boot.
 
 ## Where the next session probably goes
 
-Jack's decision, per the Phase 3 stop condition: (1) targeted Phase 3
-corrections after his review, (2) Phase 4 Company Intelligence, or
-(3) prepare initial private-beta exposure. Do not start regulated
-functionality or Valuation V2.
+Jack's decision: the product is beta-ready — recruit the first founders
+and investors, operate the beta through /admin, and let real usage decide
+what Phase 4 (Company Intelligence) should contain. Do not start
+regulated functionality or Valuation V2.
 
 ## Command reference
 
@@ -86,7 +95,7 @@ functionality or Valuation V2.
 pnpm install
 pnpm dev             # local dev
 pnpm lint && pnpm typecheck
-pnpm test            # 107 tests; needs TEST_DATABASE_URL
+pnpm test            # 122 tests; needs TEST_DATABASE_URL
 pnpm build           # production build (also generates next-env.d.ts)
 pnpm db:generate     # new migration from schema changes
 pnpm db:migrate      # apply migrations (DATABASE_URL)

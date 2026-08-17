@@ -146,6 +146,26 @@ export const METRIC_LABELS: Record<MetricType, string> = {
   top_customer_revenue_pct: "Top Customer % of Revenue",
 };
 
+/**
+ * One-line founder-facing explanations of each metric, shown as form hints.
+ * Plain language, no finance-textbook depth: enough that a founder who has
+ * never heard "ARR" enters the right number in the right unit.
+ */
+export const METRIC_HELP: Record<MetricType, string> = {
+  revenue_annual: "Total revenue for your last 12 months or last fiscal year.",
+  arr: "Annual Recurring Revenue: current subscription revenue, annualized. For subscription businesses.",
+  mrr: "Monthly Recurring Revenue: subscription revenue for a single month.",
+  revenue_growth_yoy: "Revenue change versus a year earlier, as a percent. Enter 25 for 25% growth.",
+  customers: "Number of paying customers as of the date entered.",
+  employees: "Current headcount, founders included.",
+  burn_monthly: "Net cash spent per month (expenses minus revenue). Enter a positive amount.",
+  runway_months: "Months of cash remaining at your current burn rate.",
+  net_profit_annual: "Profit after all expenses for the year. Negative if you operate at a loss.",
+  gross_margin: "Percent of revenue kept after direct costs of delivery. Enter 70 for 70%.",
+  capital_raised_total: "Total outside funding raised to date, across all rounds.",
+  top_customer_revenue_pct: "Share of revenue from your single largest customer. Enter 30 for 30%.",
+};
+
 export const MONETARY_METRICS: ReadonlySet<MetricType> = new Set([
   "revenue_annual",
   "arr",

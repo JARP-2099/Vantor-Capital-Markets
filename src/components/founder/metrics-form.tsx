@@ -12,6 +12,7 @@ import { Field } from "@/components/ui/field";
 import { Input, Select } from "@/components/ui/input";
 import type { FounderFormState } from "@/lib/actions/founder-company";
 import {
+  METRIC_HELP,
   METRIC_LABELS,
   METRIC_TYPES,
   MONETARY_METRICS,
@@ -81,6 +82,11 @@ export function MetricsForm({ action, initial, submitLabel, disabled }: MetricsF
       <fieldset disabled={disabled} className="space-y-5">
         <FormStateAlert state={state} />
 
+        <p className="text-xs leading-relaxed text-muted">
+          Report monetary values in your operating currency and keep every entry in the same
+          currency. Vantor does not convert between currencies.
+        </p>
+
         {rows.length === 0 ? (
           <div className="rounded-lg border border-dashed border-line bg-paper px-5 py-8 text-center">
             <p className="text-sm font-medium text-ink-900">No metrics yet.</p>
@@ -104,7 +110,12 @@ export function MetricsForm({ action, initial, submitLabel, disabled }: MetricsF
               return (
                 <li key={row.key} className="rounded-lg border border-line bg-paper p-4">
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <Field label="Metric" htmlFor={typeId} error={errors[`metrics.${i}.metricType`]}>
+                    <Field
+                      label="Metric"
+                      htmlFor={typeId}
+                      hint={METRIC_HELP[row.metricType]}
+                      error={errors[`metrics.${i}.metricType`]}
+                    >
                       <Select
                         id={typeId}
                         name={`metric_${i}_type`}
