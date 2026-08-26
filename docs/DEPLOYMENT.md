@@ -9,6 +9,30 @@ command you run or an exact dashboard setting.
 Related docs: `docs/SMOKE_TEST.md` (post-deploy verification),
 `docs/DIAGNOSTICS.md` (where to look when something fails).
 
+## 0. Verified live state (checked via Vercel/GitHub APIs, 2026-08-26)
+
+- Vercel project: `vantor-capital-markets` (`prj_V9C9S5jKpjb8uP4HEi2ZxElDfrh9`),
+  team JARP Holdings LLC (`team_Jgk5YrdxlbqbSJK7l7vhRVFC`), git-linked to
+  this repo. Node 24, framework nextjs.
+- Production deployment serves commit `32b2f9c` (pre-Phase-3) from
+  `claude/vantor-platform-foundation-uw0r8u` — the branch switch below is
+  what fixes this.
+- `main` (`d6904ec`) already **builds green on Vercel** as a preview:
+  alias `vantor-capital-markets-git-main-jarpholdingsllc.vercel.app`,
+  state READY, zero runtime errors project-wide in the trailing 7 days.
+- The remote database is reachable from BOTH production and preview
+  deployments and currently contains **no published companies at all** —
+  `/companies` renders the designed empty state on both. No demo
+  companies were ever seeded remotely; there is nothing to clean.
+- Deployment protection: Vercel Authentication (SSO), Standard Protection
+  — i.e. everything **except custom domains**. Consequence: attaching the
+  custom domain launches the site publicly on that domain while previews
+  and `*.vercel.app` URLs stay protected. No protection change is needed
+  for launch.
+- `vantorcapital.org` is registered but currently points at GoDaddy
+  parking (A 15.197.148.33 / 3.33.130.190); `www` has no record; the
+  domain is not attached to the Vercel project yet. See §2a.
+
 ---
 
 ## 1. GitHub
@@ -56,21 +80,33 @@ Confirm **"Automatically expose System Environment Variables"** is ON
 `VERCEL_BRANCH_URL` / `VERCEL_PROJECT_PRODUCTION_URL` (see
 `src/lib/auth-origins.ts`), and demo-company hiding reads `VERCEL_ENV`.
 
-Project → **Settings → Deployment Protection**:
-
-- While testing privately, Vercel Authentication (SSO) may be ON.
-- **Before inviting beta users, set "Vercel Authentication" to Disabled for
-  Production** (or add a custom domain, which bypasses it) — otherwise
-  invitees hit a Vercel login wall instead of Vantor.
+Project → **Settings → Deployment Protection**: leave as is. The current
+mode (Vercel Authentication, Standard Protection) already excludes custom
+domains, so launch happens by attaching the domain (§2a) — invitees use
+`https://vantorcapital.org`, previews stay SSO-protected. Only if you
+launch on the bare `.vercel.app` URL instead would you need to set
+"Vercel Authentication" to Disabled.
 
 Deploy procedure: push/merge to `main` → Vercel builds and promotes
 automatically. First production deploy after switching the branch: trigger
 via **Deployments → … → Redeploy** on the latest `main` commit if no new
 push happens.
 
-Custom domain (optional, later): add it under **Settings → Domains**, then
-change `BETTER_AUTH_URL` to the new origin and redeploy. Nothing else
-depends on the domain.
+## 2a. Custom domain — vantorcapital.org
+
+1. Vercel → project → **Settings → Domains → Add** → `vantorcapital.org`;
+   also add `www.vantorcapital.org` and choose "Redirect to
+   vantorcapital.org". Vercel then displays the exact DNS values it wants.
+2. GoDaddy → vantorcapital.org → DNS management (currently parked A
+   records — replace them):
+   - Delete the existing parking `A @` records.
+   - Add `A` record: name `@`, value `76.76.21.21` (or the value the
+     Vercel Domains screen shows, if different).
+   - Add `CNAME` record: name `www`, value `cname.vercel-dns.com`.
+3. Wait for Vercel's Domains screen to show both as Valid (minutes to an
+   hour, TTL-dependent).
+4. Set the Production env var `BETTER_AUTH_URL=https://vantorcapital.org`
+   and redeploy — auth origins must match the domain users visit.
 
 ---
 
@@ -297,8 +333,11 @@ migration 0003), shared across serverless instances.
    `pnpm db:status` shows "Up to date" (§3).
 5. Redeploy production from `main`; confirm the build succeeds.
 6. Sign up + `pnpm admin:grant` your admin account (§8).
-7. Verify zero demo companies (§7).
-8. Disable Vercel Deployment Protection for Production (§2).
-9. Run the full smoke test — `docs/SMOKE_TEST.md`.
+7. Verify zero demo companies (§7) — already verified true as of
+   2026-08-26 (§0); re-check only takes a minute.
+8. Attach `vantorcapital.org` (§2a) — this is what makes the site
+   publicly reachable; deployment protection stays untouched.
+9. Run the full smoke test — `docs/SMOKE_TEST.md` — against
+   `https://vantorcapital.org`.
 10. Publish 1–2 real companies before investor invitations so Discover is
     not empty.
