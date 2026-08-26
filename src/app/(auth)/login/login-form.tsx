@@ -74,7 +74,10 @@ export function LoginForm({ next }: { next?: string }) {
         </form>
         <p className="mt-4 text-center text-sm text-muted">
           New to Vantor?{" "}
-          <Link href="/signup" className="font-medium text-ink-900 underline decoration-line-strong underline-offset-2 hover:decoration-faint">
+          <Link
+            href={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"}
+            className="font-medium text-ink-900 underline decoration-line-strong underline-offset-2 hover:decoration-faint"
+          >
             Create an account
           </Link>
         </p>

@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
 
-export function SignupForm() {
+export function SignupForm({ next }: { next?: string }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -44,7 +44,10 @@ export function SignupForm() {
       );
       return;
     }
-    router.push("/founder");
+    // `next` is validated server-side in the page (same-site paths only), so
+    // a new investor who clicked "Sign in to save" returns to the company
+    // they were viewing instead of landing on the founder dashboard.
+    router.push(next ?? "/founder");
     router.refresh();
   }
 
@@ -84,7 +87,10 @@ export function SignupForm() {
         </form>
         <p className="mt-4 text-center text-sm text-muted">
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-ink-900 underline decoration-line-strong underline-offset-2 hover:decoration-faint">
+          <Link
+            href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}
+            className="font-medium text-ink-900 underline decoration-line-strong underline-offset-2 hover:decoration-faint"
+          >
             Sign in
           </Link>
         </p>

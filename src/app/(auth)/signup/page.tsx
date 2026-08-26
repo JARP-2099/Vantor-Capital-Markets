@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getSessionUser } from "@/lib/authz";
+import { safeNextPath } from "@/lib/safe-next-path";
 import { SignupForm } from "./signup-form";
 
 export const metadata: Metadata = {
@@ -6,6 +9,14 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-export default function SignupPage() {
-  return <SignupForm />;
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+export default async function SignupPage({ searchParams }: { searchParams: SearchParams }) {
+  const sp = await searchParams;
+  const next = safeNextPath(sp.next);
+  // Signed-in users have no business on the sign-up form; send them where
+  // they were headed (validated same-site path) or to the dashboard.
+  const user = await getSessionUser();
+  if (user) redirect(next ?? "/founder");
+  return <SignupForm next={next} />;
 }

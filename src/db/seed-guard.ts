@@ -11,7 +11,12 @@ export type SeedEnvironment = {
   nodeEnv: string | undefined;
   vercelEnv: string | undefined;
   databaseUrl: string | undefined;
+  /** Exact hostname the operator confirms as the intended remote target. */
+  allowSeedRemoteHost?: string | undefined;
 };
+
+/** Hosts that never need the explicit remote-host confirmation. */
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
 
 export type SeedDecision =
   | { allowed: true; targetDescription: string }
@@ -42,6 +47,22 @@ export function checkSeedAllowed(env: SeedEnvironment): SeedDecision {
     dbName = url.pathname.replace(/^\//, "") || dbName;
   } catch {
     return { allowed: false, reason: "DATABASE_URL is not a valid connection URL." };
+  }
+
+  // The rules above only inspect the operator's machine; this one inspects
+  // the target. A dev laptop that keeps the production DATABASE_URL in .env
+  // (the documented migration/grant-admin workflow) plus a leftover
+  // ALLOW_SEED=true must not be enough to plant demo companies and the
+  // known-password demo admin into a remote database. Seeding a non-local
+  // host requires naming that exact host in ALLOW_SEED_REMOTE_HOST.
+  if (!LOCAL_HOSTS.has(host) && env.allowSeedRemoteHost !== host) {
+    return {
+      allowed: false,
+      reason:
+        `DATABASE_URL points at remote host "${host}". Seeding plants fictional companies ` +
+        `and a demo admin account with a publicly known password. If this is intentional, ` +
+        `set ALLOW_SEED_REMOTE_HOST=${host} and run again.`,
+    };
   }
 
   return { allowed: true, targetDescription: `${dbName} on ${host}` };

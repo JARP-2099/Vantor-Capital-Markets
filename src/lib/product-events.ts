@@ -11,7 +11,7 @@ import { productEvents } from "@/db/schema";
  * actually use Discover, profiles, and search.
  */
 
-export type ProductEventName = "company.viewed" | "discover.queried";
+export type ProductEventName = "company.viewed" | "discover.queried" | "watchlist.viewed";
 
 export async function recordProductEvent(entry: {
   event: ProductEventName;

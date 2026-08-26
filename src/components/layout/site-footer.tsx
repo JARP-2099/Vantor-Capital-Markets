@@ -24,8 +24,10 @@ export function SiteFooter() {
           Vantor Capital Markets is not a registered broker-dealer, funding portal, securities
           exchange, alternative trading system, investment adviser, or custodian, and does not
           offer, sell, or facilitate transactions in securities. Company information on this
-          platform is provided by the companies themselves and has not been independently
-          verified. Nothing on this platform is investment advice or a recommendation.
+          platform is provided by the companies themselves and, except where a specific item is
+          explicitly marked as verified by Vantor&apos;s evidence review, has not been
+          independently verified. Nothing on this platform is investment advice or a
+          recommendation.
         </p>
       </Container>
     </footer>

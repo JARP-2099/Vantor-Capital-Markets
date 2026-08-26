@@ -35,6 +35,7 @@ async function main() {
     nodeEnv: process.env.NODE_ENV,
     vercelEnv: process.env.VERCEL_ENV,
     databaseUrl: process.env.DATABASE_URL,
+    allowSeedRemoteHost: process.env.ALLOW_SEED_REMOTE_HOST,
   });
   if (!decision.allowed) {
     console.error(`Refusing to seed: ${decision.reason}`);

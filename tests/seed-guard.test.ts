@@ -40,14 +40,39 @@ describe("seed guard", () => {
     expect(checkSeedAllowed({ ...DEV_OK, databaseUrl: "not a url" }).allowed).toBe(false);
   });
 
-  it("names the target database so the operator sees what they are seeding", () => {
-    const decision = checkSeedAllowed({
+  it("refuses a remote host unless it is explicitly confirmed by name", () => {
+    const remote = {
       ...DEV_OK,
       databaseUrl: "postgres://u:p@db.example.railway.app:5432/railway",
+    };
+    const denied = checkSeedAllowed(remote);
+    expect(denied.allowed).toBe(false);
+    if (!denied.allowed) {
+      expect(denied.reason).toContain("db.example.railway.app");
+      expect(denied.reason).toContain("ALLOW_SEED_REMOTE_HOST");
+    }
+    // Confirming a *different* host is not enough.
+    expect(
+      checkSeedAllowed({ ...remote, allowSeedRemoteHost: "other-host.example.com" }).allowed,
+    ).toBe(false);
+    // Naming the exact host unlocks it and the target is described.
+    const confirmed = checkSeedAllowed({
+      ...remote,
+      allowSeedRemoteHost: "db.example.railway.app",
     });
-    expect(decision.allowed).toBe(true);
-    if (decision.allowed) {
-      expect(decision.targetDescription).toBe("railway on db.example.railway.app");
+    expect(confirmed.allowed).toBe(true);
+    if (confirmed.allowed) {
+      expect(confirmed.targetDescription).toBe("railway on db.example.railway.app");
+    }
+  });
+
+  it("still allows local hosts without any remote-host confirmation", () => {
+    for (const host of ["localhost", "127.0.0.1"]) {
+      const decision = checkSeedAllowed({
+        ...DEV_OK,
+        databaseUrl: `postgres://u:p@${host}:5432/vantor_dev`,
+      });
+      expect(decision.allowed).toBe(true);
     }
   });
 });

@@ -79,7 +79,7 @@ export default function LandingPage() {
         <Container className="py-24">
           <SectionHeading
             title="Discover private companies"
-            body="Browse a marketplace of private companies with standardized data. Filter by industry, stage, revenue, growth, valuation, and verification."
+            body="Browse a marketplace of private companies with standardized data. Filter by industry, stage, and country; sort by revenue, growth, and estimated valuation."
           />
           <div className="mt-10 overflow-hidden rounded-xl border border-line bg-deep">
             <div className="overflow-x-auto">

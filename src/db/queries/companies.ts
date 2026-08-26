@@ -95,14 +95,23 @@ export async function getCompanyMembers(companyId: string): Promise<CompanyMembe
 
 /**
  * Whether fictional demo companies are hidden from public surfaces.
- * Hidden on the Vercel PRODUCTION deployment (real investors must never
- * mistake seeded fiction for a real business); visible in development and
- * on Preview so the product can be demonstrated and tested.
- * HIDE_DEMO_COMPANIES=true forces hiding anywhere (used by tests and
- * available as an operational override).
+ * Hidden on any production deployment (real investors must never mistake
+ * seeded fiction for a real business); visible in development and on Vercel
+ * Preview so the product can be demonstrated and tested. Vercel Preview
+ * builds run with NODE_ENV=production, so VERCEL_ENV — when present — is
+ * the more precise signal and wins; NODE_ENV is the fail-safe for
+ * non-Vercel production hosting, where no VERCEL_ENV exists.
+ * HIDE_DEMO_COMPANIES=true forces hiding anywhere and
+ * HIDE_DEMO_COMPANIES=false forces showing anywhere (explicit operational
+ * overrides; tests use the former).
  */
 export function demoCompaniesHidden(): boolean {
-  return process.env.HIDE_DEMO_COMPANIES === "true" || process.env.VERCEL_ENV === "production";
+  const override = process.env.HIDE_DEMO_COMPANIES;
+  if (override === "true") return true;
+  if (override === "false") return false;
+  const vercelEnv = process.env.VERCEL_ENV;
+  if (vercelEnv) return vercelEnv === "production";
+  return process.env.NODE_ENV === "production";
 }
 
 /** WHERE conditions every public company read must satisfy. */

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import { after } from "next/server";
 import { Container } from "@/components/layout/container";
 import { CompanyTable, type CompanyListItem } from "@/components/marketplace/company-table";
 import { WatchButton } from "@/components/marketplace/watch-button";
@@ -12,6 +13,7 @@ import { getWatchlistItems } from "@/db/queries/watchlists";
 import { features } from "@/config/features";
 import { getSessionUser } from "@/lib/authz";
 import { computeDiscoverySignals } from "@/lib/discovery/signals";
+import { recordProductEvent } from "@/lib/product-events";
 
 export const metadata: Metadata = {
   title: "Watchlist",
@@ -30,6 +32,16 @@ export default async function WatchlistPage() {
   if (!user) redirect(`/login?next=${encodeURIComponent("/watchlist")}`);
 
   const allItems = await getWatchlistItems(user.id);
+
+  // Beta usage signal (counts only, never which companies), written after
+  // the response so it can never slow or break the page.
+  after(() =>
+    recordProductEvent({
+      event: "watchlist.viewed",
+      userId: user.id,
+      metadata: { savedCount: allItems.length },
+    }),
+  );
   const available = allItems.filter(
     (item): item is typeof item & { company: NonNullable<(typeof item)["company"]> } =>
       item.company !== null,

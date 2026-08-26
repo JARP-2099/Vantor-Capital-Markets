@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getSessionUser } from "@/lib/authz";
+import { safeNextPath } from "@/lib/safe-next-path";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
@@ -8,20 +11,12 @@ export const metadata: Metadata = {
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-/**
- * Optional ?next= return path (e.g. sign-in-to-save flows). Validated here,
- * server-side: only same-site absolute paths pass — anything else (external
- * URLs, protocol-relative "//host", garbage) falls back to the default.
- */
-function safeNextPath(value: string | string[] | undefined): string | undefined {
-  const raw = Array.isArray(value) ? value[0] : value;
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//") || raw.includes("\\")) {
-    return undefined;
-  }
-  return raw;
-}
-
 export default async function LoginPage({ searchParams }: { searchParams: SearchParams }) {
   const sp = await searchParams;
-  return <LoginForm next={safeNextPath(sp.next)} />;
+  const next = safeNextPath(sp.next);
+  // Signed-in users have no business on the sign-in form; send them where
+  // they were headed (validated same-site path) or to the dashboard.
+  const user = await getSessionUser();
+  if (user) redirect(next ?? "/founder");
+  return <LoginForm next={next} />;
 }

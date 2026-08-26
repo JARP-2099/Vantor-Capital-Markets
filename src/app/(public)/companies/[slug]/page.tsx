@@ -93,16 +93,6 @@ export default async function CompanyProfilePage({ params }: { params: Params })
 
   const sessionUser = features.watchlistsEnabled ? await getSessionUser() : null;
 
-  // Beta usage signal, written after the response so it can never slow or
-  // break the page.
-  after(() =>
-    recordProductEvent({
-      event: "company.viewed",
-      userId: sessionUser?.id ?? null,
-      entityId: company.id,
-      metadata: { demo: company.isDemo },
-    }),
-  );
   const [metricsByCompany, intentsByCompany, members, metricHistory, valuationRun, verificationSummary, watched] =
     await Promise.all([
       getLatestMetrics([company.id]),
@@ -120,6 +110,22 @@ export default async function CompanyProfilePage({ params }: { params: Params })
   const [valuationComponents, valuationHistory] = valuationRun
     ? await Promise.all([getValuationComponents(valuationRun.id), getValuationHistory(company.id)])
     : [[], []];
+
+  // Beta usage signal, written after the response so it can never slow or
+  // break the page. The booleans record whether valuation/verification
+  // information was part of this view (nothing about their content).
+  after(() =>
+    recordProductEvent({
+      event: "company.viewed",
+      userId: sessionUser?.id ?? null,
+      entityId: company.id,
+      metadata: {
+        demo: company.isDemo,
+        valuationShown: Boolean(valuationRun),
+        verificationShown: Boolean(verificationSummary && verificationSummary.submittedCount > 0),
+      },
+    }),
+  );
   const byType = metricsByCompany.get(company.id);
   const intents = intentsByCompany.get(company.id) ?? [];
 

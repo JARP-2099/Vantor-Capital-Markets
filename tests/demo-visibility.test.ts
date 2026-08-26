@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { randomUUID } from "node:crypto";
 import {
   demoCompaniesHidden,
@@ -32,6 +32,33 @@ describe("demo company visibility", () => {
     expect(demoCompaniesHidden()).toBe(false);
     hideDemo();
     expect(demoCompaniesHidden()).toBe(true);
+  });
+
+  it("fails safe: hides demos on any production deployment, Vercel or not", () => {
+    const savedVercelEnv = process.env.VERCEL_ENV;
+    try {
+      // Non-Vercel production hosting: NODE_ENV alone must hide demos.
+      delete process.env.VERCEL_ENV;
+      vi.stubEnv("NODE_ENV", "production");
+      expect(demoCompaniesHidden()).toBe(true);
+      // Vercel Preview also builds with NODE_ENV=production but must keep
+      // demos visible — VERCEL_ENV is the more precise signal and wins.
+      process.env.VERCEL_ENV = "preview";
+      expect(demoCompaniesHidden()).toBe(false);
+      process.env.VERCEL_ENV = "production";
+      expect(demoCompaniesHidden()).toBe(true);
+      // Explicit overrides beat both signals in both directions.
+      process.env.HIDE_DEMO_COMPANIES = "false";
+      expect(demoCompaniesHidden()).toBe(false);
+      process.env.HIDE_DEMO_COMPANIES = "true";
+      process.env.VERCEL_ENV = "preview";
+      expect(demoCompaniesHidden()).toBe(true);
+    } finally {
+      // vi.unstubAllEnvs restores NODE_ENV; VERCEL_ENV was set directly.
+      vi.unstubAllEnvs();
+      if (savedVercelEnv === undefined) delete process.env.VERCEL_ENV;
+      else process.env.VERCEL_ENV = savedVercelEnv;
+    }
   });
 
   it("hides demo companies from the marketplace list and filter options when hidden", async () => {

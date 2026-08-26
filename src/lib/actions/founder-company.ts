@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, inArray, ne } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import type { z } from "zod";
 import { db } from "@/db";
@@ -97,6 +97,43 @@ function lockedMessage(status: CompanyStatus): string | null {
   if (status === "draft" || status === "published") return null;
   if (status === "archived") return "This company is archived and can no longer be edited.";
   return "This profile is locked while it is under review.";
+}
+
+const EDITABLE_STATUSES: CompanyStatus[] = ["draft", "published"];
+
+/** Drizzle transaction handle, as passed to db.transaction callbacks. */
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/** Thrown inside a write transaction to roll it back with a founder-facing message. */
+class ProfileLockedError extends Error {}
+
+/**
+ * Race-safe status re-check for write transactions. The lockedMessage()
+ * check above runs against a row loaded before validation; an admin
+ * transition (review started, archive) can land in between — most easily
+ * from a founder tab left open. Re-reading the status FOR UPDATE inside the
+ * transaction makes the lock authoritative at write time and serializes
+ * concurrent saves for the same company.
+ */
+async function lockEditableRow(tx: Tx, companyId: string): Promise<void> {
+  const [row] = await tx
+    .select({ status: companies.status })
+    .from(companies)
+    .where(eq(companies.id, companyId))
+    .for("update")
+    .limit(1);
+  const locked = row ? lockedMessage(row.status) : ACCESS_DENIED;
+  if (locked) throw new ProfileLockedError(locked);
+}
+
+/** Founder-facing message for a write that found the row no longer editable. */
+async function currentLockMessage(companyId: string): Promise<string> {
+  const [row] = await db
+    .select({ status: companies.status })
+    .from(companies)
+    .where(eq(companies.id, companyId))
+    .limit(1);
+  return (row && lockedMessage(row.status)) ?? CONCURRENT_SAVE_MESSAGE;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -245,10 +282,14 @@ export async function saveIdentity(
   const parsed = companyIdentitySchema.safeParse(readIdentity(formData));
   if (!parsed.success) return err(VALIDATION_MESSAGE, fieldErrorsOf(parsed.error));
 
-  await db
+  // Status re-checked in the WHERE so a review/archive transition that
+  // landed after the page loaded cannot be overwritten from a stale tab.
+  const updated = await db
     .update(companies)
     .set({ ...identityColumns(parsed.data), updatedAt: new Date() })
-    .where(eq(companies.id, companyId));
+    .where(and(eq(companies.id, companyId), inArray(companies.status, EDITABLE_STATUSES)))
+    .returning({ id: companies.id });
+  if (updated.length === 0) return err(await currentLockMessage(companyId));
 
   await recordAudit({
     actorUserId: ctx.user.id,
@@ -284,6 +325,7 @@ export async function saveGoals(
 
   try {
     await db.transaction(async (tx) => {
+      await lockEditableRow(tx, companyId);
       await tx.delete(companyIntents).where(eq(companyIntents.companyId, companyId));
       await tx
         .insert(companyIntents)
@@ -291,6 +333,7 @@ export async function saveGoals(
       await tx.update(companies).set({ updatedAt: new Date() }).where(eq(companies.id, companyId));
     });
   } catch (e) {
+    if (e instanceof ProfileLockedError) return err(e.message);
     // Two concurrent saves can interleave delete+insert; the PK turns the
     // race into a unique violation rather than corrupt data. Ask to retry.
     if (isUniqueViolation(e)) return err(CONCURRENT_SAVE_MESSAGE);
@@ -349,6 +392,7 @@ export async function saveMetrics(
 
   try {
     await db.transaction(async (tx) => {
+      await lockEditableRow(tx, companyId);
       await tx.delete(companyMetrics).where(eq(companyMetrics.companyId, companyId));
       if (parsed.data.metrics.length > 0) {
         await tx.insert(companyMetrics).values(
@@ -366,6 +410,7 @@ export async function saveMetrics(
       await tx.update(companies).set({ updatedAt: new Date() }).where(eq(companies.id, companyId));
     });
   } catch (e) {
+    if (e instanceof ProfileLockedError) return err(e.message);
     // Concurrent saves (double-click, second tab) interleave delete+insert;
     // the unique point constraint turns that into a 23505 instead of dupes.
     if (isUniqueViolation(e)) return err(CONCURRENT_SAVE_MESSAGE);
@@ -412,7 +457,8 @@ export async function saveStory(
   if (!parsed.success) return err(VALIDATION_MESSAGE, fieldErrorsOf(parsed.error));
 
   const d = parsed.data;
-  await db
+  // Status re-checked in the WHERE (see saveIdentity).
+  const updated = await db
     .update(companies)
     .set({
       problem: d.problem ?? null,
@@ -425,7 +471,9 @@ export async function saveStory(
       fullDescription: d.fullDescription ?? null,
       updatedAt: new Date(),
     })
-    .where(eq(companies.id, companyId));
+    .where(and(eq(companies.id, companyId), inArray(companies.status, EDITABLE_STATUSES)))
+    .returning({ id: companies.id });
+  if (updated.length === 0) return err(await currentLockMessage(companyId));
 
   await recordAudit({
     actorUserId: ctx.user.id,
@@ -488,6 +536,7 @@ export async function saveTeam(
 
   try {
     await db.transaction(async (tx) => {
+      await lockEditableRow(tx, companyId);
       if (creatorRow) {
       // Remove everything except the protected creator row, then refresh it.
       await tx
@@ -537,6 +586,7 @@ export async function saveTeam(
     await tx.update(companies).set({ updatedAt: new Date() }).where(eq(companies.id, companyId));
     });
   } catch (e) {
+    if (e instanceof ProfileLockedError) return err(e.message);
     // Interleaved concurrent saves trip the one-linked-user-per-company
     // partial unique index; surface a retry message instead of a 500.
     if (isUniqueViolation(e)) return err(CONCURRENT_SAVE_MESSAGE);

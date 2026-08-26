@@ -201,6 +201,8 @@ export async function sendBackToFounderAction(
     notesInMetadata: true,
     set: ({ admin, notes }) => ({
       status: "draft",
+      // A draft carries no submission timestamp: the pending cycle ended.
+      submittedAt: null,
       reviewNotes: notes,
       reviewedBy: admin.id,
     }),
@@ -223,6 +225,7 @@ export async function unpublishCompanyAction(
     set: ({ admin, notes }) => ({
       status: "draft",
       publishedAt: null,
+      submittedAt: null,
       reviewNotes: notes,
       reviewedBy: admin.id,
     }),
@@ -255,7 +258,10 @@ export async function restoreCompanyAction(
     from: ["archived"],
     to: "draft",
     auditAction: "company.restored",
-    set: () => ({ status: "draft", archivedAt: null }),
+    // Restoring lands on draft, so the row must not keep publish/submit
+    // timestamps from its pre-archive life (approve → archive → restore
+    // previously produced a draft with published_at still set).
+    set: () => ({ status: "draft", archivedAt: null, publishedAt: null, submittedAt: null }),
     successMessage: "Company restored to draft.",
   });
 }

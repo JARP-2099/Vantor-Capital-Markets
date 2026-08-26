@@ -1,12 +1,8 @@
-import { redirect } from "next/navigation";
 import { Logo } from "@/components/layout/logo";
-import { getSessionUser } from "@/lib/authz";
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
-  // Signed-in users have no business on the sign-in/sign-up forms; sending
-  // them to the dashboard avoids confusing double-login states.
-  const user = await getSessionUser();
-  if (user) redirect("/founder");
+  // Signed-in users are redirected away in the login/signup pages (not here:
+  // layouts cannot read searchParams, and the redirect must honor ?next=).
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-canvas px-4 py-12">
       <Logo className="mb-10" size="lg" stacked />
