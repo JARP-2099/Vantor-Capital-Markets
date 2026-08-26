@@ -22,7 +22,7 @@ function StatusExplanation({ status, slug }: { status: CompanyStatus; slug: stri
     return (
       <Alert tone="warn" title="Awaiting review">
         Your profile is with the Vantor review team. It is read-only until the review is complete.
-        We&apos;ll notify you as soon as there&apos;s a decision.
+        Reviews are handled personally during the beta — check back here for the decision.
       </Alert>
     );
   }
@@ -77,8 +77,9 @@ export default async function CompanyOverviewPage({
     <div className="space-y-6">
       {submitted === "1" && (status === "submitted" || status === "under_review") ? (
         <Alert tone="success" title="Submitted for review">
-          Your profile is now with the Vantor review team. We&apos;ll let you know when
-          it&apos;s approved{company.submittedAt ? ` (submitted ${formatDate(company.submittedAt)})` : ""}.
+          Your profile is now with the Vantor review team
+          {company.submittedAt ? ` (submitted ${formatDate(company.submittedAt)})` : ""}. Reviews are
+          handled personally during the beta — the decision will appear here on this page.
         </Alert>
       ) : null}
 
